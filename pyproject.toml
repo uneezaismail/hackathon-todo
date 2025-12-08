@@ -1,0 +1,40 @@
+[project]
+name = "hackathon-todo"
+version = "0.1.0"
+description = "Todo In-Memory Python Console App - Phase I of Evolution of Todo"
+requires-python = ">=3.13"
+dependencies = [
+    "rich>=13.7.0",
+    "typer>=0.12.0",
+]
+
+[project.scripts]
+todo = "src.app:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.8.0",
+]
+
+[tool.mypy]
+python_version = "3.13"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --strict-markers"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
