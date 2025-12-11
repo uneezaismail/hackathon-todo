@@ -49,3 +49,4 @@ Each ADR documents the context, decision, consequences (positive and negative), 
 - Graders run and results (PASS/FAIL): All ADRs follow proper format and include alternatives and consequences
 - Prompt variant (if applicable): Standard ADR creation workflow
 - Next experiment (smallest change to try): N/A
+

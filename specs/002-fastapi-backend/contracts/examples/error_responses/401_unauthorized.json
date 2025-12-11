@@ -1,0 +1,7 @@
+{
+  "data": null,
+  "error": {
+    "message": "Invalid token signature or expired",
+    "code": "UNAUTHORIZED"
+  }
+}

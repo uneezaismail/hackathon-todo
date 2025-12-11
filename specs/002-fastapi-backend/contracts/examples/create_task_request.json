@@ -1,0 +1,4 @@
+{
+  "title": "Deploy Phase II backend to production",
+  "description": "Complete FastAPI deployment with JWT authentication, database migrations, and monitoring setup. Verify all endpoints work correctly with Next.js frontend integration."
+}

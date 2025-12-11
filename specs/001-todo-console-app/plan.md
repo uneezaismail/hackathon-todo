@@ -280,30 +280,31 @@ Run these commands to document architectural decisions:
 - [x] `CLAUDE.md` (updated with tech stack)
 
 **Future Artifacts** (to be generated):
-- [ ] `specs/001-todo-console-app/tasks.md` (via `/sp.tasks`)
-- [ ] `history/adr/001-repository-pattern.md` (via `/sp.adr`)
-- [ ] `history/adr/002-typer-cli-framework.md` (via `/sp.adr`)
-- [ ] `history/adr/003-uv-package-manager.md` (via `/sp.adr`)
-- [ ] `history/prompts/001-todo-console-app/0002-*.plan.prompt.md` (this session's PHR)
+- [x] `specs/001-todo-console-app/tasks.md` (via `/sp.tasks`)
+- [x] `history/adr/001-repository-pattern.md` (via `/sp.adr`)
+- [x] `history/adr/002-typer-cli-framework.md` (via `/sp.adr`)
+- [x] `history/adr/003-uv-package-manager.md` (via `/sp.adr`)
+- [x] `history/prompts/001-todo-console-app/0002-*.plan.prompt.md` (this session's PHR)
 
 **Implementation Files** (to be generated via `/sp.implement`):
-- [ ] `src/models/task.py`
-- [ ] `src/models/enums.py`
-- [ ] `src/storage/repository.py`
-- [ ] `src/storage/in_memory.py`
-- [ ] `src/services/task_service.py`
-- [ ] `src/services/exceptions.py`
-- [ ] `src/ui/renderer.py`
-- [ ] `src/app.py`
-- [ ] `tests/unit/*` (6 test files)
-- [ ] `tests/integration/test_cli.py`
-- [ ] `tests/conftest.py`
-- [ ] `pyproject.toml`
-- [ ] `.python-version`
-- [ ] `README.md`
+- [x] `src/models/task.py`
+- [x] `src/models/enums.py`
+- [x] `src/storage/repository.py`
+- [x] `src/storage/in_memory.py`
+- [x] `src/services/task_service.py`
+- [x] `src/services/exceptions.py`
+- [x] `src/ui/renderer.py`
+- [x] `src/app.py`
+- [x] `tests/unit/*` (6 test files)
+- [x] `tests/integration/test_cli.py`
+- [x] `tests/conftest.py`
+- [x] `pyproject.toml`
+- [x] `.python-version`
+- [x] `README.md`
 
 ---
 
 **Plan Status**: ✅ COMPLETE
 **Date Completed**: 2025-12-07
 **Ready for**: `/sp.tasks` command execution
+

@@ -20,6 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+.mcp.json
 
 # Virtual environments
 .venv/
@@ -53,6 +54,9 @@ dmypy.json
 .env
 .env.local
 *.log
+.env.test 
+.env.example
+phase-1-todo-console
 
 # OS
 Thumbs.db

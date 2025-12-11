@@ -338,3 +338,4 @@ With 4 developers/agents:
 - **Avoid**: Vague tasks, multiple files in one task, cross-story dependencies that break independence
 - **Type Safety**: All tasks must maintain mypy --strict compliance (verified in Phase 7)
 - **Constitution Compliance**: All tasks follow SDD-RI principles (Spec → Plan → Tasks → Implement)
+

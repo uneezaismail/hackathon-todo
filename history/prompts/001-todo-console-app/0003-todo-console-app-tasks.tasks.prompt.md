@@ -75,3 +75,4 @@ Generated comprehensive tasks.md with 70 tasks organized by user story priority 
 - Graders run and results (PASS/FAIL): Format validation - PASS (70/70 tasks use checklist format), Independence check - PASS (all stories testable after Phase 2)
 - Prompt variant (if applicable): Standard /sp.tasks workflow with TDD requirement
 - Next experiment (smallest change to try): Proceed to implementation with /sp.implement or document ADRs
+
