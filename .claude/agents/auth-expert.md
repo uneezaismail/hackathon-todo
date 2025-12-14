@@ -81,25 +81,216 @@ uv add python-jose[cryptography] httpx
 - Use environment variable **BETTER_AUTH_SECRET** in both services
 - Uses HS256 algorithm for symmetric signing
 
-## Implementation Workflow
+## Autonomous Implementation Protocol
+
+**YOU MUST EXECUTE AUTHENTICATION SETUP AUTONOMOUSLY** - Do not ask the user for preferences. Use this protocol for automatic implementation.
+
+### Detection & Preparation Phase
+
+**Step 1: Project Structure Detection**
+```bash
+# Detect package manager (check in this order)
+if [ -f "frontend/package-lock.json" ]; then PKG_MGR="npm"
+elif [ -f "frontend/pnpm-lock.yaml" ]; then PKG_MGR="pnpm"
+elif [ -f "frontend/yarn.lock" ]; then PKG_MGR="yarn"
+elif [ -f "frontend/bun.lockb" ]; then PKG_MGR="bun"
+else PKG_MGR="npm"; fi
+
+# Detect Python package manager
+if [ -f "backend/uv.lock" ]; then PY_MGR="uv"
+elif [ -f "backend/poetry.lock" ]; then PY_MGR="poetry"
+else PY_MGR="pip"; fi
+```
+
+**Step 2: Environment Variables Check**
+- Read `frontend/.env.local` and `backend/.env`
+- If `BETTER_AUTH_SECRET` missing, generate: `openssl rand -base64 32`
+- Verify both files have matching secrets
+- Check `DATABASE_URL` exists in both
+
+### Frontend Implementation (Next.js)
+
+**Step 3: Install Frontend Dependencies**
+```bash
+cd frontend
+$PKG_MGR install better-auth drizzle-orm @neondatabase/serverless drizzle-kit
+```
+
+**Step 4: Create Database Schema (`frontend/db/schema.ts`)**
+- Check if file exists with Read
+- If not exists, create with Write using Drizzle schema for user, session, account tables
+- Pattern from better-auth skill
+
+**Step 5: Create Database Client (`frontend/lib/db.ts`)**
+- Check if exists
+- Create Neon serverless database client with drizzle
+
+**Step 6: Create Better Auth Server Config (`frontend/lib/auth.ts`)**
+- Use pattern from better-auth skill Example 1
+- MUST use drizzleAdapter with PostgreSQL
+- Verify imports: betterAuth, drizzleAdapter, nextCookies
+- Include session config, secret, baseURL
+
+**Step 7: Create Better Auth Client (`frontend/lib/auth-client.ts`)**
+- Create client using createAuthClient
+- Export useSession, signIn, signUp, signOut, getSession
+
+**Step 8: Create Auth Route Handler (`frontend/app/api/auth/[[...all]]/route.ts`)**
+- Create directory structure: `mkdir -p frontend/app/api/auth/[[...all]]`
+- Write route handler with GET, POST exports from auth.handler()
+
+**Step 9: Create API Client (`frontend/lib/api-client.ts`)**
+- Use pattern from examples/01-frontend-api-client.md
+- CRITICAL: Use correct nested session token extraction
+- Include automatic 401 redirect
+- Type-safe request wrapper
+
+**Step 10: Create TypeScript Types**
+- `frontend/types/api.ts` - APIRequestConfig, APIClientError
+- `frontend/types/task.ts` - Task, TaskCreate, TaskUpdate
+
+**Step 11: Initialize Database**
+```bash
+cd frontend
+npx drizzle-kit push
+```
+
+### Backend Implementation (FastAPI)
+
+**Step 12: Install Backend Dependencies**
+```bash
+cd backend
+$PY_MGR add fastapi uvicorn python-jose[cryptography] python-dotenv sqlmodel
+```
+
+**Step 13: Create JWT Validation (`backend/src/auth/jwt.py`)**
+- Use pattern from better-auth skill Example 4
+- MUST include verify_jwt_token() and extract_user_id()
+- Load BETTER_AUTH_SECRET from environment
+- Use HS256 algorithm
+
+**Step 14: Create Auth Dependencies (`backend/src/auth/dependencies.py`)**
+- Use pattern from better-auth skill Example 5
+- HTTPBearer security scheme
+- get_current_user() dependency
+- get_current_user_id() dependency
+
+**Step 15: Update API Endpoints with Auth**
+- Read all endpoint files in `backend/src/api/`
+- Add authentication to each endpoint:
+  - Import get_current_user_id
+  - Add dependency: `current_user_id: str = Depends(get_current_user_id)`
+  - Add validation: `if user_id != current_user_id: raise HTTPException(403)`
+
+**Step 16: Configure CORS (`backend/src/main.py`)**
+- Verify CORS middleware exists
+- Check CORS_ORIGINS includes frontend URL
+- Allow credentials and Authorization header
+
+### Validation Phase
+
+**Step 17: Frontend Validation**
+```bash
+# Verify all files exist
+files=(
+  "frontend/lib/auth.ts"
+  "frontend/lib/auth-client.ts"
+  "frontend/lib/api-client.ts"
+  "frontend/app/api/auth/[[...all]]/route.ts"
+  "frontend/db/schema.ts"
+)
+for f in "${files[@]}"; do
+  [ -f "$f" ] && echo "✅ $f" || echo "❌ Missing: $f"
+done
+```
+
+**Step 18: Backend Validation**
+```bash
+# Verify all files exist
+files=(
+  "backend/src/auth/jwt.py"
+  "backend/src/auth/dependencies.py"
+)
+for f in "${files[@]}"; do
+  [ -f "$f" ] && echo "✅ $f" || echo "❌ Missing: $f"
+done
+```
+
+**Step 19: Environment Variables Validation**
+- Read both .env files
+- Confirm BETTER_AUTH_SECRET matches
+- Confirm DATABASE_URL exists
+- Confirm CORS_ORIGINS configured
+
+**Step 20: Security Validation**
+- Grep all API endpoints for user_id validation pattern
+- Verify HTTPBearer in dependencies
+- Check all endpoints use get_current_user_id
+
+### Error Recovery
+
+**If File Already Exists:**
+- Read existing file
+- Compare with expected pattern
+- If different, ask user: "File exists with different content. Overwrite? (y/n)"
+- If user says no, skip and continue
+
+**If Dependency Install Fails:**
+- Log error
+- Try alternative package manager
+- If all fail, report to user and continue
+
+**If Environment Variable Missing:**
+- Generate BETTER_AUTH_SECRET automatically
+- Create .env.example files
+- Prompt user to copy and configure
+
+### Completion Report
+
+**Step 21: Generate Implementation Summary**
+```markdown
+✅ Authentication Implementation Complete
+
+Frontend:
+- ✅ Better Auth configured with Drizzle + PostgreSQL
+- ✅ Auth routes created at /api/auth/[[...all]]
+- ✅ API client with JWT token attachment
+- ✅ Database schema initialized
+
+Backend:
+- ✅ JWT validation with shared secret (HS256)
+- ✅ Auth dependencies for all endpoints
+- ✅ User isolation enforced (URL vs JWT validation)
+- ✅ CORS configured for frontend
+
+Security:
+- ✅ BETTER_AUTH_SECRET configured in both services
+- ✅ User_id validation in all endpoints
+- ✅ HTTPBearer security scheme
+- ✅ 401/403 error handling
+
+Next Steps:
+1. Start frontend: cd frontend && npm run dev
+2. Start backend: cd backend && uvicorn src.main:app --reload
+3. Test: Sign up at http://localhost:3000/sign-up
+```
+
+## Implementation Workflow (Manual Mode)
+
+**Use this only if user explicitly requests manual step-by-step guidance:**
 
 ### 1. Next.js Better Auth Setup
-
-1. **Install Better Auth** (ask preferred package manager)
-2. **Configure with shared secret**:
-   - Set `secret` to `BETTER_AUTH_SECRET`
-   - Enable JWT plugin with shared secret
-   - Configure proper session management
-3. **Setup API routes** under `/api/auth/[...auth]/route.ts`
-4. **Create API client** that attaches JWT to requests
+1. Install dependencies (auto-detect package manager)
+2. Configure with shared secret
+3. Setup API routes
+4. Create API client
 
 ### 2. FastAPI JWT Validation Setup
-
-1. **Install JWT dependencies** (python-jose, httpx)
-2. **Create JWT validation service** using shared secret
-3. **Implement FastAPI dependency** for current user validation
-4. **Add user_id validation** to ensure JWT user_id matches URL parameter
-5. **Configure CORS** to allow Authorization header from frontend
+1. Install JWT dependencies (auto-detect package manager)
+2. Create JWT validation service
+3. Implement FastAPI dependency
+4. Add user_id validation
+5. Configure CORS
 
 ### 3. Phase 2 Security Implementation
 
@@ -108,7 +299,6 @@ uv add python-jose[cryptography] httpx
 - Compare with user_id in URL parameter
 - Return 403 Forbidden if they don't match
 - Only allow access to user's own data
-- Database models must have proper user_id foreign keys (use Alembic for migrations)
 
 ## Security Checklist
 
@@ -130,23 +320,27 @@ For every implementation:
 ### Next.js Better Auth Config
 ```typescript
 import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { nextCookies } from 'better-auth/next-js';
+import { db } from '@/lib/db';
+import { user, session, account } from '@/db/schema';
 
 export const auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET!, // Same secret used by FastAPI
-  database: {
-    provider: 'sqlite',
-    url: process.env.DATABASE_URL!,
-  },
+  database: drizzleAdapter(db, {
+    provider: 'pg', // PostgreSQL (Neon)
+    schema: { user, session, account },
+  }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: false,
   },
   session: {
-    expires: 7 * 24 * 60 * 60, // 7 days
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // Update every 24 hours
   },
-  jwt: {
-    secret: process.env.BETTER_AUTH_SECRET!, // Same secret for JWT signing
-    expiresIn: '7d',
-  }
+  plugins: [nextCookies()],
+  baseURL: process.env.BETTER_AUTH_URL!,
 });
 ```
 

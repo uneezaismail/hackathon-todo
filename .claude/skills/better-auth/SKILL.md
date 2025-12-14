@@ -61,33 +61,64 @@ Use this skill when implementing authentication for the Todo application Phase 2
 ```typescript
 // lib/auth.ts
 import { betterAuth } from 'better-auth';
+import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { nextCookies } from 'better-auth/next-js';
+import { db } from '@/lib/db';
+import { user, session, account } from '@/db/schema';
 
 export const auth = betterAuth({
-  secret: process.env.BETTER_AUTH_SECRET!, // Same secret used by FastAPI
-  database: {
-    provider: 'sqlite',
-    url: process.env.DATABASE_URL!,
-  },
+  // Database adapter using Drizzle ORM for Neon PostgreSQL
+  database: drizzleAdapter(db, {
+    provider: 'pg',
+    schema: {
+      user,
+      session,
+      account, // Contains password field for email/password auth
+    },
+  }),
+
+  // Email and password authentication
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: false, // Phase 2: No email verification
   },
-  socialProviders: {
-    // Add providers as needed
-  },
+
+  // Session configuration
   session: {
-    expires: 7 * 24 * 60 * 60, // 7 days
-    updateAge: 24 * 60 * 60,   // Update every 24 hours
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // Update session every 24 hours
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 5, // 5 minutes
+    },
   },
-  cookies: {
-    domain: process.env.NODE_ENV === 'production' ? '.yourdomain.com' : undefined,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+
+  // Secret for signing tokens
+  secret: process.env.BETTER_AUTH_SECRET!,
+
+  // Base URL for auth routes
+  baseURL: process.env.BETTER_AUTH_URL!,
+
+  // Next.js integration plugin
+  plugins: [nextCookies()],
+
+  // Advanced options
+  advanced: {
+    // Use secure cookies in production
+    useSecureCookies: process.env.NODE_ENV === 'production',
+    cookiePrefix: 'better-auth',
+    defaultCookieAttributes: {
+      sameSite: 'lax',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
+    },
   },
-  // Enable JWT with shared secret
-  jwt: {
-    secret: process.env.BETTER_AUTH_SECRET!, // Same secret for JWT signing
-    expiresIn: '7d', // Token expiration
-  }
+
+  // Trust proxy headers (for deployment behind reverse proxies)
+  trustedOrigins: process.env.NEXT_PUBLIC_APP_URL
+    ? [process.env.NEXT_PUBLIC_APP_URL]
+    : [],
 });
 ```
 
@@ -110,13 +141,25 @@ class ApiClient {
 
   // Get JWT token from Better Auth session
   private async getAuthToken(): Promise<string | null> {
-    // This would use Better Auth client to get the JWT token
-    // Implementation depends on Better Auth client setup
-    const authState = await auth.client.getSession();
-    if (authState?.token) {
-      return authState.token;
+    try {
+      // Better Auth stores session with nested structure
+      const { getSession } = await import('@/lib/auth-client');
+      const sessionData = await getSession();
+
+      // Type-safe extraction of token from nested session data
+      if (sessionData && typeof sessionData === 'object' && 'data' in sessionData) {
+        const data = sessionData.data;
+        if (data && typeof data === 'object' && 'session' in data) {
+          const session = data.session as { token?: string } | null;
+          return session?.token || null;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Failed to get session token:', error);
+      return null;
     }
-    return null;
   }
 
   // Make authenticated API request

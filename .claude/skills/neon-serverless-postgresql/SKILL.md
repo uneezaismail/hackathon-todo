@@ -43,19 +43,19 @@ Use this skill when implementing Neon Serverless PostgreSQL integration for the 
 
 ### Example 1: Neon Serverless Connection Configuration
 ```python
-# backend/src/core/database.py
-from sqlmodel import create_engine
+# backend/src/core/database.py (or backend/src/db/session.py)
+from sqlmodel import create_engine, Session
 import os
 
-# Neon Serverless PostgreSQL connection string from project
-# Project ID: summer-bar-58332935
-# Database: neondb
-# Role: neondb_owner
-# Branch: br-polished-base-a47vynfg
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql://neondb_owner:npg_TSQ8nfG4PtZC@ep-mute-moon-a4ueuef7-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&application_name=todo-app"
-)
+# Neon Serverless PostgreSQL connection string
+# CRITICAL: Never hardcode credentials - always use environment variables
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is required")
+
+# Verify Neon connection string format
+if not DATABASE_URL.startswith("postgresql://"):
+    raise ValueError("DATABASE_URL must be a PostgreSQL connection string")
 
 # Create engine with Neon-specific configuration for serverless
 engine = create_engine(
@@ -68,10 +68,23 @@ engine = create_engine(
     connect_args={
         "sslmode": "require",           # Required for Neon
         "application_name": "todo-app", # Help with monitoring
-        "connect_timeout": 10,          # Connection timeout
+        "connect_timeout": 10,          # Connection timeout (10 seconds)
         "options": "-c statement_timeout=30000"  # 30 second statement timeout
     }
 )
+
+
+def get_session():
+    """
+    Dependency for getting database session in FastAPI endpoints.
+
+    Usage:
+        @app.get("/api/{user_id}/tasks")
+        async def list_tasks(session: Session = Depends(get_session)):
+            # Use session here
+    """
+    with Session(engine) as session:
+        yield session
 ```
 
 ### Example 2: Database Model for Better Auth Integration
@@ -115,97 +128,182 @@ class TaskResponse(TaskBase):
     updated_at: datetime
 ```
 
-### Example 3: JWT Validation Dependency
+### Example 3: JWT Validation Dependency (Shared Secret Approach - Phase 2)
 ```python
-# backend/src/api/deps.py
-from fastapi import Depends, HTTPException, status, Request
+# backend/src/auth/dependencies.py
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Dict, Any
+from .jwt import verify_jwt_token, extract_user_id
 import logging
 
 logger = logging.getLogger(__name__)
 
-async def get_user_id_from_token(request: Request) -> str:
-    """Dependency to extract user_id from JWT token in Authorization header"""
-    auth_header = request.headers.get("Authorization")
-    if not auth_header or not auth_header.startswith("Bearer "):
-        logger.error("Missing or invalid authorization header")
+# HTTPBearer security scheme for Authorization header
+security = HTTPBearer(
+    scheme_name="BearerAuth",
+    description="JWT token from Better Auth (Next.js)",
+    auto_error=True  # Automatically raise 401 if Authorization header is missing
+)
+
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
+) -> Dict[str, Any]:
+    """
+    FastAPI dependency to get current user from JWT token.
+
+    Validates JWT token using shared BETTER_AUTH_SECRET from Better Auth (Next.js).
+    Uses HS256 algorithm for symmetric signature verification.
+
+    Args:
+        credentials: HTTPAuthorizationCredentials from HTTPBearer security scheme
+
+    Returns:
+        Dict[str, Any]: Decoded JWT payload containing user information
+
+    Raises:
+        HTTPException 401: If token is missing, invalid, or expired
+    """
+    try:
+        # Extract token from credentials
+        token = credentials.credentials
+
+        # Verify JWT signature using shared secret and decode payload
+        payload = verify_jwt_token(token)
+
+        logger.info(f"Successfully authenticated user: {payload.get('sub')}")
+        return payload
+
+    except ValueError as e:
+        # Token validation failed (invalid, expired, missing claims)
+        logger.error(f"Token validation failed: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing or invalid authorization header"
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except Exception as e:
+        # Unexpected error during token validation
+        logger.error(f"Unexpected auth error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
-    token = auth_header.split(" ", 1)[1]
+
+def get_current_user_id(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+) -> str:
+    """
+    Extract user_id from current user JWT claims.
+
+    CRITICAL: All endpoints MUST validate that this user_id matches the user_id
+    in the URL path to ensure proper user data isolation.
+
+    Args:
+        current_user: Decoded JWT payload from get_current_user dependency
+
+    Returns:
+        str: User ID from 'sub' claim
+
+    Raises:
+        HTTPException 401: If 'sub' claim is missing or invalid
+
+    Example usage in endpoint:
+        @app.get("/api/{user_id}/tasks")
+        async def list_tasks(
+            user_id: str,
+            current_user_id: str = Depends(get_current_user_id)
+        ):
+            # CRITICAL: Validate user_id matches token
+            if user_id != current_user_id:
+                raise HTTPException(403, "Not authorized")
+            # ... endpoint logic
+    """
     try:
-        # Verify the JWT using the JWKS endpoint from Next.js
-        # This should validate the token and extract user_id
-        # Implementation details would depend on your specific JWT validation setup
-        user_data = await verify_jwt(token)  # This function should be implemented elsewhere
-        user_id = user_data.get("sub")  # User ID is typically in 'sub' field
-
-        if not user_id:
-            logger.error("Invalid token: no user_id found in claims")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: no user_id found"
-            )
-
-        logger.info(f"Successfully authenticated user: {user_id}")
+        user_id = extract_user_id(current_user)
         return user_id
-    except Exception as e:
-        logger.error(f"Invalid token: {str(e)}")
+
+    except ValueError as e:
+        # Missing or invalid user_id in token
+        logger.error(f"Failed to extract user_id: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {str(e)}"
+            detail=str(e),
+            headers={"WWW-Authenticate": "Bearer"},
         )
 ```
 
 ### Example 4: Secure API Endpoint with User Validation
 ```python
-# backend/src/api/v1/endpoints/tasks.py
+# backend/src/api/v1/tasks.py
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from typing import List
 from sqlmodel import Session
-from ...models.task import TaskResponse, TaskCreate, TaskUpdate
+from typing import Optional
+from uuid import UUID
+
+from ...db.session import get_session
+from ...auth.dependencies import get_current_user_id
+from ...schemas.task import TaskCreate, TaskResponse, TaskUpdate
 from ...services.task_service import TaskService
-from ..deps import get_user_id_from_token, get_session
 import logging
 
 # Set up logging for API operations
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(prefix="/api/{user_id}/tasks", tags=["tasks"])
 
-@router.get("/{user_id}/tasks", response_model=List[TaskResponse])
+
+@router.get("", response_model=list[TaskResponse])
 async def list_tasks(
     user_id: str,
-    current_user_id: str = Depends(get_user_id_from_token),  # JWT-based user validation
-    completed: bool = Query(None, description="Filter by completion status"),
+    current_user_id: str = Depends(get_current_user_id),  # JWT-based user validation
+    completed: Optional[bool] = Query(None, description="Filter by completion status"),
     limit: int = Query(50, ge=1, le=100, description="Number of tasks to return"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
     session: Session = Depends(get_session)
 ):
     """
-    List all tasks for the authenticated user with optional filtering
-    Phase 2 Security: Validates that URL user_id matches JWT user_id
+    List all tasks for the authenticated user with optional filtering.
+
+    Phase 2 Security: Validates that URL user_id matches JWT user_id.
+    Users can ONLY see their own tasks.
+
+    Returns:
+        List of tasks with pagination
+
+    Raises:
+        HTTPException 401: If JWT token is missing or invalid
+        HTTPException 403: If URL user_id does not match token user_id
     """
     # CRITICAL: Validate that the user_id in URL matches the authenticated user from JWT
     if user_id != current_user_id:
-        logger.warning(f"Unauthorized access attempt: user {current_user_id} tried to access tasks for user {user_id}")
+        logger.warning(
+            f"Unauthorized access attempt: user {current_user_id} "
+            f"tried to access tasks for user {user_id}"
+        )
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to access these tasks"
+            detail="Not authorized to access this resource"
         )
 
-    logger.info(f"User {current_user_id} requesting tasks (limit={limit}, offset={offset})")
-    tasks = TaskService.get_tasks_by_user(
+    logger.info(
+        f"User {current_user_id} requesting tasks "
+        f"(completed={completed}, limit={limit}, offset={offset})"
+    )
+
+    # Get tasks with user_id filter enforced
+    tasks, total = TaskService.get_user_tasks(
         session=session,
-        user_id=user_id,
+        user_id=current_user_id,
         completed=completed,
         limit=limit,
         offset=offset
     )
 
-    logger.info(f"Returning {len(tasks)} tasks for user {current_user_id}")
+    logger.info(f"Returning {len(tasks)} tasks (total: {total}) for user {current_user_id}")
     return tasks
 ```
 

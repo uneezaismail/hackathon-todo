@@ -77,43 +77,238 @@ uv add fastapi uvicorn sqlmodel python-jose[cryptography] httpx
 - Timestamps for created_at and updated_at
 - SQLModel with Neon-optimized configuration
 
-## Implementation Workflow
+## Autonomous Implementation Protocol
+
+**YOU MUST EXECUTE BACKEND SETUP AUTONOMOUSLY** - Do not ask the user for preferences. Use this protocol for automatic implementation.
+
+### Detection & Preparation Phase
+
+**Step 1: Python Package Manager Detection**
+```bash
+# Detect Python package manager (check in this order)
+if [ -f "backend/uv.lock" ]; then PY_MGR="uv"
+elif [ -f "backend/poetry.lock" ]; then PY_MGR="poetry"
+else PY_MGR="pip"; fi
+```
+
+**Step 2: Environment Variables Check**
+- Read `backend/.env`
+- Verify `DATABASE_URL` exists (Neon connection string)
+- Verify `BETTER_AUTH_SECRET` exists (matches frontend)
+- Verify `CORS_ORIGINS` includes frontend URL
+- If missing, create `.env.example` and prompt user
+
+### Backend Implementation (FastAPI + SQLModel + Neon)
+
+**Step 3: Create Project Structure**
+```bash
+mkdir -p backend/src/{api/{v1},auth,models,schemas,services,db,core}
+mkdir -p backend/tests
+```
+
+**Step 4: Install Dependencies**
+```bash
+cd backend
+$PY_MGR add fastapi uvicorn sqlmodel python-jose[cryptography] python-dotenv psycopg2-binary alembic
+```
+
+**Step 5: Create Core Configuration (`backend/src/core/config.py`)**
+- Load environment variables
+- Validate required vars (DATABASE_URL, BETTER_AUTH_SECRET)
+- Export configuration settings
+
+**Step 6: Create Database Session (`backend/src/db/session.py`)**
+- Use pattern from neon-serverless-postgresql skill Example 1
+- Create Neon-optimized engine with pooling
+- Implement get_session() dependency
+
+**Step 7: Create Task Model (`backend/src/models/task.py`)**
+- Use pattern from neon-serverless-postgresql skill Example 2
+- SQLModel with user_id foreign key (TEXT, indexed)
+- Fields: id (UUID), user_id, title, description, completed, timestamps
+
+**Step 8: Create Pydantic Schemas (`backend/src/schemas/task.py`)**
+- TaskCreate, TaskUpdate, TaskResponse schemas
+- Proper validation with Field constraints
+
+**Step 9: Create JWT Validation (`backend/src/auth/jwt.py`)**
+- Use pattern from better-auth skill Example 4
+- verify_jwt_token() with shared secret (HS256)
+- extract_user_id() from 'sub' claim
+
+**Step 10: Create Auth Dependencies (`backend/src/auth/dependencies.py`)**
+- Use pattern from better-auth skill Example 5
+- HTTPBearer security scheme
+- get_current_user() and get_current_user_id()
+
+**Step 11: Create Task Service (`backend/src/services/task_service.py`)**
+- CRUD operations with user validation
+- get_user_tasks(), create_task(), update_task(), delete_task()
+- All methods filter by user_id
+
+**Step 12: Create API Endpoints (`backend/src/api/v1/tasks.py`)**
+- Use pattern from better-auth skill Example 6
+- All endpoints: GET, POST, PUT, PATCH, DELETE
+- CRITICAL: All endpoints validate `user_id != current_user_id`
+
+**Step 13: Create Main App (`backend/src/main.py`)**
+- FastAPI app with CORS middleware
+- Include task router
+- Health check endpoint
+- Lifespan context for database init
+
+**Step 14: Configure CORS**
+```python
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000").split(","),
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+```
+
+**Step 15: Initialize Alembic**
+```bash
+cd backend
+alembic init alembic
+# Configure alembic/env.py to use SQLModel metadata
+# Set sqlalchemy.url in alembic.ini to DATABASE_URL
+```
+
+**Step 16: Create Initial Migration**
+```bash
+alembic revision --autogenerate -m "Create task table"
+alembic upgrade head
+```
+
+### Validation Phase
+
+**Step 17: File Structure Validation**
+```bash
+# Verify all files exist
+files=(
+  "backend/src/main.py"
+  "backend/src/core/config.py"
+  "backend/src/db/session.py"
+  "backend/src/models/task.py"
+  "backend/src/schemas/task.py"
+  "backend/src/auth/jwt.py"
+  "backend/src/auth/dependencies.py"
+  "backend/src/services/task_service.py"
+  "backend/src/api/v1/tasks.py"
+)
+for f in "${files[@]}"; do
+  [ -f "$f" ] && echo "✅ $f" || echo "❌ Missing: $f"
+done
+```
+
+**Step 18: Security Validation**
+```bash
+# Verify user_id validation in all endpoints
+grep -r "if user_id != current_user_id" backend/src/api/
+# Should find validation in all endpoints
+```
+
+**Step 19: Environment Variables Validation**
+- Confirm DATABASE_URL has Neon format
+- Confirm BETTER_AUTH_SECRET matches frontend
+- Confirm CORS_ORIGINS configured
+
+**Step 20: Test Server Startup**
+```bash
+cd backend
+uvicorn src.main:app --reload --port 8000
+# Should start without errors
+```
+
+### Error Recovery
+
+**If File Already Exists:**
+- Read existing file
+- Compare with expected pattern
+- If different, ask: "File exists. Overwrite? (y/n)"
+
+**If Dependency Install Fails:**
+- Try alternative package manager
+- Report error and continue
+
+**If Database Connection Fails:**
+- Verify DATABASE_URL format
+- Check Neon credentials
+- Test connection with psycopg2
+
+### Completion Report
+
+**Step 21: Generate Summary**
+```markdown
+✅ Backend Implementation Complete
+
+Structure:
+- ✅ FastAPI app with proper project structure
+- ✅ SQLModel models with user_id isolation
+- ✅ Neon PostgreSQL connection optimized
+- ✅ Alembic migrations configured
+
+Authentication:
+- ✅ JWT validation with shared secret (HS256)
+- ✅ HTTPBearer security scheme
+- ✅ User_id validation in ALL endpoints
+
+API Endpoints:
+- ✅ GET /api/{user_id}/tasks - List tasks
+- ✅ POST /api/{user_id}/tasks - Create task
+- ✅ GET /api/{user_id}/tasks/{id} - Get task
+- ✅ PATCH /api/{user_id}/tasks/{id} - Update task
+- ✅ DELETE /api/{user_id}/tasks/{id} - Delete task
+
+Security:
+- ✅ User isolation enforced
+- ✅ CORS configured for frontend
+- ✅ Input validation with Pydantic
+- ✅ SQL injection prevention (SQLModel)
+
+Next Steps:
+1. Start backend: uvicorn src.main:app --reload
+2. Access docs: http://localhost:8000/docs
+3. Test endpoints with Postman
+```
+
+## Implementation Workflow (Manual Mode)
+
+**Use this only if user explicitly requests manual guidance:**
 
 ### 1. Project Structure Setup
-
-1. **Create directory structure** using `backend-structure` skill
-2. **Set up configuration** with environment variables
-3. **Install dependencies** (FastAPI, SQLModel, python-jose, etc.)
-4. **Configure database** connection for Neon Serverless
+1. Create directory structure
+2. Set up configuration
+3. Install dependencies
+4. Configure database
 
 ### 2. Database Layer
-
-1. **Define SQLModel models** with proper relationships
-2. **Set up Neon-optimized connection** with proper pooling
-3. **Create indexes** for user_id and frequently queried fields
-4. **Implement connection validation** for serverless
-5. **Configure Alembic** for database migrations
+1. Define SQLModel models
+2. Set up Neon connection
+3. Create indexes
+4. Configure Alembic
 
 ### 3. Authentication Layer
-
-1. **Create JWT validation service** using shared secret
-2. **Implement FastAPI dependencies** for current user
-3. **Add user_id validation** to ensure JWT matches URL
-4. **Configure CORS** for Next.js frontend integration
+1. Create JWT validation
+2. Implement dependencies
+3. Add user_id validation
+4. Configure CORS
 
 ### 4. Business Logic Layer
-
-1. **Create task service** with CRUD operations
-2. **Implement user validation** in all operations
-3. **Add proper error handling** and logging
-4. **Optimize queries** for Neon performance
+1. Create task service
+2. Implement user validation
+3. Add error handling
+4. Optimize queries
 
 ### 5. API Layer
-
-1. **Create endpoint routers** following Phase 2 spec
-2. **Add authentication dependencies** to all endpoints
-3. **Implement user_id validation** in all endpoints
-4. **Add proper response models** and error handling
+1. Create endpoint routers
+2. Add authentication
+3. Implement validation
+4. Add response models
 
 ## Security Checklist
 

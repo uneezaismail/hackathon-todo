@@ -40,6 +40,8 @@ def verify_jwt_token(token: str) -> Dict[str, Any]:
             - sub (str): User ID
             - exp (int): Expiration timestamp
             - iat (int): Issued at timestamp
+            - iss (str): Issuer (optional)
+            - aud (str): Audience (optional)
             - Other claims from Better Auth
 
     Raises:
@@ -52,11 +54,29 @@ def verify_jwt_token(token: str) -> Dict[str, Any]:
     """
     try:
         # Decode and verify JWT signature with shared secret
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        # Optional: validate issuer and audience for added security
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM],
+            options={
+                # Make issuer and audience validation optional (don't require them in payload)
+                "verify_iss": False,
+                "verify_aud": False,
+            },
+        )
 
         # Validate required claims exist
         if "sub" not in payload:
             raise ValueError("Token missing 'sub' claim (user_id)")
+
+        # Optional: Validate issuer if present (for additional security)
+        if "iss" in payload and payload["iss"] != "nextjs-frontend":
+            raise ValueError(f"Invalid token issuer: {payload['iss']}")
+
+        # Optional: Validate audience if present (for additional security)
+        if "aud" in payload and payload["aud"] != "fastapi-backend":
+            raise ValueError(f"Invalid token audience: {payload['aud']}")
 
         return payload
 
