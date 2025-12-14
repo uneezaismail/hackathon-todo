@@ -47,7 +47,7 @@ dist/
 .eggs/
 
 # Alembic
-alembic.ini
+# alembic.ini (Commented out to allow version control)
 
 # Logs
 *.log
