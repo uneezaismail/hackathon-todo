@@ -1,32 +1,43 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: NEW → 1.0.0
-Type: MAJOR (Initial Constitution)
-Date: 2025-12-07
+Version Change: 1.0.0 → 1.1.0
+Type: MINOR (New section added + material expansion of testing principles)
+Date: 2025-12-11
 
 Modified Principles:
-- N/A (Initial version)
+- Section VIII: "Test-Driven Development (TDD)" → "Automated Testing"
+  * Expanded to include Phase II-specific requirements
+  * Added JWT authentication and user isolation testing requirements
+  * Added frontend component and integration testing requirements
+  * Streamlined language for token efficiency
 
 Added Sections:
-- All sections (initial constitution)
+- Section XII: "AI Sub-Agents and Skills" (new governance for multi-agent workflows)
 
 Removed Sections:
 - N/A
 
 Templates Requiring Updates:
-- ✅ spec-template.md - Aligned (priorities, user stories, acceptance criteria)
-- ✅ plan-template.md - Aligned (constitution check, technical context, structure)
-- ✅ tasks-template.md - Aligned (user story organization, TDD, parallel execution)
+- ✅ spec-template.md - Already aligned (testing section covers automated tests)
+- ✅ plan-template.md - Already aligned (constitution check validates principles)
+- ✅ tasks-template.md - Already aligned (task categorization supports testing tasks)
+- ⚠️ commands/*.md - Review for any agent-specific references (pending manual check)
 
 Follow-up TODOs:
 - None - all placeholders filled
 
 Rationale:
-This is the initial constitution (v1.0.0) for the "Evolution of Todo" hackathon project.
-It establishes immutable governance for a 5-phase evolution (Console → Web → AI Chatbot →
-Local K8s → Cloud). The constitution prioritizes Spec-Driven Development with Reusable
-Intelligence (SDD-RI), strict TDD, and evolutionary architecture principles.
+Phase II introduces a full-stack web application with JWT authentication and multi-user
+support. The testing principles have been expanded to explicitly require:
+1. Backend API integration tests for all endpoints
+2. JWT authentication and user isolation testing
+3. Frontend component and integration tests
+4. All tests passing before merge (enforcement gate)
+
+The new Section XII formalizes support for AI sub-agents and reusable skills while ensuring
+they adhere to the spec-driven workflow. This prevents autonomous agent behavior that bypasses
+specifications or planning.
 -->
 
 # Evolution of Todo Constitution
@@ -82,9 +93,11 @@ All implementation work must follow this atomic loop:
 4.  **Next:** Move to the next task.
 *Batching multiple tasks into one commit without review is prohibited.*
 
-### VIII. Test-Driven Development (TDD)
-* **Red-Green-Refactor:** Tests MUST be defined in the Specification/Plan and implemented *before* or *alongside* the feature code.
-* **Coverage:** Tests must cover business logic, edge cases, and error conditions.
+### VIII. Automated Testing
+**The project MUST include automated tests for both frontend and backend.**
+* **Backend:** MUST include API integration tests for all endpoints. Backend tests MUST verify JWT authentication and user isolation.
+* **Frontend:** MUST include component tests and integration tests.
+* **Enforcement:** All tests MUST pass before merging any changes.
 
 ---
 
@@ -113,6 +126,12 @@ The following stack is the **Destination**.  must not deviate from these choices
 ### XI. 12-Factor Configuration & Monorepo Discipline
 * **Secrets:** No hardcoded secrets. All configuration must be managed via Environment Variables (`.env`).
 
+### XII. AI Sub-Agents and Skills
+**The project explicitly supports the use of multiple AI sub-agents and reusable skills.**
+* **Compliance:** Sub-agents and skills MUST strictly adhere to this constitution and the spec-driven workflow.
+* **Role Clarity:** Each sub-agent MUST have a clear, narrow role (e.g., writing specifications, planning, implementation, testing, or refactoring).
+* **No Bypass:** Sub-agents MUST NOT bypass the established specification or plan.
+
 ---
 
 ## 6. Definition of Done
@@ -135,4 +154,4 @@ Before marking any task or feature as complete, verify:
 
 ---
 
-**Version**: 1.0.0 | **Ratified**: 2025-12-07 | **Last Amended**: 2025-12-07
+**Version**: 1.1.0 | **Ratified**: 2025-12-07 | **Last Amended**: 2025-12-11
