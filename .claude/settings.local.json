@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(if [ -d \"/mnt/d/hackathon-todo/specs/003-nextjs-frontend/checklists\" ])",
+      "Bash(then echo \"EXISTS\")",
+      "Bash(else echo \"NO_CHECKLISTS\")",
+      "Bash(fi)",
+      "Bash(cat:*)",
+      "Bash(npm test:*)",
+      "Bash(ls:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(npm run test:e2e:*)",
+      "Bash(npx shadcn@latest add form:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint)",
+      "Bash(find:*)",
+      "Bash(chmod:*)",
+      "Bash(./scripts/verify-phase6.sh:*)",
+      "Bash(wc:*)"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "next-devtools",
+    "shadcn"
+  ]
+}

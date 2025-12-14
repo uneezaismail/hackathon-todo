@@ -59,6 +59,7 @@ logs/
 *.sqlite3
 *.env.test
 *.env.example
+__pycache__*
 
 # Temporary files
 tmp/
