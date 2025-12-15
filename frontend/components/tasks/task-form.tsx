@@ -21,7 +21,10 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { createTask, updateTask } from '@/actions/tasks'
-import type { Task } from '@/types/task'
+import type { Task, Priority } from '@/types/task'
+import { PrioritySelector } from '@/components/tasks/priority-selector'
+import { DueDatePicker } from '@/components/tasks/due-date-picker'
+import { TagInput } from '@/components/tasks/tag-input'
 
 /**
  * T086: Form validation schema
@@ -55,6 +58,13 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
   const [isPending, startTransition] = useTransition()
   const isEditing = !!task
 
+  // T043: State for priority, due_date, and tags
+  const [priority, setPriority] = useState<Priority>(task?.priority || 'Medium')
+  const [dueDate, setDueDate] = useState<Date | null>(
+    task?.due_date ? new Date(task.due_date) : null
+  )
+  const [tags, setTags] = useState<string[]>(task?.tags || [])
+
   const {
     register,
     handleSubmit,
@@ -78,10 +88,13 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
       try {
         let result
 
-        // Convert empty description to null for API
+        // T043: Convert empty description to null and format due_date as ISO 8601
         const taskData = {
           title: data.title,
           description: data.description || null,
+          priority,
+          due_date: dueDate ? dueDate.toISOString().split('T')[0] : null, // Format as YYYY-MM-DD
+          tags,
         }
 
         if (isEditing && task) {
@@ -105,6 +118,10 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
           // Success
           toast.success(isEditing ? 'Task updated successfully' : 'Task created successfully')
           reset()
+          // T043: Reset priority, due_date, and tags on success
+          setPriority('Medium')
+          setDueDate(null)
+          setTags([])
           onSuccess?.()
         }
       } catch (error) {
@@ -122,6 +139,10 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
 
   const handleCancel = () => {
     reset()
+    // T043: Reset priority, due_date, and tags on cancel
+    setPriority(task?.priority || 'Medium')
+    setDueDate(task?.due_date ? new Date(task.due_date) : null)
+    setTags(task?.tags || [])
     onCancel?.()
   }
 
@@ -186,6 +207,27 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
               </span>
             </div>
           </div>
+
+          {/* T043: Priority and Due Date on the same line */}
+          <div className="grid grid-cols-2 gap-4">
+            <PrioritySelector
+              value={priority}
+              onChange={setPriority}
+              disabled={isPending}
+            />
+            <DueDatePicker
+              value={dueDate}
+              onChange={setDueDate}
+              disabled={isPending}
+            />
+          </div>
+
+          {/* T043: Tag Input */}
+          <TagInput
+            value={tags}
+            onChange={setTags}
+            disabled={isPending}
+          />
         </CardContent>
 
         <CardFooter className="flex justify-end gap-2">

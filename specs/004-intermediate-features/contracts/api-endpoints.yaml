@@ -1,0 +1,463 @@
+openapi: 3.1.0
+info:
+  title: Todo API - Intermediate Features
+  version: 1.1.0
+  description: |
+    RESTful API for Todo application with intermediate-level organization features.
+    Adds support for priority levels, tags, due dates, search, filtering, and sorting.
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.yourdomain.com
+    description: Production server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/{user_id}/tasks:
+    get:
+      summary: List tasks with filtering and sorting
+      description: |
+        Retrieve all tasks for a user with optional filtering, searching, and sorting.
+        Supports pagination via limit and offset parameters.
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, pending, completed]
+            default: all
+          description: Filter by completion status
+        - name: priority
+          in: query
+          schema:
+            type: string
+            enum: [all, high, medium, low]
+            default: all
+          description: Filter by priority level (case-insensitive)
+        - name: tags
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          description: Filter by tags (multiple tags supported, AND logic)
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 200
+          description: Keyword search in title and description
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum:
+              - due_date_soonest
+              - created_newest
+              - created_oldest
+              - priority_high_low
+              - alphabetical_az
+            default: created_newest
+          description: Sort order for results
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          description: Maximum number of results
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of results to skip (for pagination)
+      responses:
+        '200':
+          description: Successfully retrieved tasks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create a new task
+      description: Create a new task with optional priority, tags, and due date
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreate'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/{user_id}/tasks/{task_id}:
+    get:
+      summary: Get a specific task
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - $ref: '#/components/parameters/TaskIdPath'
+      responses:
+        '200':
+          description: Task retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    patch:
+      summary: Update a task
+      description: Partial update of task fields including priority, tags, and due_date
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - $ref: '#/components/parameters/TaskIdPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdate'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      summary: Delete a task
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - $ref: '#/components/parameters/TaskIdPath'
+      responses:
+        '204':
+          description: Task deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/{user_id}/tasks/{task_id}/complete:
+    patch:
+      summary: Toggle task completion status
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - $ref: '#/components/parameters/TaskIdPath'
+      responses:
+        '200':
+          description: Task status toggled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /api/{user_id}/tags:
+    get:
+      summary: Get user's tags with usage counts
+      description: Returns all tags created by the user, sorted by usage frequency
+      parameters:
+        - $ref: '#/components/parameters/UserIdPath'
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+          description: Maximum number of tags to return
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 50
+          description: Filter tags by name prefix (for autocomplete)
+      responses:
+        '200':
+          description: Tags retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TagListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token signed by Better Auth
+
+  parameters:
+    UserIdPath:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: User ID from JWT token (must match authenticated user)
+
+    TaskIdPath:
+      name: task_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Task UUID
+
+  schemas:
+    TaskCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+          description: Task title
+          example: "Complete project documentation"
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Optional task description
+          example: "Write comprehensive README and API docs"
+        priority:
+          type: string
+          enum: [High, Medium, Low]
+          default: Medium
+          description: Task priority level
+          example: "High"
+        tags:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 50
+          maxItems: 20
+          description: List of tag names
+          example: ["work", "documentation"]
+        due_date:
+          type: string
+          format: date
+          nullable: true
+          description: Due date in ISO 8601 format (YYYY-MM-DD)
+          example: "2025-12-31"
+
+    TaskUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+        completed:
+          type: boolean
+        priority:
+          type: string
+          enum: [High, Medium, Low]
+        tags:
+          type: array
+          items:
+            type: string
+        due_date:
+          type: string
+          format: date
+          nullable: true
+
+    TaskResponse:
+      type: object
+      required:
+        - id
+        - user_id
+        - title
+        - completed
+        - priority
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        user_id:
+          type: string
+          example: "auth_user_123"
+        title:
+          type: string
+          example: "Complete project documentation"
+        description:
+          type: string
+          nullable: true
+          example: "Write comprehensive README"
+        completed:
+          type: boolean
+          example: false
+        priority:
+          type: string
+          enum: [High, Medium, Low]
+          example: "High"
+        tags:
+          type: array
+          items:
+            type: string
+          example: ["work", "documentation"]
+        due_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-12-31"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-12-14T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-12-14T14:45:00Z"
+
+    TaskListResponse:
+      type: object
+      required:
+        - tasks
+        - total
+        - limit
+        - offset
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaskResponse'
+        total:
+          type: integer
+          minimum: 0
+          description: Total number of tasks matching filters (not limited by pagination)
+          example: 25
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 50
+        offset:
+          type: integer
+          minimum: 0
+          example: 0
+
+    TagListResponse:
+      type: object
+      required:
+        - tags
+      properties:
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/TagWithUsage'
+
+    TagWithUsage:
+      type: object
+      required:
+        - name
+        - usage_count
+      properties:
+        name:
+          type: string
+          example: "work"
+        usage_count:
+          type: integer
+          minimum: 0
+          example: 15
+
+  responses:
+    BadRequest:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Invalid priority value"
+
+    Unauthorized:
+      description: Missing or invalid JWT token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Not authenticated"
+
+    Forbidden:
+      description: User ID in path does not match authenticated user
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Access forbidden"
+
+    NotFound:
+      description: Task not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail:
+                type: string
+                example: "Task not found"

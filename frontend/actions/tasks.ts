@@ -15,7 +15,7 @@
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import jwt from 'jsonwebtoken'
-import type { Task, TaskCreate, TaskUpdate } from '@/types/task'
+import type { Task, TaskCreate, TaskUpdate, Tag, TaskSortBy, TaskSortDirection } from '@/types/task'
 
 /**
  * Backend API response structure for task list
@@ -133,26 +133,72 @@ async function apiRequest<T>(
 }
 
 /**
- * T070: Fetch all tasks for the authenticated user
+ * T070, T072, T076: Fetch all tasks for the authenticated user with search, filter, and sort support
  */
 export async function fetchTasks(params?: {
+  search?: string
   status?: string
+  priority?: string
+  tags?: string[]
+  sort_by?: TaskSortBy
+  sort_direction?: TaskSortDirection
   limit?: number
   offset?: number
-}): Promise<{ tasks?: Task[]; error?: string }> {
+}): Promise<{ tasks?: Task[]; total?: number; error?: string }> {
   const auth = await getAuthenticatedUser()
 
   if (!auth) {
     return { error: 'Unauthorized - please sign in' }
   }
 
-  // Build query parameters
+  // T072: Build query parameters including search, priority, and tags
   const queryParams = new URLSearchParams()
-  if (params?.status) {
+
+  // Add search parameter
+  if (params?.search) {
+    queryParams.append('search', params.search)
+  }
+
+  // Add status filter
+  if (params?.status && params.status !== 'all') {
     // Capitalize status for backend API (expects "Pending" or "Completed")
     const capitalizedStatus = params.status.charAt(0).toUpperCase() + params.status.slice(1)
     queryParams.append('status', capitalizedStatus)
   }
+
+  // Add priority filter
+  if (params?.priority && params.priority !== 'all') {
+    queryParams.append('priority', params.priority)
+  }
+
+  // Add tags filter (array)
+  if (params?.tags && params.tags.length > 0) {
+    params.tags.forEach(tag => {
+      queryParams.append('tags', tag)
+    })
+  }
+
+  // T076: Add sort_by parameter - map new simple values to backend values
+  if (params?.sort_by) {
+    // Map simplified sort values to backend values based on direction
+    const sortDirection = params.sort_direction || 'desc'
+    let backendSortBy = params.sort_by
+
+    // Convert new simplified values to backend-compatible values
+    if (params.sort_by === 'created') {
+      backendSortBy = sortDirection === 'desc' ? 'created_newest' : 'created_oldest'
+    } else if (params.sort_by === 'due_date') {
+      backendSortBy = 'due_date_soonest' // Backend only has one due_date sort
+    } else if (params.sort_by === 'priority') {
+      backendSortBy = 'priority_high_low' // Backend only has high to low
+    } else if (params.sort_by === 'title') {
+      backendSortBy = 'alphabetical_az' // Backend only has A-Z
+    }
+
+    queryParams.append('sort_by', backendSortBy)
+  }
+
+  // Add pagination
   if (params?.limit) queryParams.append('limit', params.limit.toString())
   if (params?.offset) queryParams.append('offset', params.offset.toString())
 
@@ -167,12 +213,13 @@ export async function fetchTasks(params?: {
     return { error: result.error }
   }
 
-  // Extract tasks array from double-nested response structure
+  // Extract tasks array and total count from double-nested response structure
   // Backend wraps in ApiResponse, then apiRequest wraps it again
   const taskListResponse = result.data as unknown as { data?: TaskListResponse }
   const tasks = taskListResponse?.data?.tasks || []
+  const total = taskListResponse?.data?.total || 0
 
-  return { tasks }
+  return { tasks, total }
 }
 
 /**
@@ -337,4 +384,40 @@ export async function toggleTaskComplete(
   revalidatePath('/dashboard')
 
   return { task }
+}
+
+/**
+ * T039: Fetch user's tags for autocomplete
+ */
+export async function fetchTags(params?: {
+  search?: string
+  limit?: number
+}): Promise<{ tags?: Tag[]; error?: string }> {
+  const auth = await getAuthenticatedUser()
+
+  if (!auth) {
+    return { error: 'Unauthorized - please sign in' }
+  }
+
+  // Build query parameters
+  const queryParams = new URLSearchParams()
+  if (params?.search) queryParams.append('search', params.search)
+  if (params?.limit) queryParams.append('limit', params.limit.toString())
+
+  const queryString = queryParams.toString()
+  // Tags endpoint is at /api/{user_id}/tags (relative to tasks router)
+  const endpoint = `/api/${auth.userId}/tags${queryString ? `?${queryString}` : ''}`
+
+  const result = await apiRequest<Tag[]>(endpoint, {
+    method: 'GET',
+  })
+
+  if (result.error) {
+    return { error: result.error }
+  }
+
+  // Tags come directly as array (not wrapped in ApiResponse for this endpoint)
+  const tags = result.data || []
+
+  return { tags }
 }

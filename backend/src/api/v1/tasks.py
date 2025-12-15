@@ -13,14 +13,16 @@ All endpoints require JWT authentication and enforce user isolation.
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Query
 from sqlmodel import Session
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from uuid import UUID
 
 from ...db.session import get_session
 from ...auth.dependencies import get_current_user_id
 from ...schemas.task import TaskCreate, TaskResponse, TaskListResponse, TaskUpdate
-from ...schemas.common import ApiResponse, TaskStatus, SortOrder
+from ...schemas.common import ApiResponse, TaskStatus, SortOrder, SortBy
+from ...models.task import TagWithUsage
 from ...services.task_service import TaskService
+from ...services.tag_service import TagService
 from ...services.exceptions import TaskNotFoundError, UnauthorizedError
 import logging
 
@@ -271,14 +273,30 @@ async def create_task(
 async def list_tasks(
     user_id: str,
     current_user_id: str = Depends(get_current_user_id),
+    search: Optional[str] = Query(
+        None,
+        description="Search keyword for title and description (case-insensitive)"
+    ),
     status_filter: Optional[TaskStatus] = Query(
         None,
         alias="status",
         description="Filter by completion status (Pending=incomplete, Completed=complete)"
     ),
+    priority: Optional[str] = Query(
+        None,
+        description="Filter by priority level (High, Medium, Low)"
+    ),
+    tags: Optional[List[str]] = Query(
+        None,
+        description="Filter by tag names (tasks must have ALL specified tags)"
+    ),
+    sort_by: Optional[SortBy] = Query(
+        None,
+        description="T076: Sort field (due_date_soonest, created_newest, created_oldest, priority_high_low, alphabetical_az)"
+    ),
     sort: SortOrder = Query(
         SortOrder.CREATED_DESC,
-        description="Sort order (created_at_asc=oldest first, created_at_desc=newest first)"
+        description="Legacy sort order (created_at_asc=oldest first, created_at_desc=newest first). Use sort_by instead."
     ),
     limit: int = Query(
         50,
@@ -333,18 +351,23 @@ async def list_tasks(
         # Map sort enum to sort_order string for database query
         sort_order = "asc" if sort == SortOrder.CREATED_ASC else "desc"
 
-        # Get tasks for authenticated user
+        # T057: Get tasks for authenticated user with filters (including search)
+        # T076: Pass sort_by parameter for new sorting options
         tasks, total = TaskService.get_user_tasks(
             session=session,
             user_id=current_user_id,
+            search=search,
             completed=completed,
+            priority=priority,
+            tags=tags,
+            sort_by=sort_by,
             sort_order=sort_order,
             limit=limit,
             offset=offset
         )
 
-        # Convert tasks to response models
-        task_responses = [TaskResponse.model_validate(task) for task in tasks]
+        # Tasks already come as TaskResponse from service
+        task_responses = tasks
 
         # Build task list response
         task_list_response = TaskListResponse(
@@ -369,6 +392,59 @@ async def list_tasks(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to retrieve tasks"
+        )
+
+
+@router.get(
+    "/../tags",
+    response_model=List[TagWithUsage],
+    status_code=status.HTTP_200_OK,
+    summary="Get user's tags for autocomplete",
+    description="""
+    Get the user's tags with usage count for autocomplete.
+    Returns top 10 most used tags by default.
+
+    Query parameters:
+    - search: Optional prefix filter for tag names
+    - limit: Maximum tags to return (default 10, max 50)
+
+    Response:
+    - 200 OK: List of tags with usage counts
+    - 401 Unauthorized: Missing or invalid JWT token
+    - 403 Forbidden: URL user_id does not match token user_id
+    """
+)
+async def get_user_tags(
+    user_id: str,
+    current_user_id: str = Depends(get_current_user_id),
+    search: Optional[str] = Query(None, description="Search tag names by prefix"),
+    limit: int = Query(10, ge=1, le=50, description="Maximum tags to return"),
+    session: Session = Depends(get_session)
+) -> List[TagWithUsage]:
+    """Get user's tags for autocomplete with usage count."""
+    try:
+        # Validate URL user_id matches token user_id
+        if user_id != current_user_id:
+            raise UnauthorizedError("Not authorized to access this resource")
+
+        # Get tags with usage count
+        tags = TagService.get_user_tags(
+            session=session,
+            user_id=current_user_id,
+            search=search,
+            limit=limit
+        )
+
+        logger.info(f"User {current_user_id} retrieved {len(tags)} tags")
+        return tags
+
+    except Exception as e:
+        logger.error(f"Error retrieving tags for user {current_user_id}: {str(e)}")
+        if isinstance(e, (HTTPException, UnauthorizedError)):
+            raise e
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve tags"
         )
 
 

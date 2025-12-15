@@ -55,7 +55,6 @@ dmypy.json
 *.log
 .env.test 
 .env.example
-phase-1-todo-console
 
 # OS
 Thumbs.db

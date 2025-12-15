@@ -53,11 +53,8 @@ export default function Header() {
           {/* Desktop Navigation */}
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
-              // Show Dashboard link + user menu when authenticated - desktop only
+              // Show user menu when authenticated - desktop only
               <div className="hidden md:flex items-center gap-4">
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/dashboard">Dashboard</Link>
-                </Button>
                 <UserMenu />
               </div>
             ) : (
@@ -99,21 +96,7 @@ export default function Header() {
                 </SheetHeader>
                 <div className="flex flex-col gap-4 mt-8">
                   {isAuthenticated ? (
-                    <>
-                      <Button
-                        asChild
-                        variant="default"
-                        size="lg"
-                        className="w-full"
-                      >
-                        <Link href="/dashboard" onClick={() => setIsOpen(false)}>
-                          Go to Dashboard
-                        </Link>
-                      </Button>
-                      <div className="border-t pt-4 mt-2">
-                        <UserMenu />
-                      </div>
-                    </>
+                    <UserMenu />
                   ) : (
                     <>
                       <Button

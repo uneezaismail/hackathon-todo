@@ -1,128 +1,207 @@
 /**
- * Task Filters Component (T100-T102)
+ * Task Filters Component (Inline Dropdowns)
  *
- * Client Component that displays filter buttons for task status:
- * - All tasks
- * - Pending tasks
- * - Completed tasks
- *
- * Uses URL search params for state persistence
- * Highlights active filter visually
- *
- * @component TaskFilters
+ * Provides inline filtering controls:
+ * - Status (All Status/Pending/Completed)
+ * - Priority (All Priority/High/Medium/Low)
+ * - Tags (multi-select with checkboxes)
  */
 
 'use client'
 
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import { ChevronDown } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import type { TaskFilter } from '@/types/task'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu'
 
 interface TaskFiltersProps {
-  counts?: {
-    all?: number
-    pending?: number
-    completed?: number
-  }
+  status: string
+  priority: string
+  tags: string[]
+  availableTags: string[] // Tags extracted from tasks
+  onStatusChange: (status: string) => void
+  onPriorityChange: (priority: string) => void
+  onTagsChange: (tags: string[]) => void
+  disabled?: boolean
+  className?: string
 }
 
-/**
- * T100: Task Filters Component
- * T101: Filter state management with URL search params
- * T102: Filter buttons for "All", "Pending", "Completed"
- */
-export default function TaskFilters({ counts }: TaskFiltersProps) {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const pathname = usePathname()
+// Status options
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All Status' },
+  { value: 'pending', label: 'Pending' },
+  { value: 'completed', label: 'Completed' },
+]
 
-  // Get current filter from URL (default to 'all')
-  const currentFilter = (searchParams.get('status') as TaskFilter) || 'all'
+// Priority options
+const PRIORITY_OPTIONS = [
+  { value: 'all', label: 'All Priority' },
+  { value: 'High', label: 'High' },
+  { value: 'Medium', label: 'Medium' },
+  { value: 'Low', label: 'Low' },
+]
 
-  /**
-   * Handle filter change
-   * Updates URL search params with new filter
-   * Preserves other query parameters
-   */
-  const handleFilterChange = (filter: TaskFilter) => {
-    const params = new URLSearchParams(searchParams.toString())
+export function TaskFilters({
+  status,
+  priority,
+  tags,
+  availableTags,
+  onStatusChange,
+  onPriorityChange,
+  onTagsChange,
+  disabled = false,
+  className = '',
+}: TaskFiltersProps) {
+  // Get current labels
+  const currentStatusLabel = STATUS_OPTIONS.find(opt => opt.value === status)?.label || 'All Status'
+  const currentPriorityLabel = PRIORITY_OPTIONS.find(opt => opt.value === priority)?.label || 'All Priority'
 
-    if (filter === 'all') {
-      // Remove status param for "All" filter
-      params.delete('status')
+  // Handle tag toggle
+  const handleTagToggle = (tagName: string, checked: boolean) => {
+    if (checked) {
+      onTagsChange([...tags, tagName])
     } else {
-      // Set status param for specific filters
-      params.set('status', filter)
+      onTagsChange(tags.filter(t => t !== tagName))
     }
-
-    // Build new URL with updated params
-    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname
-
-    // Navigate to new URL
-    router.push(newUrl)
   }
 
-  /**
-   * Get button variant based on active state
-   */
-  const getButtonVariant = (filter: TaskFilter): 'default' | 'outline' => {
-    return currentFilter === filter ? 'default' : 'outline'
+  // Clear all tags
+  const handleClearTags = () => {
+    onTagsChange([])
   }
 
   return (
-    <div
-      role="group"
-      aria-label="Task filters"
-      className="flex flex-wrap items-center gap-2 mb-6"
-    >
-      {/* All Tasks Filter */}
-      <Button
-        variant={getButtonVariant('all')}
-        size="sm"
-        onClick={() => handleFilterChange('all')}
-        className={currentFilter === 'all' ? 'bg-primary' : ''}
-        aria-current={currentFilter === 'all' ? 'true' : 'false'}
-      >
-        All
-        {counts?.all !== undefined && (
-          <Badge variant="secondary" className="ml-2">
-            {counts.all}
-          </Badge>
-        )}
-      </Button>
+    <div className={`flex items-center gap-2 ${className}`}>
+      {/* Status Filter Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="default"
+            disabled={disabled}
+            className="gap-2 bg-muted/50 border-border/50 hover:bg-muted"
+          >
+            {currentStatusLabel}
+            <ChevronDown className="h-4 w-4 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-40">
+          <DropdownMenuRadioGroup value={status} onValueChange={onStatusChange}>
+            {STATUS_OPTIONS.map((option) => (
+              <DropdownMenuRadioItem
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      {/* Pending Tasks Filter */}
-      <Button
-        variant={getButtonVariant('pending')}
-        size="sm"
-        onClick={() => handleFilterChange('pending')}
-        className={currentFilter === 'pending' ? 'bg-primary' : ''}
-        aria-current={currentFilter === 'pending' ? 'true' : 'false'}
-      >
-        Pending
-        {counts?.pending !== undefined && (
-          <Badge variant="secondary" className="ml-2">
-            {counts.pending}
-          </Badge>
-        )}
-      </Button>
+      {/* Priority Filter Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="default"
+            disabled={disabled}
+            className="gap-2 bg-muted/50 border-border/50 hover:bg-muted"
+          >
+            {currentPriorityLabel}
+            <ChevronDown className="h-4 w-4 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-40">
+          <DropdownMenuRadioGroup value={priority} onValueChange={onPriorityChange}>
+            {PRIORITY_OPTIONS.map((option) => (
+              <DropdownMenuRadioItem
+                key={option.value}
+                value={option.value}
+              >
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      {/* Completed Tasks Filter */}
-      <Button
-        variant={getButtonVariant('completed')}
-        size="sm"
-        onClick={() => handleFilterChange('completed')}
-        className={currentFilter === 'completed' ? 'bg-primary' : ''}
-        aria-current={currentFilter === 'completed' ? 'true' : 'false'}
-      >
-        Completed
-        {counts?.completed !== undefined && (
-          <Badge variant="secondary" className="ml-2">
-            {counts.completed}
-          </Badge>
-        )}
-      </Button>
+      {/* Tags Filter Dropdown */}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="default"
+            disabled={disabled}
+            className="gap-2 bg-muted/50 border-border/50 hover:bg-muted"
+          >
+            {tags.length > 0 ? (
+              <>
+                Tags
+                <Badge variant="secondary" className="ml-1 rounded-full px-1.5 py-0 text-xs">
+                  {tags.length}
+                </Badge>
+              </>
+            ) : (
+              'All Tags'
+            )}
+            <ChevronDown className="h-4 w-4 opacity-50" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-56">
+          {availableTags.length === 0 ? (
+            <div className="p-3 text-sm text-muted-foreground text-center">
+              No tags available
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between px-2 py-1.5">
+                <DropdownMenuLabel className="p-0 font-medium">Filter by Tags</DropdownMenuLabel>
+                {tags.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      handleClearTags()
+                    }}
+                  >
+                    Reset
+                  </Button>
+                )}
+              </div>
+              <DropdownMenuSeparator />
+              <div className="max-h-[200px] overflow-y-auto">
+                {availableTags.map((tag) => (
+                  <div
+                    key={tag}
+                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded-sm cursor-pointer"
+                    onClick={() => handleTagToggle(tag, !tags.includes(tag))}
+                  >
+                    <Checkbox
+                      checked={tags.includes(tag)}
+                      onCheckedChange={(checked) => handleTagToggle(tag, checked === true)}
+                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    />
+                    <span className="text-sm flex-1">{tag}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   )
 }
