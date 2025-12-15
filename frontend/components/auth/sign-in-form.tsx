@@ -54,8 +54,9 @@ export default function SignInForm() {
       // Validate single field using Zod schema
       signInSchema.shape[field].parse(value)
       setErrors((prev) => ({ ...prev, [field]: undefined }))
-    } catch (error: any) {
-      const errorMessage = error.errors?.[0]?.message || 'Invalid value'
+    } catch (err) {
+      const zodError = err as { errors?: Array<{ message?: string }> }
+      const errorMessage = zodError.errors?.[0]?.message || 'Invalid value'
       setErrors((prev) => ({ ...prev, [field]: errorMessage }))
     }
   }
@@ -90,11 +91,12 @@ export default function SignInForm() {
     try {
       signInSchema.parse(formData)
       setErrors({})
-    } catch (error: any) {
+    } catch (err) {
+      const zodError = err as { errors?: Array<{ path: string[]; message: string }> }
       const validationErrors: Partial<Record<keyof SignInFormData, string>> = {}
-      error.errors?.forEach((err: any) => {
-        const field = err.path[0] as keyof SignInFormData
-        validationErrors[field] = err.message
+      zodError.errors?.forEach((zodErr) => {
+        const field = zodErr.path[0] as keyof SignInFormData
+        validationErrors[field] = zodErr.message
       })
       setErrors(validationErrors)
       return
@@ -119,8 +121,9 @@ export default function SignInForm() {
       toast.success('Signed in successfully!')
       const callbackUrl = getCallbackUrl()
       router.push(callbackUrl)
-    } catch (error: any) {
-      console.error('Sign-in error:', error)
+    } catch (err) {
+      console.error('Sign-in error:', err)
+      const error = err as Error
       toast.error(error.message || 'An unexpected error occurred. Please try again.')
       setIsLoading(false)
     }

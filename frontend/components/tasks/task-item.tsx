@@ -14,8 +14,10 @@ import { useState, useTransition, useOptimistic } from 'react'
 import { toast } from 'sonner'
 import { Pencil, Trash2, Loader2 } from 'lucide-react'
 
+import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   Dialog,
@@ -28,7 +30,7 @@ import {
 
 import { deleteTask, toggleTaskComplete } from '@/actions/tasks'
 import { TaskForm } from './task-form'
-import type { Task } from '@/types/task'
+import type { Task, Priority } from '@/types/task'
 
 interface TaskItemProps {
   task: Task
@@ -132,6 +134,20 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
     }).format(date)
   }
 
+  // T044, T047: Get priority color classes
+  const getPriorityColor = (priority: Priority) => {
+    switch (priority) {
+      case 'High':
+        return 'bg-red-100 text-red-700 border-red-300'
+      case 'Medium':
+        return 'bg-yellow-100 text-yellow-700 border-yellow-300'
+      case 'Low':
+        return 'bg-green-100 text-green-700 border-green-300'
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-300'
+    }
+  }
+
   // If editing, show the form
   if (isEditing) {
     return (
@@ -191,6 +207,35 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
                 </p>
               )}
 
+              {/* T044-T047: Display priority, due_date, and tags */}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                {/* T044, T047: Priority badge with color coding */}
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${getPriorityColor(optimisticTask.priority)}`}
+                >
+                  {optimisticTask.priority}
+                </Badge>
+
+                {/* T045: Due date display */}
+                {optimisticTask.due_date && (
+                  <Badge variant="outline" className="text-xs">
+                    Due: {format(new Date(optimisticTask.due_date), 'MMM d, yyyy')}
+                  </Badge>
+                )}
+
+                {/* T046: Tags display as colored badges */}
+                {optimisticTask.tags && optimisticTask.tags.length > 0 && (
+                  <>
+                    {optimisticTask.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                  </>
+                )}
+              </div>
+
               <div className="mt-2 text-xs text-muted-foreground">
                 Created {formatDate(task.created_at)}
                 {task.updated_at !== task.created_at && ` • Updated ${formatDate(task.updated_at)}`}
@@ -229,7 +274,7 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{task.title}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{task.title}&quot;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
 

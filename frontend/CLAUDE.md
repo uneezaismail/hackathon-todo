@@ -24,8 +24,9 @@ It acts as the UI layer, managing Authentication via Drizzle/Neon and communicat
 - Must revalidate paths (e.g., `revalidatePath('/dashboard')`) after mutations.
 
 ### 2. Client Components (`'use client'`)
-- Use only for interactivity (Forms, Toggles, Dropdowns).
+- Use only for interactivity (Forms, Toggles, Dropdowns, Modals, etc.).
 - Push state up or use Server Actions for logic.
+- Examples: TaskForm, TaskItem, TaskTable, PrioritySelector, DueDatePicker
 
 ### 3. API Client
 - `frontend/lib/auth.ts`: Better Auth server config.
@@ -36,8 +37,11 @@ It acts as the UI layer, managing Authentication via Drizzle/Neon and communicat
 ```bash
 # Development
 npm run dev          # Start server on 3000
-npm run lint         # Run ESLint
+npm run lint         # Run ESLint (fixes all errors and warnings)
 npm run type-check   # Run TypeScript check
+
+# Build
+npm run build        # Production build with Next.js standalone output
 
 # Database (Auth Tables Only)
 npx drizzle-kit push      # Push schema changes to Neon
@@ -45,10 +49,28 @@ npx drizzle-kit studio    # View DB data
 
 # Testing
 npm test             # Run all tests
+
+# Docker
+docker build -t todo-frontend .           # Build Docker image
+docker run -p 3000:3000 todo-frontend     # Run container
 ```
 
-## Environment Variables (.env.local)
+## Environment Variables
+
+### Development (.env.local)
 - `DATABASE_URL`: Connection string for Neon (Direct/Pooled).
 - `BETTER_AUTH_SECRET`: **CRITICAL**. Must match Backend.
 - `BETTER_AUTH_URL`: `http://localhost:3000`
-- `NEXT_PUBLIC_API_URL`: `http://localhost:8000` (Backend URL)
+- `NEXT_PUBLIC_API_URL`: `http://localhost:8000` (Backend URL for local dev)
+
+### Docker/Production
+- `NEXT_PUBLIC_API_URL`: Use service name in docker-compose (`http://backend:8000`) or full production URL
+- All other variables same as development
+
+## Docker Setup
+The frontend uses a multi-stage Dockerfile with Next.js standalone output:
+1. **deps stage**: Installs dependencies
+2. **builder stage**: Builds the Next.js application
+3. **runner stage**: Minimal production image with standalone output
+
+**Important:** The `.dockerignore` excludes node_modules, .next, tests, and other unnecessary files.

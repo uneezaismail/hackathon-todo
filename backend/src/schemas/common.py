@@ -32,7 +32,7 @@ class TaskStatus(str, Enum):
 
 class SortOrder(str, Enum):
     """
-    Sort order enum for task lists.
+    Sort order enum for task lists (legacy - kept for backward compatibility).
 
     Defines the order in which tasks should be returned.
 
@@ -46,6 +46,30 @@ class SortOrder(str, Enum):
     """
     CREATED_ASC = "created_at_asc"
     CREATED_DESC = "created_at_desc"
+
+
+class SortBy(str, Enum):
+    """
+    T076/T082: Sort options for task lists.
+
+    Defines the field and direction for sorting tasks.
+
+    Values:
+        DUE_DATE_SOONEST: Sort by due date ascending (soonest first, nulls last)
+        CREATED_NEWEST: Sort by creation date descending (newest first)
+        CREATED_OLDEST: Sort by creation date ascending (oldest first)
+        PRIORITY_HIGH_LOW: Sort by priority (High -> Medium -> Low)
+        ALPHABETICAL_AZ: Sort by title alphabetically (A-Z, case-insensitive)
+
+    Example query:
+        GET /api/v1/tasks?sort_by=due_date_soonest
+        GET /api/v1/tasks?sort_by=priority_high_low
+    """
+    DUE_DATE_SOONEST = "due_date_soonest"
+    CREATED_NEWEST = "created_newest"
+    CREATED_OLDEST = "created_oldest"
+    PRIORITY_HIGH_LOW = "priority_high_low"
+    ALPHABETICAL_AZ = "alphabetical_az"
 
 
 class ErrorResponse(BaseModel):

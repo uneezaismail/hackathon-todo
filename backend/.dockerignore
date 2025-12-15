@@ -54,8 +54,7 @@ dmypy.json
 
 # Documentation
 docs/
-*.md
-!README.md
+# Note: README.md is required for uv sync, so we don't exclude *.md
 
 # Git
 .git/

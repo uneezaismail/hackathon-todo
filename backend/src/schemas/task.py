@@ -10,31 +10,25 @@ All schemas include validation rules for field constraints.
 """
 
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
-from datetime import datetime
+from typing import Optional, List, Literal
+from datetime import datetime, date
 from uuid import UUID
+
+# Priority Enum Type
+PriorityType = Literal["High", "Medium", "Low"]
 
 
 class TaskCreate(BaseModel):
     """
     Schema for creating a new task.
-
-    Validates:
-    - title: Required, 1-200 characters
-    - description: Optional, max 1000 characters
-    - completed: Defaults to False (not in request body, set by backend)
-
-    Example:
-        {
-            "title": "Complete project documentation",
-            "description": "Write comprehensive README and API docs"
-        }
     """
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "title": "Complete project documentation",
-                "description": "Write comprehensive README and API documentation for the project"
+                "description": "Write comprehensive README and API docs",
+                "priority": "High",
+                "tags": ["documentation", "urgent"]
             }
         }
     )
@@ -52,28 +46,23 @@ class TaskCreate(BaseModel):
         description="Optional task description (max 1000 characters)",
         examples=["Write comprehensive README and API documentation for the project"]
     )
+    priority: PriorityType = Field(
+        default="Medium",
+        description="Task priority level (High, Medium, Low)"
+    )
+    due_date: Optional[date] = Field(
+        default=None,
+        description="Optional task due date"
+    )
+    tags: List[str] = Field(
+        default_factory=list,
+        description="List of tags associated with the task"
+    )
 
 
 class TaskResponse(BaseModel):
     """
     Schema for task API responses.
-
-    Returns all task fields including system-generated values:
-    - id: UUID assigned by database
-    - user_id: User ID from JWT token
-    - title, description, completed: User-provided or default values
-    - created_at, updated_at: Timestamps managed by database
-
-    Example:
-        {
-            "id": "550e8400-e29b-41d4-a716-446655440000",
-            "user_id": "test-user-123",
-            "title": "Complete project documentation",
-            "description": "Write comprehensive README and API docs",
-            "completed": false,
-            "created_at": "2025-12-11T10:30:00Z",
-            "updated_at": "2025-12-11T10:30:00Z"
-        }
     """
     model_config = ConfigDict(
         from_attributes=True,  # Enable ORM mode for SQLModel compatibility
@@ -84,6 +73,8 @@ class TaskResponse(BaseModel):
                 "title": "Complete project documentation",
                 "description": "Write comprehensive README and API documentation",
                 "completed": False,
+                "priority": "High",
+                "tags": ["documentation"],
                 "created_at": "2025-12-11T10:30:00Z",
                 "updated_at": "2025-12-11T10:30:00Z"
             }
@@ -110,6 +101,18 @@ class TaskResponse(BaseModel):
         ...,
         description="Task completion status"
     )
+    priority: PriorityType = Field(
+        default="Medium",
+        description="Task priority level"
+    )
+    due_date: Optional[date] = Field(
+        default=None,
+        description="Task due date"
+    )
+    tags: List[str] = Field(
+        default_factory=list,
+        description="List of tags associated with the task"
+    )
     created_at: datetime = Field(
         ...,
         description="Timestamp when task was created (UTC)"
@@ -123,22 +126,15 @@ class TaskResponse(BaseModel):
 class TaskUpdate(BaseModel):
     """
     Schema for updating an existing task.
-
-    All fields are optional to allow partial updates.
-    Used for future PATCH/PUT endpoints.
-
-    Example:
-        {
-            "title": "Updated task title",
-            "completed": true
-        }
     """
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
                 "title": "Updated task title",
                 "description": "Updated description",
-                "completed": True
+                "completed": True,
+                "priority": "Low",
+                "tags": ["updated"]
             }
         }
     )
@@ -157,6 +153,18 @@ class TaskUpdate(BaseModel):
     completed: Optional[bool] = Field(
         default=None,
         description="Updated completion status"
+    )
+    priority: Optional[PriorityType] = Field(
+        default=None,
+        description="Updated priority level"
+    )
+    due_date: Optional[date] = Field(
+        default=None,
+        description="Updated due date"
+    )
+    tags: Optional[List[str]] = Field(
+        default=None,
+        description="Updated list of tags"
     )
 
 

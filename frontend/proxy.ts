@@ -26,7 +26,14 @@ import { auth } from '@/lib/auth'
  * Validate session expiry
  * Returns true if session is valid (not expired), false otherwise
  */
-function isSessionValid(session: any): boolean {
+interface SessionData {
+  user?: unknown
+  session?: {
+    expiresAt?: Date | string
+  }
+}
+
+function isSessionValid(session: SessionData | null): boolean {
   // Check if session object exists
   if (!session) {
     return false
