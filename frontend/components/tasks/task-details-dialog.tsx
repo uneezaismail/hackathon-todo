@@ -48,60 +48,82 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="text-xl">{task.title}</DialogTitle>
+      <DialogContent className="w-[92vw] sm:max-w-lg bg-[#131929]/95 backdrop-blur-xl border-2 border-[#00d4b8]/30 shadow-[0_0_50px_rgba(0,212,184,0.1)] p-0 gap-0 overflow-hidden rounded-2xl sm:rounded-3xl">
+        <DialogHeader className="p-6 pb-2 text-left">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-white mb-1" style={{ textShadow: '0 0 20px rgba(0, 229, 204, 0.3)' }}>
+            {task.title}
+          </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Status */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-20">Status:</span>
-            {task.completed ? (
-              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
-                Completed
-              </Badge>
-            ) : (
-              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-                Pending
-              </Badge>
-            )}
-          </div>
+        <div className="p-6 pt-2 space-y-6">
+          {/* Status & Priority Row */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 bg-[#1a2332]/50 p-2 rounded-lg border border-white/5">
+              <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Status</span>
+              {task.completed ? (
+                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20">
+                  Completed
+                </Badge>
+              ) : (
+                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/20">
+                  Pending
+                </Badge>
+              )}
+            </div>
 
-          {/* Priority */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground w-20">Priority:</span>
-            <Badge className={getPriorityColor(task.priority)}>
-              <Flag className="mr-1 h-3 w-3" />
-              {task.priority}
-            </Badge>
+            <div className="flex items-center gap-2 bg-[#1a2332]/50 p-2 rounded-lg border border-white/5">
+              <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Priority</span>
+              <Badge className={`${getPriorityColor(task.priority)} hover:bg-opacity-20`}>
+                <Flag className="mr-1 h-3 w-3" />
+                {task.priority}
+              </Badge>
+            </div>
           </div>
 
           {/* Description */}
-          {task.description && (
-            <div className="space-y-1">
-              <span className="text-sm text-muted-foreground">Description:</span>
-              <p className="text-sm bg-muted/50 rounded-md p-3">{task.description}</p>
+          <div className="space-y-2">
+            <span className="text-sm font-medium text-white/90">Description</span>
+            <div className="bg-[#1a2332]/80 rounded-xl p-4 border border-white/10 text-white/80 text-sm leading-relaxed min-h-20">
+              {task.description || <span className="text-white/30 italic">No description provided</span>}
             </div>
-          )}
+          </div>
 
-          {/* Due Date */}
-          {task.due_date && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Due:</span>
-              <span className="text-sm">{formatDate(task.due_date)}</span>
+          {/* Metadata Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Due Date */}
+            <div className="bg-[#1a2332]/50 p-3 rounded-xl border border-white/5 space-y-1">
+              <span className="text-xs font-medium text-white/50 flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5" /> Due Date
+              </span>
+              <p className="text-sm font-medium text-white">
+                {task.due_date ? formatDate(task.due_date) : 'No due date'}
+              </p>
             </div>
-          )}
+
+            {/* Created At */}
+            <div className="bg-[#1a2332]/50 p-3 rounded-xl border border-white/5 space-y-1">
+              <span className="text-xs font-medium text-white/50 flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" /> Created
+              </span>
+              <p className="text-sm font-medium text-white">
+                {formatDate(task.created_at)}
+              </p>
+            </div>
+          </div>
 
           {/* Tags */}
           {task.tags && task.tags.length > 0 && (
-            <div className="flex items-start gap-2">
-              <TagIcon className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <span className="text-sm text-muted-foreground">Tags:</span>
-              <div className="flex flex-wrap gap-1">
+            <div className="space-y-2">
+              <span className="text-sm font-medium text-white/90 flex items-center gap-2">
+                <TagIcon className="h-4 w-4 text-[#00d4b8]" /> Tags
+              </span>
+              <div className="flex flex-wrap gap-2">
                 {task.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
+                  <Badge 
+                    key={tag} 
+                    variant="secondary" 
+                    className="bg-[#00d4b8]/10 text-[#00d4b8] border border-[#00d4b8]/20 px-3 py-1 text-xs"
+                  >
                     {tag}
                   </Badge>
                 ))}
@@ -109,19 +131,14 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
             </div>
           )}
 
-          {/* Timestamps */}
-          <div className="border-t pt-4 mt-4 space-y-2">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>Created: {formatDateTime(task.created_at)}</span>
+          {/* Footer Timestamp */}
+          {task.updated_at !== task.created_at && (
+            <div className="pt-4 border-t border-white/10 text-center">
+              <p className="text-xs text-white/30">
+                Last updated: {formatDateTime(task.updated_at)}
+              </p>
             </div>
-            {task.updated_at !== task.created_at && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Clock className="h-3 w-3" />
-                <span>Updated: {formatDateTime(task.updated_at)}</span>
-              </div>
-            )}
-          </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

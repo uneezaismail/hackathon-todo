@@ -90,29 +90,38 @@ export function DashboardClient({
 
   return (
     <div className="mb-6 space-y-4">
-      {/* Search and Filters Row */}
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Task Search Component */}
-        <TaskSearch value={initialSearch} onChange={handleSearchChange} />
-
-        {/* Task Filters (Status, Priority, Tags) */}
-        <TaskFilters
-          status={initialStatus}
-          priority={initialPriority}
-          tags={initialTags}
-          availableTags={availableTags}
-          onStatusChange={handleStatusChange}
-          onPriorityChange={handlePriorityChange}
-          onTagsChange={handleTagsChange}
+      <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+        {/* Task Search Component - Full width on mobile/tablet, fixed on desktop */}
+        <TaskSearch 
+          value={initialSearch} 
+          onChange={handleSearchChange} 
+          className="w-full lg:w-96"
         />
 
-        {/* Task Sort (Field + Direction) */}
-        <TaskSort
-          sortBy={initialSortBy}
-          sortDirection={initialSortDirection}
-          onSortByChange={handleSortByChange}
-          onSortDirectionChange={handleSortDirectionChange}
-        />
+        {/* Filters & Sort - Wrap on small screens */}
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          {/* Task Filters (Status, Priority, Tags) */}
+          <TaskFilters
+            status={initialStatus}
+            priority={initialPriority}
+            tags={initialTags}
+            availableTags={availableTags}
+            onStatusChange={handleStatusChange}
+            onPriorityChange={handlePriorityChange}
+            onTagsChange={handleTagsChange}
+          />
+
+          {/* Separator for visual grouping on large screens if needed, 
+              but flex-wrap handles it naturally */}
+          
+          {/* Task Sort (Field + Direction) */}
+          <TaskSort
+            sortBy={initialSortBy}
+            sortDirection={initialSortDirection}
+            onSortByChange={handleSortByChange}
+            onSortDirectionChange={handleSortDirectionChange}
+          />
+        </div>
       </div>
     </div>
   )
