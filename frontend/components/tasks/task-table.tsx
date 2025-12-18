@@ -61,15 +61,15 @@ interface TaskTableProps {
 
 export function TaskTable({ tasks, onTaskUpdated }: TaskTableProps) {
   return (
-    <div className="rounded-md border border-border/50 bg-card">
+    <div className="rounded-2xl border-2 border-[#00d4b8]/20 bg-[#131929]/40 backdrop-blur-md overflow-hidden hover:border-[#00d4b8]/40 hover:shadow-[0_0_30px_rgba(0,212,184,0.15)] transition-all duration-300">
       <Table>
-        <TableHeader>
-          <TableRow className="hover:bg-transparent border-border/50">
+        <TableHeader className="bg-[#1a2332]/60">
+          <TableRow className="hover:bg-transparent border-white/10">
             <TableHead className="w-[50px]"></TableHead>
-            <TableHead className="text-muted-foreground font-medium">Task</TableHead>
-            <TableHead className="text-muted-foreground font-medium">Status</TableHead>
-            <TableHead className="text-muted-foreground font-medium">Priority</TableHead>
-            <TableHead className="text-muted-foreground font-medium text-right">Due Date</TableHead>
+            <TableHead className="h-12 text-white/60 font-semibold uppercase tracking-wider text-xs">Task</TableHead>
+            <TableHead className="h-12 text-white/60 font-semibold uppercase tracking-wider text-xs">Status</TableHead>
+            <TableHead className="h-12 text-white/60 font-semibold uppercase tracking-wider text-xs">Priority</TableHead>
+            <TableHead className="h-12 text-white/60 font-semibold uppercase tracking-wider text-xs text-right">Due Date</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
@@ -199,7 +199,7 @@ function TaskTableRow({ task, onTaskUpdated }: TaskTableRowProps) {
   return (
     <>
       <TableRow
-        className="border-border/50 hover:bg-muted/50"
+        className="border-white/5 hover:bg-[#00d4b8]/5 transition-colors duration-200 group"
         data-testid="task-item"
         data-task-title={optimisticTask.title}
       >
@@ -210,18 +210,22 @@ function TaskTableRow({ task, onTaskUpdated }: TaskTableRowProps) {
             onCheckedChange={handleToggleComplete}
             disabled={isPending}
             aria-label={`Mark "${task.title}" as ${optimisticTask.completed ? 'pending' : 'complete'}`}
-            className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+            className="data-[state=checked]:bg-[#00d4b8] data-[state=checked]:border-[#00d4b8] border-white/20 transition-all"
           />
         </TableCell>
         <TableCell className="font-medium">
           <div className="flex flex-col">
-            <span className={optimisticTask.completed ? 'line-through text-muted-foreground' : ''}>
+            <span className={optimisticTask.completed ? 'line-through text-white/40' : 'text-white group-hover:text-[#00d4b8] transition-colors'}>
               {optimisticTask.title}
             </span>
             {optimisticTask.tags && optimisticTask.tags.length > 0 && (
-              <div className="flex gap-1 mt-1">
+              <div className="flex gap-1 mt-1 flex-wrap">
                 {optimisticTask.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className="text-xs bg-[#00d4b8]/10 text-[#00d4b8] border border-[#00d4b8]/20 hover:bg-[#00d4b8]/20 transition-colors"
+                  >
                     {tag}
                   </Badge>
                 ))}
@@ -231,7 +235,7 @@ function TaskTableRow({ task, onTaskUpdated }: TaskTableRowProps) {
         </TableCell>
         <TableCell>{getStatusBadge(optimisticTask.completed)}</TableCell>
         <TableCell>{getPriorityBadge(optimisticTask.priority)}</TableCell>
-        <TableCell className="text-right text-muted-foreground">
+        <TableCell className="text-right text-white/60">
           {optimisticTask.due_date
             ? format(new Date(optimisticTask.due_date), 'MMM d, yyyy')
             : '-'}
@@ -239,23 +243,34 @@ function TaskTableRow({ task, onTaskUpdated }: TaskTableRowProps) {
         <TableCell>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8" disabled={isPending}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:bg-white/5 hover:text-[#00d4b8] transition-all duration-200 opacity-60 group-hover:opacity-100"
+                disabled={isPending}
+              >
                 <MoreVertical className="h-4 w-4" />
                 <span className="sr-only">Open menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40">
-              <DropdownMenuItem onClick={() => setShowDetails(true)}>
+            <DropdownMenuContent align="end" className="w-40 bg-card border-[#00d4b8]/20 backdrop-blur-md">
+              <DropdownMenuItem
+                onClick={() => setShowDetails(true)}
+                className="hover:bg-secondary transition-colors cursor-pointer"
+              >
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+              <DropdownMenuItem
+                onClick={() => setIsEditing(true)}
+                className="hover:bg-secondary transition-colors cursor-pointer"
+              >
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => setShowDeleteDialog(true)}
-                className="text-red-500 focus:text-red-500"
+                className="text-red-400 hover:bg-red-500/10 hover:text-red-400 transition-colors cursor-pointer"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
@@ -274,10 +289,8 @@ function TaskTableRow({ task, onTaskUpdated }: TaskTableRowProps) {
 
       {/* Edit Task Dialog */}
       <EditDialog open={isEditing} onOpenChange={setIsEditing}>
-        <EditDialogContent className="max-w-2xl">
-          <EditDialogHeader>
-            <EditDialogTitle>Edit Task</EditDialogTitle>
-          </EditDialogHeader>
+        <EditDialogContent className="w-[92vw] sm:max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto bg-transparent border-0 shadow-none p-0 sm:rounded-3xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+          <EditDialogTitle className="sr-only">Edit Task</EditDialogTitle>
           <TaskForm
             task={task}
             onSuccess={() => {

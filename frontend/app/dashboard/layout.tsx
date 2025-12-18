@@ -1,20 +1,22 @@
 /**
- * Dashboard Layout (T082)
+ * Dashboard Layout
  *
- * Layout wrapper for dashboard pages with authentication
+ * Layout wrapper for dashboard pages with authentication and sidebar
  */
 
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
+import { DashboardLayout as DashboardLayoutComponent } from '@/components/dashboard/dashboard-layout'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
 }
 
 /**
- * T082: Dashboard Layout
+ * Dashboard Layout
  * Ensures user is authenticated before rendering dashboard pages
+ * Uses custom sidebar layout component
  */
 export default async function DashboardLayout({ children }: DashboardLayoutProps) {
   // Check authentication
@@ -26,9 +28,5 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     redirect('/sign-in?callbackUrl=/dashboard')
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      <main>{children}</main>
-    </div>
-  )
+  return <DashboardLayoutComponent>{children}</DashboardLayoutComponent>
 }

@@ -3,6 +3,7 @@
  *
  * Client Component for creating and editing tasks
  * Includes form validation and loading states
+ * Fully responsive with beautiful styling for light and dark modes
  */
 
 'use client'
@@ -18,7 +19,6 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { createTask, updateTask } from '@/actions/tasks'
 import type { Task, Priority } from '@/types/task'
@@ -150,66 +150,71 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
   const descriptionLength = descriptionValue?.length || 0
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{isEditing ? 'Edit Task' : 'Create New Task'}</CardTitle>
-      </CardHeader>
+    <div className="w-full mx-auto">
+      <div className="relative rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 border-[#00d4b8]/30 bg-[#131929]/95 backdrop-blur-xl shadow-[0_0_80px_rgba(0,212,184,0.15)]">
+        
+        {/* Header */}
+        <div className="mb-4 sm:mb-6 text-center sm:text-left">
+          <h2 className="text-xl sm:text-2xl font-bold text-white mb-1" style={{ textShadow: '0 0 20px rgba(0, 229, 204, 0.3)' }}>
+            {isEditing ? 'Edit Task' : 'Create New Task'}
+          </h2>
+          <p className="text-white/60 text-xs sm:text-sm">
+            {isEditing ? 'Update your task details below' : 'Add a new task to your list'}
+          </p>
+        </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
           {/* Title Field */}
-          <div className="space-y-2">
-            <Label htmlFor="title">
-              Title <span className="text-destructive">*</span>
+          <div className="space-y-1.5">
+            <Label htmlFor="title" className="text-white/90 font-medium text-sm">
+              Title <span className="text-[#00d4b8]">*</span>
             </Label>
             <Input
               id="title"
-              placeholder="Enter task title"
+              placeholder="Enter task title..."
               {...register('title')}
               disabled={isPending}
-              className={errors.title ? 'border-destructive' : ''}
+              className={`h-11 rounded-xl bg-[#1a2332]/80 border-2 text-white placeholder:text-white/40 transition-all duration-300 ${
+                errors.title
+                  ? 'border-red-500/60 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
+                  : 'border-white/10 focus:bg-[#1a2332] focus:border-[#00d4b8]/60 focus:shadow-[0_0_20px_rgba(0,212,184,0.2)]'
+              }`}
             />
-            <div className="flex justify-between items-center">
-              {errors.title && (
-                <p className="text-sm text-destructive">{errors.title.message}</p>
-              )}
-              <span
-                className={`text-xs ml-auto ${
-                  titleLength > 200 ? 'text-destructive' : 'text-muted-foreground'
-                }`}
-              >
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-red-400 font-medium min-h-[16px]">{errors.title?.message}</span>
+              <span className={titleLength > 200 ? 'text-red-400 font-medium' : 'text-white/40'}>
                 {titleLength}/200
               </span>
             </div>
           </div>
 
           {/* Description Field */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (optional)</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="description" className="text-white/90 font-medium text-sm">
+              Description <span className="text-white/40 font-normal text-xs ml-1">(optional)</span>
+            </Label>
             <Textarea
               id="description"
-              placeholder="Enter task description"
-              rows={4}
+              placeholder="Enter task description..."
+              rows={3}
               {...register('description')}
               disabled={isPending}
-              className={errors.description ? 'border-destructive' : ''}
+              className={`resize-none rounded-xl bg-[#1a2332]/80 border-2 text-white placeholder:text-white/40 transition-all duration-300 ${
+                errors.description
+                  ? 'border-red-500/60 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
+                  : 'border-white/10 focus:bg-[#1a2332] focus:border-[#00d4b8]/60 focus:shadow-[0_0_20px_rgba(0,212,184,0.2)]'
+              }`}
             />
-            <div className="flex justify-between items-center">
-              {errors.description && (
-                <p className="text-sm text-destructive">{errors.description.message}</p>
-              )}
-              <span
-                className={`text-xs ml-auto ${
-                  descriptionLength > 1000 ? 'text-destructive' : 'text-muted-foreground'
-                }`}
-              >
+            <div className="flex justify-between items-center text-xs">
+              <span className="text-red-400 font-medium min-h-[16px]">{errors.description?.message}</span>
+              <span className={descriptionLength > 1000 ? 'text-red-400 font-medium' : 'text-white/40'}>
                 {descriptionLength}/1000
               </span>
             </div>
           </div>
 
-          {/* T043: Priority and Due Date on the same line */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Priority and Due Date - Responsive Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
             <PrioritySelector
               value={priority}
               onChange={setPriority}
@@ -222,33 +227,44 @@ export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
             />
           </div>
 
-          {/* T043: Tag Input */}
+          {/* Tag Input */}
           <TagInput
             value={tags}
             onChange={setTags}
             disabled={isPending}
           />
-        </CardContent>
 
-        <CardFooter className="flex justify-end gap-2">
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={isPending}>
-              Cancel
-            </Button>
-          )}
-
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isEditing ? 'Updating...' : 'Creating...'}
-              </>
-            ) : (
-              <>{isEditing ? 'Update Task' : 'Create Task'}</>
+          {/* Actions */}
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-3 border-t border-white/10">
+            {onCancel && (
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={handleCancel}
+                disabled={isPending}
+                className="w-full sm:w-auto min-w-[100px] h-11 text-white/70 hover:text-white hover:bg-white/10"
+              >
+                Cancel
+              </Button>
             )}
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="w-full sm:w-auto min-w-[140px] h-11 font-semibold rounded-xl bg-[#00d4b8] text-[#0f1729] hover:bg-[#00e5cc] hover:shadow-[0_0_20px_rgba(0,212,184,0.5)] transition-all duration-300"
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isEditing ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                <>{isEditing ? 'Update Task' : 'Create Task'}</>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
   )
 }

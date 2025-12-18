@@ -81,7 +81,7 @@ export function TaskFilters({
   }
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
       {/* Status Filter Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -89,18 +89,19 @@ export function TaskFilters({
             variant="outline"
             size="default"
             disabled={disabled}
-            className="gap-2 bg-muted/50 border-border/50 hover:bg-muted"
+            className="gap-2 bg-card/50 border-[#00d4b8]/20 hover:bg-card hover:border-[#00d4b8]/40 hover:shadow-[0_0_15px_rgba(0,212,184,0.1)] transition-all duration-300 backdrop-blur-sm"
           >
             {currentStatusLabel}
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-40">
+        <DropdownMenuContent align="start" className="w-40 bg-card border-[#00d4b8]/20 backdrop-blur-md">
           <DropdownMenuRadioGroup value={status} onValueChange={onStatusChange}>
             {STATUS_OPTIONS.map((option) => (
               <DropdownMenuRadioItem
                 key={option.value}
                 value={option.value}
+                className="hover:bg-secondary transition-colors"
               >
                 {option.label}
               </DropdownMenuRadioItem>
@@ -116,18 +117,19 @@ export function TaskFilters({
             variant="outline"
             size="default"
             disabled={disabled}
-            className="gap-2 bg-muted/50 border-border/50 hover:bg-muted"
+            className="gap-2 bg-card/50 border-[#00d4b8]/20 hover:bg-card hover:border-[#00d4b8]/40 hover:shadow-[0_0_15px_rgba(0,212,184,0.1)] transition-all duration-300 backdrop-blur-sm"
           >
             {currentPriorityLabel}
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-40">
+        <DropdownMenuContent align="start" className="w-40 bg-card border-[#00d4b8]/20 backdrop-blur-md">
           <DropdownMenuRadioGroup value={priority} onValueChange={onPriorityChange}>
             {PRIORITY_OPTIONS.map((option) => (
               <DropdownMenuRadioItem
                 key={option.value}
                 value={option.value}
+                className="hover:bg-secondary transition-colors"
               >
                 {option.label}
               </DropdownMenuRadioItem>
@@ -143,12 +145,12 @@ export function TaskFilters({
             variant="outline"
             size="default"
             disabled={disabled}
-            className="gap-2 bg-muted/50 border-border/50 hover:bg-muted"
+            className="gap-2 bg-card/50 border-[#00d4b8]/20 hover:bg-card hover:border-[#00d4b8]/40 hover:shadow-[0_0_15px_rgba(0,212,184,0.1)] transition-all duration-300 backdrop-blur-sm"
           >
             {tags.length > 0 ? (
               <>
                 Tags
-                <Badge variant="secondary" className="ml-1 rounded-full px-1.5 py-0 text-xs">
+                <Badge variant="secondary" className="ml-1 rounded-full px-1.5 py-0 text-xs bg-[#00d4b8]/20 text-[#00d4b8] border-[#00d4b8]/30">
                   {tags.length}
                 </Badge>
               </>
@@ -158,7 +160,7 @@ export function TaskFilters({
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuContent align="start" className="w-56 bg-card border-[#00d4b8]/20 backdrop-blur-md">
           {availableTags.length === 0 ? (
             <div className="p-3 text-sm text-muted-foreground text-center">
               No tags available
@@ -166,12 +168,12 @@ export function TaskFilters({
           ) : (
             <>
               <div className="flex items-center justify-between px-2 py-1.5">
-                <DropdownMenuLabel className="p-0 font-medium">Filter by Tags</DropdownMenuLabel>
+                <DropdownMenuLabel className="p-0 font-medium text-foreground">Filter by Tags</DropdownMenuLabel>
                 {tags.length > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+                    className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-[#00d4b8] hover:bg-secondary transition-colors"
                     onClick={(e) => {
                       e.preventDefault()
                       handleClearTags()
@@ -181,20 +183,20 @@ export function TaskFilters({
                   </Button>
                 )}
               </div>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-border" />
               <div className="max-h-[200px] overflow-y-auto">
                 {availableTags.map((tag) => (
                   <div
                     key={tag}
-                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-accent rounded-sm cursor-pointer"
+                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-secondary rounded-sm cursor-pointer transition-colors"
                     onClick={() => handleTagToggle(tag, !tags.includes(tag))}
                   >
                     <Checkbox
                       checked={tags.includes(tag)}
                       onCheckedChange={(checked) => handleTagToggle(tag, checked === true)}
-                      className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      className="data-[state=checked]:bg-[#00d4b8] data-[state=checked]:border-[#00d4b8]"
                     />
-                    <span className="text-sm flex-1">{tag}</span>
+                    <span className="text-sm flex-1 text-foreground">{tag}</span>
                   </div>
                 ))}
               </div>

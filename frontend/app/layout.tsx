@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Header from "@/components/layout/header";
-import Footer from "@/components/layout/footer";
 import { Toaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,7 +20,7 @@ export const metadata: Metadata = {
     template: "%s | Todo App",
   },
   description:
-    "Manage your tasks efficiently with our modern todo application. Create, update, and organize your tasks with ease.",
+    "Organize your work and life with our intuitive task management app. Stay productive, meet deadlines, and achieve your goals with ease.",
   keywords: ["todo", "task management", "productivity", "tasks", "organizer", "todo list", "task tracker"],
   authors: [{ name: "Todo App Team" }],
   creator: "Todo App",
@@ -35,7 +34,7 @@ export const metadata: Metadata = {
     url: "/",
     title: "Todo App - Task Management Made Simple",
     description:
-      "Manage your tasks efficiently with our modern todo application.",
+      "Organize your work and life with our intuitive task management app.",
     siteName: "Todo App",
     images: [
       {
@@ -50,7 +49,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Todo App - Task Management Made Simple",
     description:
-      "Manage your tasks efficiently with our modern todo application.",
+      "Organize your work and life with our intuitive task management app.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -75,16 +74,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">{children}</main>
-          <Footer />
-        </div>
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -118,34 +118,65 @@ export default function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative h-10 w-10 rounded-full"
+          className="relative h-10 w-10 rounded-full p-0 hover:bg-transparent group"
           aria-label="User menu"
         >
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-primary text-primary-foreground">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+          <div className="relative">
+            {/* Glow effect on hover */}
+            <div className="absolute inset-0 rounded-full bg-[#00d4b8]/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+            {/* Avatar with gradient border */}
+            <div className="relative rounded-full p-[2px] bg-gradient-to-br from-[#00d4b8] via-[#8b5cf6] to-[#ec4899] group-hover:shadow-[0_0_20px_rgba(0,212,184,0.5)] transition-all duration-300">
+              <Avatar className="h-9 w-9">
+                <AvatarFallback className="bg-gradient-to-br from-[#00d4b8] to-[#00b8a3] text-[#0f1729] font-bold text-sm">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name || 'User'}</p>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
+      <DropdownMenuContent
+        className="w-64 border-2 border-[#00d4b8]/30 bg-[#131929]/98 backdrop-blur-xl shadow-[0_0_40px_rgba(0,212,184,0.2)]"
+        align="end"
+        forceMount
+        sideOffset={8}
+      >
+        <DropdownMenuLabel className="font-normal p-4">
+          <div className="flex items-center gap-3">
+            {/* Avatar in dropdown */}
+            <div className="rounded-full p-[2px] bg-gradient-to-br from-[#00d4b8] to-[#8b5cf6]">
+              <div className="rounded-full bg-[#131929] p-2">
+                <User className="h-5 w-5 text-[#00d4b8]" />
+              </div>
+            </div>
+
+            {/* User info */}
+            <div className="flex flex-col space-y-1 flex-1 min-w-0">
+              <p className="text-sm font-semibold text-white truncate">
+                {user.name || 'User'}
+              </p>
+              <p className="text-xs text-white/60 truncate">
+                {user.email}
+              </p>
+            </div>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          className="cursor-pointer"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>{isLoggingOut ? 'Logging out...' : 'Log out'}</span>
-        </DropdownMenuItem>
+
+        <DropdownMenuSeparator className="bg-white/10" />
+
+        <div className="p-1">
+          <DropdownMenuItem
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="cursor-pointer rounded-lg px-3 py-2.5 text-white/80 hover:text-white hover:bg-red-500/10 focus:bg-red-500/10 focus:text-white border-2 border-transparent hover:border-red-500/30 transition-all duration-200"
+          >
+            <LogOut className="mr-3 h-4 w-4 text-red-400" />
+            <span className="font-medium">
+              {isLoggingOut ? 'Logging out...' : 'Log out'}
+            </span>
+          </DropdownMenuItem>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   )

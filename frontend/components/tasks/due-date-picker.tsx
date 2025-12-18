@@ -3,6 +3,7 @@
  *
  * Date picker using Shadcn calendar component
  * Includes "Clear due date" functionality (T048)
+ * Fully responsive with beautiful styling for light and dark modes
  */
 
 'use client'
@@ -15,12 +16,10 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Label } from '@/components/ui/label'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 interface DueDatePickerProps {
   value: Date | null
@@ -52,48 +51,50 @@ export function DueDatePicker({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      {!hideLabel && <Label htmlFor="due-date-picker">Due Date</Label>}
+      {!hideLabel && (
+        <Label htmlFor="due-date-picker" className="text-sm font-semibold text-white/90">
+          Due Date
+        </Label>
+      )}
       <div className="flex gap-2">
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger asChild>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
             <Button
               id="due-date-picker"
               type="button"
               variant="outline"
               disabled={disabled}
-              className={`w-full justify-start text-left font-normal ${
-                !value && 'text-muted-foreground'
+              className={`h-12 w-full justify-start text-left font-medium text-base transition-all duration-300 rounded-xl bg-[#1a2332]/80 border-2 ${
+                open ? 'border-[#00d4b8]/60 shadow-[0_0_20px_rgba(0,212,184,0.2)]' : 'border-white/10'
+              } text-white hover:bg-[#1a2332] hover:text-white hover:border-[#00d4b8]/40 ${
+                !value && 'text-white/40'
               }`}
             >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {value ? format(value, 'PPP') : 'Pick a date'}
+              <CalendarIcon className="mr-2 h-4 w-4 shrink-0 text-[#00d4b8]" />
+              <span className="truncate">{value ? format(value, 'PPP') : 'Pick a date'}</span>
             </Button>
-          </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto">
-            <SheetHeader>
-              <SheetTitle>Select Due Date</SheetTitle>
-            </SheetHeader>
-            <div className="flex justify-center py-4">
-              <Calendar
-                mode="single"
-                selected={value || undefined}
-                onSelect={handleSelect}
-                initialFocus
-                disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0 bg-[#131929] border border-[#00d4b8]/30 shadow-xl" align="start">
+            <Calendar
+              mode="single"
+              selected={value || undefined}
+              onSelect={handleSelect}
+              initialFocus
+              disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+              className="rounded-lg bg-[#131929] text-white p-3"
+            />
+          </PopoverContent>
+        </Popover>
 
         {/* T048: Clear due date button */}
         {value && (
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             size="icon"
             disabled={disabled}
             onClick={handleClear}
-            className="shrink-0"
+            className="h-12 w-12 shrink-0 rounded-xl border-2 border-white/10 bg-[#1a2332]/80 text-white hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/50 transition-all duration-200"
             title="Clear due date"
           >
             <X className="h-4 w-4" />

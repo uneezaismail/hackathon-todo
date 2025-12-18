@@ -60,3 +60,10 @@ hackathon-todo/
 - **Backend:** Receives JWT -> Verifies signature -> Extracts User ID -> Validates against URL `{user_id}` -> Filters Data.
 - **Shared Secret:** `BETTER_AUTH_SECRET` MUST match in both `.env` files.
 - **User Isolation:** All API endpoints use format `/api/{user_id}/tasks` and validate JWT user_id matches URL user_id.
+
+## Active Technologies
+- TypeScript 5.x (Frontend), Python 3.13+ (Backend) (005-futuristic-dark-mode)
+- Neon Serverless PostgreSQL with Drizzle for auth tables (`user`, `session`, `account`) and SQLModel for task tables (005-futuristic-dark-mode)
+
+## Recent Changes
+- 005-futuristic-dark-mode: Added TypeScript 5.x (Frontend), Python 3.13+ (Backend)

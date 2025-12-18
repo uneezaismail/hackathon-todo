@@ -63,7 +63,7 @@ export function TaskSearch({
           value={localValue}
           onChange={handleInputChange}
           disabled={disabled}
-          className="pl-9 pr-9"
+          className="pl-9 pr-9 bg-card/50 border-[#00d4b8]/20 focus:border-[#00d4b8]/40 focus:shadow-[0_0_15px_rgba(0,212,184,0.1)] transition-all duration-300 backdrop-blur-sm"
         />
         {localValue && (
           <Button
@@ -72,7 +72,7 @@ export function TaskSearch({
             size="icon"
             onClick={handleClear}
             disabled={disabled}
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 hover:bg-secondary hover:text-[#00d4b8] transition-colors"
             title="Clear search"
           >
             <X className="h-4 w-4" />
