@@ -38,7 +38,7 @@ export default function SettingsPage() {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Navigation */}
-        <aside className="lg:w-64 flex-shrink-0">
+        <aside className="lg:w-64 shrink-0">
           <nav className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 scrollbar-none">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id
@@ -47,7 +47,7 @@ export default function SettingsPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap min-w-[140px] lg:min-w-0',
+                    'flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 whitespace-nowrap min-w-35 lg:min-w-0',
                     isActive
                       ? 'bg-[#00d4b8]/10 text-[#00d4b8] border-2 border-[#00d4b8]/20 shadow-[0_0_15px_rgba(0,212,184,0.1)]'
                       : 'text-white/60 hover:text-white hover:bg-white/5 border-2 border-transparent'

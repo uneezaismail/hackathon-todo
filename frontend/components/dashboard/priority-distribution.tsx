@@ -34,7 +34,7 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
     }
   }
 
-  const activeTasks = tasks.filter(t => t.status === 'pending')
+  const activeTasks = tasks.filter(t => !t.completed)
   const hasData = activeTasks.length > 0
 
   return (
@@ -83,10 +83,10 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
                   borderRadius: '8px',
                   color: '#fff',
                 }}
-                formatter={(value: number, name: string, props: any) => [
-                  `${value} tasks (${props.payload.percentage}%)`,
+                formatter={(value, name, props: any) => [
+                  `${value || 0} tasks (${props.payload.percentage}%)`,
                   props.payload.priority
-                ]}
+                ] as [string, string]}
               />
             </PieChart>
           </ResponsiveContainer>

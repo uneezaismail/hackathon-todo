@@ -42,8 +42,8 @@ export async function DashboardHomeEnhanced() {
   // Fetch all tasks for analytics (limit to 100 for performance)
   const tasksResult = await fetchTasks({
     limit: 100,
-    sortBy: 'created',
-    sortDirection: 'desc'
+    sort_by: 'created',
+    sort_direction: 'desc'
   })
 
   const tasks = tasksResult.tasks || []
@@ -103,7 +103,7 @@ export async function DashboardHomeEnhanced() {
               <p className="text-xs text-white/60">Focus on what matters most</p>
             </div>
             <div className="text-2xl font-bold text-red-400">
-              {tasks.filter(t => t.priority === 'High' && t.status === 'pending').length}
+              {tasks.filter(t => t.priority === 'High' && !t.completed).length}
             </div>
           </div>
         </a>
@@ -118,7 +118,7 @@ export async function DashboardHomeEnhanced() {
               <p className="text-xs text-white/60">View your complete task list</p>
             </div>
             <div className="text-2xl font-bold text-[#00d4b8]">
-              {tasks.filter(t => t.status === 'pending').length}
+              {tasks.filter(t => !t.completed).length}
             </div>
           </div>
         </a>
@@ -133,7 +133,7 @@ export async function DashboardHomeEnhanced() {
               <p className="text-xs text-white/60">See what you've accomplished</p>
             </div>
             <div className="text-2xl font-bold text-green-400">
-              {tasks.filter(t => t.status === 'completed').length}
+              {tasks.filter(t => t.completed).length}
             </div>
           </div>
         </a>

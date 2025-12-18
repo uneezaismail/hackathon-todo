@@ -22,6 +22,7 @@ export interface PriorityDistribution {
   count: number
   percentage: number
   color: string
+  [key: string]: string | number
 }
 
 export interface ProductivityMetrics {
@@ -57,7 +58,7 @@ export function calculateCompletionTrends(
 
     // Count completed tasks on this date
     const completed = tasks.filter(task => {
-      if (!task.updated_at || task.status !== 'completed') return false
+      if (!task.updated_at || !task.completed) return false
       const taskDate = startOfDay(parseISO(task.updated_at))
       return taskDate.getTime() === date.getTime()
     }).length
@@ -85,7 +86,7 @@ export function calculatePriorityDistribution(tasks: Task[]): PriorityDistributi
     Low: 0,
   }
 
-  const activeTasks = tasks.filter(t => t.status === 'pending')
+  const activeTasks = tasks.filter(t => !t.completed)
 
   activeTasks.forEach(task => {
     const priority = task.priority || 'Medium'
@@ -116,7 +117,7 @@ export function calculateProductivityMetrics(tasks: Task[]): ProductivityMetrics
   const todayStart = startOfDay(now)
   const weekAgo = subDays(todayStart, 7)
 
-  const completedTasks = tasks.filter(t => t.status === 'completed')
+  const completedTasks = tasks.filter(t => t.completed)
   const totalTasks = tasks.length
   const completionRate = totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 0
 
@@ -250,7 +251,7 @@ export function getUpcomingDeadlines(
   limit: number = 5
 ): UpcomingDeadline[] {
   const now = new Date()
-  const pendingTasks = tasks.filter(t => t.status === 'pending' && t.due_date)
+  const pendingTasks = tasks.filter(t => !t.completed && t.due_date)
 
   const deadlines: UpcomingDeadline[] = pendingTasks.map(task => {
     const dueDate = parseISO(task.due_date!)
@@ -295,7 +296,7 @@ export function getTodaysFocus(tasks: Task[]): {
   highPriority: Task[]
 } {
   const now = new Date()
-  const pendingTasks = tasks.filter(t => t.status === 'pending')
+  const pendingTasks = tasks.filter(t => !t.completed)
 
   const dueToday = pendingTasks.filter(t => {
     if (!t.due_date) return false

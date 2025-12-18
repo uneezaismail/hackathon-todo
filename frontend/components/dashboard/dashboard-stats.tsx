@@ -17,13 +17,13 @@ export async function DashboardStats() {
 
   // Calculate statistics
   const total = tasks.length
-  const completed = tasks.filter(task => task.status === 'completed').length
-  const pending = tasks.filter(task => task.status === 'pending').length
+  const completed = tasks.filter(task => task.completed).length
+  const pending = tasks.filter(task => !task.completed).length
 
   // Calculate overdue tasks (pending tasks with due_date in the past)
   const now = new Date()
   const overdue = tasks.filter(task => {
-    if (task.status === 'completed') return false
+    if (task.completed) return false
     if (!task.due_date) return false
     return new Date(task.due_date) < now
   }).length
