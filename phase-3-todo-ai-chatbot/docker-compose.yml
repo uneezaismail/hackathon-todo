@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env.local
+    environment:
+      # Use service name for inter-container communication
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - NEXT_PUBLIC_CHATKIT_URL=http://backend:8000/api/chatkit
+      # Override to ensure it listens on all interfaces
+      - HOSTNAME=0.0.0.0
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - HOST=0.0.0.0
+      # CORS must allow frontend container
+      - CORS_ORIGINS=http://localhost:3000,http://frontend:3000
+      # Note: DATABASE_URL should be in .env (cloud Neon URL)
+      # Note: LLM_PROVIDER and API keys should be in .env
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

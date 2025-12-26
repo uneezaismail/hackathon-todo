@@ -1,0 +1,314 @@
+# MCP Tools Contract: Todo Task Management
+
+**Protocol**: Model Context Protocol (MCP)
+**Version**: 1.0.0
+**Purpose**: Tool definitions for AI agent to manage todo tasks via natural language
+
+## Tool Server Information
+
+- **Server Name**: `todo-task-server`
+- **Protocol**: MCP (Model Context Protocol)
+- **Implementation**: Official MCP Python SDK (FastMCP)
+- **Security**: All tools require `user_id` parameter and validate against authenticated user
+- **Service Delegation**: Tools delegate to existing `TaskService` from Phase 2
+
+## Tools (8 Total)
+
+### 1. add_task
+
+**Purpose**: Create a new todo task for the user.
+
+**Tool Name**: `add_task`
+
+#### Input Schema
+```yaml
+type: object
+required:
+  - user_id
+  - title
+properties:
+  user_id:
+    type: string
+    description: Authenticated user ID
+  title:
+    type: string
+    minLength: 1
+    maxLength: 200
+    description: Task title
+  description:
+    type: string
+    maxLength: 1000
+    nullable: true
+  priority:
+    type: string
+    enum: [high, medium, low]
+    default: medium
+```
+
+#### Output Schema
+```yaml
+type: object
+required:
+  - task_id
+  - status
+  - message
+properties:
+  task_id:
+    type: string
+  status:
+    type: string
+    enum: [success, error]
+  message:
+    type: string
+```
+
+---
+
+### 2. list_tasks
+
+**Purpose**: Retrieve user's tasks with optional status filtering.
+
+**Tool Name**: `list_tasks`
+
+#### Input Schema
+```yaml
+type: object
+required:
+  - user_id
+properties:
+  user_id:
+    type: string
+  status_filter:
+    type: string
+    enum: [all, pending, completed]
+    default: all
+```
+
+#### Output Schema
+```yaml
+type: object
+required:
+  - tasks
+  - count
+properties:
+  tasks:
+    type: array
+    items:
+      type: object
+  count:
+    type: integer
+```
+
+---
+
+### 3. complete_task
+
+**Purpose**: Mark a task as completed.
+
+**Tool Name**: `complete_task`
+
+#### Input Schema
+```yaml
+type: object
+required:
+  - user_id
+  - task_id
+properties:
+  user_id:
+    type: string
+  task_id:
+    type: string
+```
+
+#### Output Schema
+```yaml
+type: object
+required:
+  - task_id
+  - status
+  - message
+properties:
+  task_id:
+    type: string
+  status:
+    type: string
+  message:
+    type: string
+```
+
+---
+
+### 4. delete_task
+
+**Purpose**: Permanently delete a task.
+
+**Tool Name**: `delete_task`
+
+#### Input Schema
+```yaml
+type: object
+required:
+  - user_id
+  - task_id
+properties:
+  user_id:
+    type: string
+  task_id:
+    type: string
+```
+
+#### Output Schema
+```yaml
+type: object
+required:
+  - task_id
+  - status
+  - message
+```
+
+---
+
+### 5. update_task
+
+**Purpose**: Update task title or description.
+
+**Tool Name**: `update_task`
+
+#### Input Schema
+```yaml
+type: object
+required:
+  - user_id
+  - task_id
+properties:
+  user_id:
+    type: string
+  task_id:
+    type: string
+  title:
+    type: string
+    nullable: true
+  description:
+    type: string
+    nullable: true
+```
+
+#### Output Schema
+```yaml
+type: object
+required:
+  - task_id
+  - status
+  - message
+```
+
+---
+
+### 6. set_priority
+
+**Purpose**: Change task priority level.
+
+**Tool Name**: `set_priority`
+
+#### Input Schema
+```yaml
+type: object
+required:
+  - user_id
+  - task_id
+  - priority
+properties:
+  user_id:
+    type: string
+  task_id:
+    type: string
+  priority:
+    type: string
+    enum: [high, medium, low]
+```
+
+#### Output Schema
+```yaml
+type: object
+required:
+  - task_id
+  - status
+  - message
+```
+
+---
+
+### 7. list_tasks_by_priority
+
+**Purpose**: List tasks grouped by priority level.
+
+**Tool Name**: `list_tasks_by_priority`
+
+#### Input Schema
+```yaml
+type: object
+required:
+  - user_id
+properties:
+  user_id:
+    type: string
+```
+
+#### Output Schema
+```yaml
+type: object
+required:
+  - high
+  - medium
+  - low
+properties:
+  high:
+    type: array
+  medium:
+    type: array
+  low:
+    type: array
+```
+
+---
+
+### 8. bulk_update_tasks
+
+**Purpose**: Bulk update task status.
+
+**Tool Name**: `bulk_update_tasks`
+
+#### Input Schema
+```yaml
+type: object
+required:
+  - user_id
+  - task_ids
+  - status
+properties:
+  user_id:
+    type: string
+  task_ids:
+    type: array
+    items:
+      type: string
+  status:
+    type: string
+    enum: [pending, completed]
+```
+
+#### Output Schema
+```yaml
+type: object
+required:
+  - updated_count
+  - status
+```
+
+---
+
+## Security Model
+
+Every tool validates `user_id` against authenticated user from JWT context.
+
+**Summary**: 8 MCP tools, user validation on all, service layer delegation.

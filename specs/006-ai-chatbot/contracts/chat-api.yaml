@@ -1,0 +1,195 @@
+openapi: 3.1.0
+info:
+  title: AI Chatbot API - ChatKit Protocol
+  description: Official OpenAI ChatKit protocol endpoint for AI-powered task management
+  version: 1.0.0
+  contact:
+    name: Phase III AI Chatbot
+    url: https://github.com/uneezaismail/hackathon-todo
+
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server
+
+tags:
+  - name: chatkit
+    description: Official ChatKit protocol endpoints
+
+paths:
+  /api/chatkit:
+    post:
+      tags:
+        - chatkit
+      summary: ChatKit Protocol Endpoint
+      description: |
+        Official OpenAI ChatKit protocol endpoint for AI-powered task management.
+
+        **Protocol**: ChatKit handles thread management, message persistence, and widget streaming automatically.
+        **Authentication**: JWT via Authorization header (Bearer token).
+        **Memory**: SQLiteSession maintains conversation history per thread.
+      operationId: chatkitProtocol
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: ChatKit protocol response (streaming)
+          content:
+            application/json:
+              schema:
+                type: object
+                description: ChatKit protocol response format
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Better Auth JWT token from /api/auth/session
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+          description: |
+            Optional conversation ID to continue existing conversation.
+            If not provided, a new conversation is created.
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        message:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: User message content (max 2000 characters per FR-032)
+          example: "Add a task to buy groceries"
+
+    StreamingChatResponse:
+      type: object
+      description: |
+        Server-Sent Events (SSE) stream with incremental response chunks.
+        Each event is a JSON object with a 'type' field indicating the event type.
+      oneOf:
+        - $ref: '#/components/schemas/ChunkEvent'
+        - $ref: '#/components/schemas/ToolCallEvent'
+        - $ref: '#/components/schemas/ToolResultEvent'
+        - $ref: '#/components/schemas/DoneEvent'
+
+    ChunkEvent:
+      type: object
+      description: Incremental text chunk from AI response
+      required:
+        - type
+        - content
+      properties:
+        type:
+          type: string
+          enum: [chunk]
+        content:
+          type: string
+          description: Partial AI response text
+          example: "I've created the task"
+
+    ToolCallEvent:
+      type: object
+      description: AI is calling an MCP tool
+      required:
+        - type
+        - tool
+        - args
+      properties:
+        type:
+          type: string
+          enum: [tool_call]
+        tool:
+          type: string
+          description: MCP tool name
+          example: "add_task"
+        args:
+          type: object
+          description: Tool call arguments
+          example:
+            user_id: "123e4567-e89b-12d3-a456-426614174000"
+            title: "buy groceries"
+            priority: "medium"
+
+    ToolResultEvent:
+      type: object
+      description: Result of MCP tool execution
+      required:
+        - type
+        - tool
+        - result
+      properties:
+        type:
+          type: string
+          enum: [tool_result]
+        tool:
+          type: string
+          description: MCP tool name
+          example: "add_task"
+        result:
+          type: object
+          description: Tool execution result
+          example:
+            task_id: "789e0123-e89b-12d3-a456-426614174999"
+            status: "success"
+            message: "Created task 'buy groceries'"
+
+    DoneEvent:
+      type: object
+      description: Streaming response complete
+      required:
+        - type
+        - conversation_id
+      properties:
+        type:
+          type: string
+          enum: [done]
+        conversation_id:
+          type: string
+          format: uuid
+          description: Conversation ID (newly created or existing)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          enum:
+            - bad_request
+            - unauthorized
+            - forbidden
+            - not_found
+            - timeout
+            - internal_error
+        message:
+          type: string
+          description: User-friendly error message
+          example: "Message exceeds maximum length of 2000 characters"
+        details:
+          type: object
+          description: Additional error context (optional)
+          additionalProperties: true
