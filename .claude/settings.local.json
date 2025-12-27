@@ -19,7 +19,9 @@
       "Bash(chmod:*)",
       "Bash(./scripts/verify-phase6.sh:*)",
       "Bash(wc:*)",
-      "Bash(if [ -d \"/mnt/d/hackathon-todo/specs/004-intermediate-features/checklists\" ])"
+      "Bash(if [ -d \"/mnt/d/hackathon-todo/specs/004-intermediate-features/checklists\" ])",
+      "Bash(if [ -d \"/mnt/d/hackathon-todo/specs/006-ai-chatbot/checklists\" ])",
+      "Bash(uv run:*)"
     ]
   },
   "enabledMcpjsonServers": [
