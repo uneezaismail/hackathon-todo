@@ -17,10 +17,16 @@ import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { SignJWT } from 'jose';
 
-// Get secret as Uint8Array for jose library
-const secret = new TextEncoder().encode(process.env.BETTER_AUTH_SECRET);
-
 export async function GET(request: NextRequest) {
+  // Get secret at runtime (not build time)
+  const secretKey = process.env.BETTER_AUTH_SECRET;
+  if (!secretKey) {
+    return NextResponse.json(
+      { error: 'Configuration Error', message: 'Auth secret not configured' },
+      { status: 500 }
+    );
+  }
+  const secret = new TextEncoder().encode(secretKey);
   try {
     // Get current session from Better Auth
     const session = await auth.api.getSession({
