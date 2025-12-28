@@ -47,6 +47,8 @@ def verify_user_access(user_id: str, current_user_id: str):
 ### 4. Service Layer
 - `TaskService`: Business logic for task operations (CRUD, search, filter, sort).
 - `TagService`: Business logic for tag operations.
+- `RecurringService`: Business logic for recurring task operations (calculate next due date, generate occurrences, stop recurrence).
+- `AnalyticsService`: Business logic for task analytics (completion stats, heatmap data).
 - Services keep controllers clean and testable.
 
 ## Commands
@@ -67,6 +69,8 @@ uv run alembic history                            # View migration history
 uv run pytest                    # Run all tests
 uv run pytest -v                 # Verbose output
 uv run pytest tests/test_auth.py # Run specific test file
+uv run pytest tests/unit/test_recurring_service.py -v  # Recurring task unit tests
+uv run pytest tests/integration/test_recurring_tasks.py -v  # Recurring task integration tests
 
 # Docker
 docker build -t todo-backend .               # Build Docker image
@@ -162,6 +166,13 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 
 - `POST /api/{user_id}/tasks` - Create new task
   - Body: `{ "title": "string", "description": "string", "priority": "High|Medium|Low", "due_date": "YYYY-MM-DD", "tags": ["tag1"] }`
+  - Recurring task fields (Phase 4):
+    - `is_recurring`: boolean - Enable recurrence
+    - `recurrence_type`: "daily" | "weekly" | "monthly" | "yearly"
+    - `recurrence_interval`: int - Repeat every N periods (default: 1)
+    - `recurrence_days`: string - For weekly: "mon,wed,fri"
+    - `recurrence_end_date`: string (YYYY-MM-DD) - Optional end date
+    - `max_occurrences`: int - Optional max number of occurrences
 
 - `GET /api/{user_id}/tasks` - List user's tasks with filtering, search, and sorting
   - Query params:
@@ -181,6 +192,34 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 
 - `DELETE /api/{user_id}/tasks/{task_id}` - Delete task
 
+### Phase 4: Recurring Task Endpoints
+
+- `GET /api/{user_id}/tasks/recurring` - List all recurring task patterns
+  - Returns parent recurring tasks only (not individual occurrences)
+  - Query params: `status` (all, active, completed)
+
+- `POST /api/{user_id}/tasks/{task_id}/complete` - Complete task and generate next occurrence
+  - For recurring tasks: marks current complete, generates next occurrence
+  - Response: `{ "completed_task": {...}, "next_occurrence": {...} | null }`
+
+- `POST /api/{user_id}/tasks/{task_id}/skip` - Skip current occurrence
+  - Marks task as completed but still generates next occurrence
+  - Response: same as `/complete`
+
+- `POST /api/{user_id}/tasks/{task_id}/stop-recurrence` - Stop future recurrence
+  - Sets `is_recurring=false` on the task
+  - Preserves task and history but stops generating new occurrences
+
+- `PATCH /api/{user_id}/tasks/{task_id}?update_series=true` - Update task series
+  - With `update_series=true`: updates all uncompleted tasks in the series
+  - Without: updates only the specific task
+
+### Phase 4: Analytics Endpoints
+
+- `GET /api/{user_id}/tasks/analytics` - Get task completion analytics
+  - Query params: `start_date`, `end_date`, `period` (day, week, month)
+  - Response: completion stats, heatmap data, tag usage
+
 ### Tag Endpoints
 - `GET /api/{user_id}/tags` - Get all unique tags with usage count for the user
 
@@ -195,7 +234,9 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
   - **Features:**
     - Natural language task management via AI agent
     - Automatic conversation memory (SQLiteSession)
-    - Tool execution via MCP protocol (7 tools: add_task, list_tasks, complete_task, delete_task, update_task, set_priority, get_task)
+    - Tool execution via MCP protocol (11 tools total):
+      - Basic: add_task, list_tasks, complete_task, delete_task, update_task, set_priority, get_task
+      - Phase 4: add_recurring_task, list_recurring_tasks, stop_recurring_task, bulk_update_tasks
     - User isolation enforced (user_id from JWT passed to all tools)
     - Multi-provider LLM support (OpenAI, Gemini, Groq, OpenRouter)
   - **Request:** ChatKit protocol payload with thread_id and messages

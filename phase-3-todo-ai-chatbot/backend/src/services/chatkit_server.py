@@ -103,6 +103,11 @@ class TaskChatKitServer(ChatKitServer):
             thread: Thread metadata to update
             input_item: User message to generate title from
         """
+        # PERFORMANCE FIX: Disable automatic title generation to save 1 API call per conversation
+        # Titles will show as "New Chat" instead
+        logger.debug(f"Title generation disabled for performance - thread {thread.id}")
+        return
+
         # Skip if thread already has a title
         if thread.title is not None:
             logger.debug(f"Thread {thread.id} already has title: {thread.title}")
