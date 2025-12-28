@@ -20,6 +20,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["chatkit"])
 
+
+# @router.options("/chatkit")
+# async def chatkit_options():
+#     """
+#     Handle CORS preflight requests for ChatKit endpoint.
+
+#     This is needed because the ChatKit frontend makes cross-origin requests
+#     and browsers send OPTIONS preflight requests first.
+#     """
+#     return Response(status_code=200)
+
 # ChatKit server will be initialized on first request
 _chatkit_server = None
 

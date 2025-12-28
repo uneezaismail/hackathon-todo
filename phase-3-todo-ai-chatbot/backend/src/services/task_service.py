@@ -87,6 +87,14 @@ class TaskService:
                 completed=False,  # Default to not completed
                 priority=task_create.priority,
                 due_date=task_create.due_date,
+                # Phase 4: Recurrence fields
+                is_recurring=task_create.is_recurring,
+                is_pattern=task_create.is_recurring,  # Recurring tasks start as patterns
+                recurrence_type=task_create.recurrence_type,
+                recurrence_interval=task_create.recurrence_interval,
+                recurrence_days=task_create.recurrence_days,
+                recurrence_end_date=task_create.recurrence_end_date,
+                max_occurrences=task_create.max_occurrences,
                 # created_at and updated_at are set automatically by TimestampMixin
             )
 
@@ -111,7 +119,7 @@ class TaskService:
 
             logger.info(f"Created task {task.id} for user {user_id} with tags: {tag_names}")
 
-            # Build response with tags
+            # Build response with tags and recurrence fields
             return TaskResponse(
                 id=task.id,
                 user_id=task.user_id,
@@ -122,7 +130,15 @@ class TaskService:
                 due_date=task.due_date,
                 created_at=task.created_at,
                 updated_at=task.updated_at,
-                tags=tag_names
+                tags=tag_names,
+                is_recurring=task.is_recurring,
+                recurrence_type=task.recurrence_type,
+                recurrence_interval=task.recurrence_interval,
+                recurrence_days=task.recurrence_days,
+                recurrence_end_date=task.recurrence_end_date,
+                max_occurrences=task.max_occurrences,
+                parent_task_id=task.parent_task_id,
+                occurrence_count=task.occurrence_count,
             )
 
         except Exception as e:
@@ -317,7 +333,15 @@ class TaskService:
                     due_date=task.due_date,
                     created_at=task.created_at,
                     updated_at=task.updated_at,
-                    tags=task_tag_names
+                    tags=task_tag_names,
+                    is_recurring=task.is_recurring,
+                    recurrence_type=task.recurrence_type,
+                    recurrence_interval=task.recurrence_interval,
+                    recurrence_days=task.recurrence_days,
+                    recurrence_end_date=task.recurrence_end_date,
+                    max_occurrences=task.max_occurrences,
+                    parent_task_id=task.parent_task_id,
+                    occurrence_count=task.occurrence_count,
                 ))
 
             logger.info(
@@ -411,7 +435,7 @@ class TaskService:
 
             logger.info(f"Updated task {task_id} for user {user_id} with tags: {tag_names}")
 
-            # Return TaskResponse with tags
+            # Return TaskResponse with tags and recurrence fields
             return TaskResponse(
                 id=task.id,
                 user_id=task.user_id,
@@ -422,7 +446,15 @@ class TaskService:
                 due_date=task.due_date,
                 created_at=task.created_at,
                 updated_at=task.updated_at,
-                tags=tag_names
+                tags=tag_names,
+                is_recurring=task.is_recurring,
+                recurrence_type=task.recurrence_type,
+                recurrence_interval=task.recurrence_interval,
+                recurrence_days=task.recurrence_days,
+                recurrence_end_date=task.recurrence_end_date,
+                max_occurrences=task.max_occurrences,
+                parent_task_id=task.parent_task_id,
+                occurrence_count=task.occurrence_count,
             )
 
         except Exception as e:

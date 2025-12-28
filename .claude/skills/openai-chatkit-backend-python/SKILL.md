@@ -1,5 +1,5 @@
 ---
-name: new-openai-chatkit-backend-python
+name: openai-chatkit-backend-python
 description: >
   Design, implement, and debug a custom ChatKit backend in Python that powers
   the ChatKit UI without Agent Builder, using the OpenAI Agents SDK (and
