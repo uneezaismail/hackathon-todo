@@ -20,12 +20,11 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 
-import { createTask, updateTask, updateTaskWithSeries } from '@/actions/tasks'
-import type { Task, Priority, RecurrenceType } from '@/types/task'
+import { createTask, updateTask } from '@/actions/tasks'
+import type { Task, Priority } from '@/types/task'
 import { PrioritySelector } from '@/components/tasks/priority-selector'
 import { DueDatePicker } from '@/components/tasks/due-date-picker'
 import { TagInput } from '@/components/tasks/tag-input'
-import { RecurringSelector } from '@/components/tasks/recurring-selector'
 
 /**
  * T086: Form validation schema
@@ -47,8 +46,6 @@ type TaskFormData = z.infer<typeof taskFormSchema>
 
 interface TaskFormProps {
   task?: Task | null
-  defaultDueDate?: string // ISO format YYYY-MM-DD for calendar integration
-  updateSeries?: boolean // T044: If true, update all future instances (for recurring tasks)
   onSuccess?: () => void
   onCancel?: () => void
 }
@@ -57,37 +54,16 @@ interface TaskFormProps {
  * T079: Task Form Component
  * Can be used for both creating new tasks and editing existing ones
  */
-export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess, onCancel }: TaskFormProps) {
+export function TaskForm({ task, onSuccess, onCancel }: TaskFormProps) {
   const [isPending, startTransition] = useTransition()
   const isEditing = !!task
 
   // T043: State for priority, due_date, and tags
-  // Support defaultDueDate for calendar integration (clicking on a date)
   const [priority, setPriority] = useState<Priority>(task?.priority || 'Medium')
-  const [dueDate, setDueDate] = useState<Date | null>(() => {
-    if (task?.due_date) return new Date(task.due_date)
-    if (defaultDueDate) return new Date(defaultDueDate)
-    return null
-  })
+  const [dueDate, setDueDate] = useState<Date | null>(
+    task?.due_date ? new Date(task.due_date) : null
+  )
   const [tags, setTags] = useState<string[]>(task?.tags || [])
-
-  // Phase 4: Recurrence state
-  const [isRecurring, setIsRecurring] = useState<boolean>(task?.is_recurring || false)
-  const [recurrenceType, setRecurrenceType] = useState<RecurrenceType | null>(
-    task?.recurrence_type || null
-  )
-  const [recurrenceInterval, setRecurrenceInterval] = useState<number>(
-    task?.recurrence_interval || 1
-  )
-  const [recurrenceDays, setRecurrenceDays] = useState<string | null>(
-    task?.recurrence_days || null
-  )
-  const [recurrenceEndDate, setRecurrenceEndDate] = useState<string | null>(
-    task?.recurrence_end_date || null
-  )
-  const [maxOccurrences, setMaxOccurrences] = useState<number | null>(
-    task?.max_occurrences || null
-  )
 
   const {
     register,
@@ -113,29 +89,17 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
         let result
 
         // T043: Convert empty description to null and format due_date as ISO 8601
-        // Phase 4: Include recurrence fields
         const taskData = {
           title: data.title,
           description: data.description || null,
           priority,
           due_date: dueDate ? dueDate.toISOString().split('T')[0] : null, // Format as YYYY-MM-DD
           tags,
-          // Phase 4: Recurrence fields
-          is_recurring: isRecurring,
-          recurrence_type: isRecurring ? recurrenceType : null,
-          recurrence_interval: isRecurring ? recurrenceInterval : 1,
-          recurrence_days: isRecurring && recurrenceType === 'weekly' ? recurrenceDays : null,
-          recurrence_end_date: isRecurring ? recurrenceEndDate : null,
-          max_occurrences: isRecurring ? maxOccurrences : null,
         }
 
         if (isEditing && task) {
-          // T044: Update existing task - use updateSeries if editing recurring task series
-          if (updateSeries && task.is_recurring) {
-            result = await updateTaskWithSeries(task.id, taskData, true)
-          } else {
-            result = await updateTask(task.id, taskData)
-          }
+          // Update existing task
+          result = await updateTask(task.id, taskData)
         } else {
           // Create new task
           result = await createTask(taskData)
@@ -158,13 +122,6 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
           setPriority('Medium')
           setDueDate(null)
           setTags([])
-          // Phase 4: Reset recurrence fields
-          setIsRecurring(false)
-          setRecurrenceType(null)
-          setRecurrenceInterval(1)
-          setRecurrenceDays(null)
-          setRecurrenceEndDate(null)
-          setMaxOccurrences(null)
           onSuccess?.()
         }
       } catch (error) {
@@ -186,13 +143,6 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
     setPriority(task?.priority || 'Medium')
     setDueDate(task?.due_date ? new Date(task.due_date) : null)
     setTags(task?.tags || [])
-    // Phase 4: Reset recurrence fields on cancel
-    setIsRecurring(task?.is_recurring || false)
-    setRecurrenceType(task?.recurrence_type || null)
-    setRecurrenceInterval(task?.recurrence_interval || 1)
-    setRecurrenceDays(task?.recurrence_days || null)
-    setRecurrenceEndDate(task?.recurrence_end_date || null)
-    setMaxOccurrences(task?.max_occurrences || null)
     onCancel?.()
   }
 
@@ -282,22 +232,6 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
             value={tags}
             onChange={setTags}
             disabled={isPending}
-          />
-
-          {/* Phase 4: Recurring Task Selector */}
-          <RecurringSelector
-            isRecurring={isRecurring}
-            onIsRecurringChange={setIsRecurring}
-            recurrenceType={recurrenceType}
-            onRecurrenceTypeChange={setRecurrenceType}
-            recurrenceInterval={recurrenceInterval}
-            onRecurrenceIntervalChange={setRecurrenceInterval}
-            recurrenceDays={recurrenceDays}
-            onRecurrenceDaysChange={setRecurrenceDays}
-            recurrenceEndDate={recurrenceEndDate}
-            onRecurrenceEndDateChange={setRecurrenceEndDate}
-            maxOccurrences={maxOccurrences}
-            onMaxOccurrencesChange={setMaxOccurrences}
           />
 
           {/* Actions */}

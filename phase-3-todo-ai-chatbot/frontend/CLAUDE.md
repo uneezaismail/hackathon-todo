@@ -93,38 +93,6 @@ docker build -t todo-frontend .           # Build Docker image
 docker run -p 3000:3000 todo-frontend     # Run container
 ```
 
-## Phase 4: Calendar, Recurring Tasks & Analytics
-
-### New Dependencies
-```bash
-# Install react-big-calendar for calendar view
-npm install react-big-calendar @types/react-big-calendar date-fns
-```
-
-### Key Routes (Phase 4)
-- `/dashboard/calendar` - Calendar view with month/week/day navigation
-- `/dashboard/analytics` - Analytics dashboard with heatmap and date filters
-
-### Calendar Features
-- Tasks with `due_date` displayed on calendar
-- Month, week, day, and agenda views
-- Drag-and-drop task rescheduling
-- Mini heatmap for quick navigation
-- Unscheduled tasks sidebar
-
-### Recurring Tasks
-- Create tasks with recurrence (daily, weekly, monthly, yearly)
-- Skip or stop recurring tasks
-- Edit entire series or single occurrence
-- AI chatbot commands: "Add a recurring task every Monday"
-
-### Analytics Dashboard
-- GitHub-style completion heatmap
-- Productivity metrics (streaks, completion rate)
-- Recurring task statistics
-- Tag-based analytics
-- Date range filtering
-
 ## Environment Variables
 
 ### Development (.env.local)

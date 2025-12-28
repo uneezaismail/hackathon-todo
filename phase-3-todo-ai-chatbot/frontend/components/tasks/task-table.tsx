@@ -43,10 +43,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-import { deleteTask, toggleTaskComplete, completeTask } from '@/actions/tasks'
+import { deleteTask, toggleTaskComplete } from '@/actions/tasks'
 import { TaskForm } from './task-form'
 import { TaskDetailsDialog } from './task-details-dialog'
-import { Repeat } from 'lucide-react'
 import type { Task, Priority } from '@/types/task'
 import {
   Dialog as EditDialog,
@@ -110,44 +109,19 @@ function TaskTableRow({ task, onTaskUpdated }: TaskTableRowProps) {
       const previousCompleted = optimisticTask.completed
       setOptimisticTask(!previousCompleted)
 
-      // For recurring tasks completing (not uncompleting), use the /complete endpoint
-      if (task.is_recurring && !previousCompleted) {
-        const result = await completeTask(task.id)
+      const result = await toggleTaskComplete(task.id, previousCompleted)
 
-        if (result.error) {
-          setOptimisticTask(previousCompleted)
-          toast.error(result.error, {
-            duration: Infinity,
-            action: {
-              label: 'Dismiss',
-              onClick: () => toast.dismiss(),
-            },
-          })
-        } else {
-          if (result.nextOccurrence) {
-            toast.success('Task completed! Next occurrence created.')
-          } else {
-            toast.success('Task completed!')
-          }
-          onTaskUpdated?.()
-        }
+      if (result.error) {
+        setOptimisticTask(previousCompleted)
+        toast.error(result.error, {
+          duration: Infinity,
+          action: {
+            label: 'Dismiss',
+            onClick: () => toast.dismiss(),
+          },
+        })
       } else {
-        // Regular toggle for non-recurring or uncompleting
-        const result = await toggleTaskComplete(task.id, previousCompleted)
-
-        if (result.error) {
-          setOptimisticTask(previousCompleted)
-          toast.error(result.error, {
-            duration: Infinity,
-            action: {
-              label: 'Dismiss',
-              onClick: () => toast.dismiss(),
-            },
-          })
-        } else {
-          toast.success(result.task?.completed ? 'Task completed!' : 'Task marked as pending')
-          onTaskUpdated?.()
-        }
+        onTaskUpdated?.()
       }
     })
   }
@@ -241,15 +215,9 @@ function TaskTableRow({ task, onTaskUpdated }: TaskTableRowProps) {
         </TableCell>
         <TableCell className="font-medium">
           <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className={optimisticTask.completed ? 'line-through text-white/40' : 'text-white group-hover:text-[#00d4b8] transition-colors'}>
-                {optimisticTask.title}
-              </span>
-              {/* Recurring task indicator */}
-              {task.is_recurring && (
-                <Repeat className="h-3.5 w-3.5 text-purple-400 flex-shrink-0" aria-label="Recurring task" />
-              )}
-            </div>
+            <span className={optimisticTask.completed ? 'line-through text-white/40' : 'text-white group-hover:text-[#00d4b8] transition-colors'}>
+              {optimisticTask.title}
+            </span>
             {optimisticTask.tags && optimisticTask.tags.length > 0 && (
               <div className="flex gap-1 mt-1 flex-wrap">
                 {optimisticTask.tags.map((tag) => (
@@ -336,33 +304,27 @@ function TaskTableRow({ task, onTaskUpdated }: TaskTableRowProps) {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="sm:max-w-md bg-[#131929]/95 backdrop-blur-xl border-2 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.2)]">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
-              <Trash2 className="h-5 w-5 text-red-500" />
-              Confirm Deletion
-            </DialogTitle>
-            <DialogDescription className="text-white/70 text-base pt-2">
-              Are you sure you want to delete <span className="text-[#00d4b8] font-semibold">&quot;{task.title}&quot;</span>?
-              <br />
-              <span className="text-red-400 font-medium">This action cannot be undone.</span>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &quot;{task.title}&quot;? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter className="gap-2 sm:gap-0">
+          <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
               disabled={isDeleting}
-              className="border-white/20 text-white hover:bg-white/10 hover:text-white"
             >
               Cancel
             </Button>
 
             <Button
+              variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20 border-0"
             >
               {isDeleting ? (
                 <>
@@ -370,10 +332,7 @@ function TaskTableRow({ task, onTaskUpdated }: TaskTableRowProps) {
                   Deleting...
                 </>
               ) : (
-                <>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </>
+                'Delete'
               )}
             </Button>
           </DialogFooter>

@@ -11,9 +11,7 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  MessageSquare,
-  Calendar,
-  BarChart3
+  MessageSquare
 } from 'lucide-react'
 import { useSession } from '@/lib/auth-client'
 import { authClient } from '@/lib/auth-client'
@@ -24,8 +22,6 @@ import { cn } from '@/lib/utils'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'All Tasks', href: '/dashboard/tasks', icon: ListTodo },
-  { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
   // AI Chat removed from sidebar per user requirement - accessible via /chat URL or Global FAB
   // { name: 'AI Chat', href: '/chat', icon: MessageSquare },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },

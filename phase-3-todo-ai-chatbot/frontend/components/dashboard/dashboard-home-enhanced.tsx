@@ -18,7 +18,6 @@ import { Suspense } from 'react'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { fetchTasks } from '@/actions/tasks'
-import { filterOutPatterns } from '@/lib/task-utils'
 import { DashboardStats } from './dashboard-stats'
 import { CompletionTrendsChart } from './completion-trends-chart'
 import { TodaysFocus } from './todays-focus'
@@ -47,8 +46,7 @@ export async function DashboardHomeEnhanced() {
     sort_direction: 'desc'
   })
 
-  // Filter out recurring task patterns - dashboard should only show instances
-  const tasks = filterOutPatterns(tasksResult.tasks || [])
+  const tasks = tasksResult.tasks || []
 
   return (
     <div className="space-y-8">
