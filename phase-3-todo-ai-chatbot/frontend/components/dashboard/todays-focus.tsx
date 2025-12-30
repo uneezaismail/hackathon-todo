@@ -10,11 +10,18 @@
  */
 
 import * as React from 'react'
-import { AlertCircle, Calendar, Flame } from 'lucide-react'
+import { AlertCircle, Calendar, Flame, Repeat } from 'lucide-react'
 import { Task } from '@/types/task'
 import { getTodaysFocus } from '@/lib/analytics'
+import { getRecurrencePatternText } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface TodaysFocusProps {
   tasks: Task[]
@@ -65,6 +72,7 @@ export function TodaysFocus({ tasks, className }: TodaysFocusProps) {
             let icon = <Calendar className="h-4 w-4" />
             let badge = 'Due Today'
             let badgeColor = 'bg-blue-400/10 text-blue-400 border-blue-400/30'
+            let tooltipContent: React.ReactNode | null = null
 
             if (isOverdue) {
               icon = <AlertCircle className="h-4 w-4" />
@@ -74,6 +82,11 @@ export function TodaysFocus({ tasks, className }: TodaysFocusProps) {
               icon = <Flame className="h-4 w-4" />
               badge = 'High Priority'
               badgeColor = 'bg-orange-400/10 text-orange-400 border-orange-400/30'
+            } else if (getRecurrencePatternText(task)) {
+              icon = <Repeat className="h-4 w-4" />
+              badge = ''
+              badgeColor = 'bg-purple-400/10 text-purple-400 border-purple-400/30'
+              tooltipContent = `Recurring: ${getRecurrencePatternText(task)}`
             }
 
             return (
@@ -98,9 +111,18 @@ export function TodaysFocus({ tasks, className }: TodaysFocusProps) {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-foreground truncate group-hover:text-[#00d4b8] transition-colors">
-                    {task.title}
-                  </h4>
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="text-sm font-medium text-foreground truncate group-hover:text-[#00d4b8] transition-colors flex-1">
+                      {task.title}
+                    </h4>
+                    {/* Recurring task indicator */}
+                    {getRecurrencePatternText(task) && (
+                      <div className="flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium bg-purple-400/10 text-purple-400 border-purple-400/30 flex-shrink-0">
+                        <Repeat className="h-3 w-3" />
+                        <span className="truncate max-w-[120px]">{getRecurrencePatternText(task)}</span>
+                      </div>
+                    )}
+                  </div>
                   {task.due_date && (
                     <p className="text-xs text-muted-foreground mt-1">
                       Due: {new Date(task.due_date).toLocaleDateString('en-US', {

@@ -45,13 +45,13 @@ export function TagInput({
   // T056: Debounced autocomplete API call (300ms)
   const debouncedFetchSuggestions = useDebouncedCallback(
     async (search: string) => {
-      if (!search.trim()) {
-        setSuggestions([])
-        return
-      }
-
       setIsLoading(true)
-      const result = await fetchTags({ search, limit: 10 })
+      // Fetch tags with optional search parameter
+      // If search is empty, backend returns all tags (up to limit)
+      const result = await fetchTags({
+        search: search.trim() || undefined,
+        limit: 20
+      })
       setIsLoading(false)
 
       if (result.tags) {
@@ -67,10 +67,32 @@ export function TagInput({
     debouncedFetchSuggestions(inputValue)
   }, [inputValue, debouncedFetchSuggestions])
 
+  // Fetch all tags when component mounts or when value changes (to update filtered suggestions)
+  useEffect(() => {
+    if (showSuggestions) {
+      debouncedFetchSuggestions(inputValue)
+    }
+  }, [value]) // Re-fetch when selected tags change to update filtered list
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     setInputValue(newValue)
     setShowSuggestions(true)
+  }
+
+  // Fetch all tags on focus
+  const handleFocus = async () => {
+    setShowSuggestions(true)
+    // Immediately fetch tags without debounce on focus
+    if (suggestions.length === 0 && !isLoading) {
+      setIsLoading(true)
+      const result = await fetchTags({ limit: 20 })
+      setIsLoading(false)
+      if (result.tags) {
+        const filtered = result.tags.filter((tag) => !value.includes(tag.name))
+        setSuggestions(filtered)
+      }
+    }
   }
 
   // T052: Add tag (existing or new)
@@ -154,7 +176,7 @@ export function TagInput({
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            onFocus={() => setShowSuggestions(true)}
+            onFocus={handleFocus}
             onBlur={() => {
               // Delay to allow clicking suggestions
               setTimeout(() => setShowSuggestions(false), 200)
@@ -177,7 +199,7 @@ export function TagInput({
         </div>
 
         {/* T053: Autocomplete suggestions dropdown */}
-        {showSuggestions && inputValue.trim() && (
+        {showSuggestions && (
           <div className="absolute z-50 w-full mt-2 bg-[#131929] border-2 border-[#00d4b8]/30 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] max-h-60 overflow-auto">
             {isLoading ? (
               <div className="p-4 text-sm text-white/60 text-center">
@@ -201,8 +223,8 @@ export function TagInput({
                   </li>
                 ))}
               </ul>
-            ) : (
-              // T055: Visual feedback for new tag
+            ) : inputValue.trim() ? (
+              // T055: Visual feedback for new tag (only show when user has typed something)
               <div className="p-2 sm:p-3">
                 <button
                   type="button"
@@ -219,6 +241,11 @@ export function TagInput({
                     </div>
                   </div>
                 </button>
+              </div>
+            ) : (
+              // No suggestions and empty input - show message
+              <div className="p-3 text-sm text-white/40 text-center">
+                No tags yet. Type to create your first tag!
               </div>
             )}
           </div>

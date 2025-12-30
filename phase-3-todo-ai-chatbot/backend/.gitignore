@@ -65,3 +65,6 @@ __pycache__*
 tmp/
 temp/
 *.tmp
+.db
+.db-shm
+.db-wal

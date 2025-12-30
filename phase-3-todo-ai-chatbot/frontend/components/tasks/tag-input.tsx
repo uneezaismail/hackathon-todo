@@ -45,13 +45,8 @@ export function TagInput({
   // T056: Debounced autocomplete API call (300ms)
   const debouncedFetchSuggestions = useDebouncedCallback(
     async (search: string) => {
-      if (!search.trim()) {
-        setSuggestions([])
-        return
-      }
-
       setIsLoading(true)
-      const result = await fetchTags({ search, limit: 10 })
+      const result = await fetchTags({ search: search.trim(), limit: 10 })
       setIsLoading(false)
 
       if (result.tags) {
@@ -81,7 +76,8 @@ export function TagInput({
 
     onChange([...value, trimmedTag])
     setInputValue('')
-    setSuggestions([])
+    // Refresh suggestions after adding to exclude the newly added tag
+    debouncedFetchSuggestions('')
     setShowSuggestions(false)
   }
 
@@ -96,7 +92,10 @@ export function TagInput({
 
   // T054: Remove tag
   const handleRemoveTag = (tagToRemove: string) => {
-    onChange(value.filter((tag) => tag !== tagToRemove))
+    const newTags = value.filter((tag) => tag !== tagToRemove)
+    onChange(newTags)
+    // Refresh suggestions to include the removed tag in possibilities
+    debouncedFetchSuggestions(inputValue)
   }
 
   // T053: Select suggestion
@@ -154,13 +153,16 @@ export function TagInput({
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            onFocus={() => setShowSuggestions(true)}
+            onFocus={() => {
+              setShowSuggestions(true)
+              debouncedFetchSuggestions(inputValue)
+            }}
             onBlur={() => {
               // Delay to allow clicking suggestions
               setTimeout(() => setShowSuggestions(false), 200)
             }}
             disabled={disabled}
-            placeholder="Type to search or add new tag..."
+            placeholder="Type to search or select existing tag..."
             className="flex-1 h-12 rounded-xl bg-[#1a2332]/80 border-2 border-white/10 text-white placeholder:text-white/40 focus:bg-[#1a2332] focus:border-[#00d4b8]/60 focus:shadow-[0_0_20px_rgba(0,212,184,0.2)] transition-all duration-300"
           />
           <Button
@@ -177,7 +179,7 @@ export function TagInput({
         </div>
 
         {/* T053: Autocomplete suggestions dropdown */}
-        {showSuggestions && inputValue.trim() && (
+        {showSuggestions && (inputValue.trim() || suggestions.length > 0) && (
           <div className="absolute z-50 w-full mt-2 bg-[#131929] border-2 border-[#00d4b8]/30 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.5)] max-h-60 overflow-auto">
             {isLoading ? (
               <div className="p-4 text-sm text-white/60 text-center">
@@ -201,7 +203,7 @@ export function TagInput({
                   </li>
                 ))}
               </ul>
-            ) : (
+            ) : inputValue.trim() ? (
               // T055: Visual feedback for new tag
               <div className="p-2 sm:p-3">
                 <button
@@ -220,7 +222,7 @@ export function TagInput({
                   </div>
                 </button>
               </div>
-            )}
+            ) : null}
           </div>
         )}
       </div>

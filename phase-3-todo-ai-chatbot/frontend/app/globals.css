@@ -127,3 +127,408 @@
     background-color: #ffffff;
   }
 }
+
+/* react-big-calendar styles for dark theme */
+@layer components {
+  .task-calendar {
+    @apply h-full;
+  }
+
+  /* Calendar container */
+  .task-calendar .rbc-calendar {
+    @apply bg-transparent;
+  }
+
+  /* Header row (day names) */
+  .task-calendar .rbc-header {
+    @apply bg-white/5 border-white/10 py-2 text-sm font-medium text-white/70;
+  }
+
+  .task-calendar .rbc-header + .rbc-header {
+    @apply border-l border-white/10;
+  }
+
+  /* Month view cells */
+  .task-calendar .rbc-month-view {
+    @apply border border-white/10 rounded-lg overflow-hidden;
+  }
+
+  .task-calendar .rbc-month-row {
+    @apply border-b border-white/10;
+  }
+
+  .task-calendar .rbc-month-row:last-child {
+    @apply border-b-0;
+  }
+
+  .task-calendar .rbc-day-bg {
+    @apply bg-transparent transition-colors;
+  }
+
+  .task-calendar .rbc-day-bg + .rbc-day-bg {
+    @apply border-l border-white/10;
+  }
+
+  .task-calendar .rbc-day-bg:hover {
+    @apply bg-white/5;
+  }
+
+  .task-calendar .rbc-off-range-bg {
+    @apply bg-white/[0.02];
+  }
+
+  .task-calendar .rbc-today {
+    @apply bg-[#00d4b8]/5;
+  }
+
+  /* Date cells */
+  .task-calendar .rbc-date-cell {
+    @apply text-right pr-2 pt-1 text-sm text-white/60;
+  }
+
+  .task-calendar .rbc-date-cell.rbc-now {
+    @apply text-white font-bold;
+  }
+
+  .task-calendar .rbc-date-cell.rbc-now a {
+    @apply inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#00d4b8] text-[#0b1121] font-bold shadow-lg shadow-[#00d4b8]/50;
+  }
+
+  .task-calendar .rbc-date-cell.rbc-off-range {
+    @apply text-white/30;
+  }
+
+  .task-calendar .rbc-date-cell > a {
+    @apply text-white/60 hover:text-white;
+  }
+
+  /* Events */
+  .task-calendar .rbc-event {
+    @apply bg-transparent border-0 p-0 rounded-md;
+  }
+
+  .task-calendar .rbc-event:focus {
+    @apply outline-none ring-2 ring-[#00d4b8] ring-offset-1 ring-offset-transparent;
+  }
+
+  .task-calendar .rbc-event-content {
+    @apply text-xs;
+  }
+
+  .task-calendar .rbc-show-more {
+    @apply text-xs text-[#00d4b8] hover:text-[#00d4b8]/80 bg-transparent font-medium cursor-pointer py-0.5;
+  }
+
+  .task-calendar .rbc-show-more:hover {
+    @apply underline;
+  }
+
+  /* Event more link in month view */
+  .task-calendar .rbc-more-link {
+    @apply text-xs text-[#00d4b8] hover:text-[#00d4b8]/80 bg-transparent font-medium cursor-pointer;
+  }
+
+  /* Toolbar styling */
+  .task-calendar .rbc-toolbar {
+    @apply mb-4 flex flex-wrap gap-2 items-center justify-between;
+  }
+
+  .task-calendar .rbc-toolbar button {
+    @apply px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white;
+  }
+
+  .task-calendar .rbc-toolbar button:focus {
+    @apply outline-none ring-2 ring-[#00d4b8];
+  }
+
+  .task-calendar .rbc-toolbar button.rbc-active {
+    @apply bg-[#00d4b8]/20 border-[#00d4b8] text-[#00d4b8];
+  }
+
+  .task-calendar .rbc-toolbar-label {
+    @apply text-lg font-semibold text-white;
+  }
+
+  /* Week/Day view */
+  .task-calendar .rbc-time-view {
+    @apply border border-white/10 rounded-lg overflow-hidden;
+    min-height: 700px; /* Ensure week/day view has enough height */
+  }
+
+  .task-calendar .rbc-time-header {
+    @apply border-b border-white/10;
+  }
+
+  .task-calendar .rbc-time-content {
+    @apply border-t border-white/10;
+    height: auto !important; /* Allow content to expand fully */
+    min-height: 650px; /* Minimum height for time slots */
+  }
+
+  .task-calendar .rbc-timeslot-group {
+    @apply border-b border-white/5;
+  }
+
+  .task-calendar .rbc-time-slot {
+    @apply text-xs text-white/40;
+  }
+
+  .task-calendar .rbc-time-gutter {
+    @apply bg-white/[0.02];
+  }
+
+  .task-calendar .rbc-day-slot .rbc-time-slot {
+    @apply border-t border-white/5;
+  }
+
+  .task-calendar .rbc-current-time-indicator {
+    @apply bg-[#00d4b8] h-0.5;
+  }
+
+  /* All day events area */
+  .task-calendar .rbc-allday-cell {
+    @apply bg-white/[0.02];
+  }
+
+  /* Agenda view */
+  .task-calendar .rbc-agenda-view {
+    @apply border border-white/10 rounded-lg overflow-hidden;
+  }
+
+  .task-calendar .rbc-agenda-view table {
+    @apply w-full;
+  }
+
+  .task-calendar .rbc-agenda-table {
+    @apply w-full;
+  }
+
+  .task-calendar .rbc-agenda-table thead {
+    @apply bg-white/5;
+  }
+
+  .task-calendar .rbc-agenda-table th {
+    @apply py-2 px-3 text-left text-sm font-medium text-white/70 border-b border-white/10;
+  }
+
+  .task-calendar .rbc-agenda-table td {
+    @apply py-2 px-3 text-sm text-white/80 border-b border-white/5;
+  }
+
+  .task-calendar .rbc-agenda-date-cell {
+    @apply whitespace-nowrap;
+  }
+
+  .task-calendar .rbc-agenda-time-cell {
+    @apply whitespace-nowrap text-white/50;
+  }
+
+  .task-calendar .rbc-agenda-event-cell {
+    @apply text-white;
+  }
+
+  .task-calendar .rbc-agenda-empty {
+    @apply text-center py-8 text-white/40;
+  }
+
+  /* Selected slot */
+  .task-calendar .rbc-slot-selection {
+    @apply bg-[#00d4b8]/20 border border-[#00d4b8]/50;
+  }
+
+  /* Popup overlay */
+  .task-calendar .rbc-overlay {
+    @apply bg-[#0f1729] border border-white/10 rounded-lg shadow-xl p-2 z-50;
+  }
+
+  .task-calendar .rbc-overlay-header {
+    @apply border-b border-white/10 pb-2 mb-2 text-sm font-medium text-white;
+  }
+}
+
+/* Light mode calendar overrides */
+@layer components {
+  .light .task-calendar .rbc-header {
+    @apply bg-gray-50 border-gray-200 text-gray-700;
+  }
+
+  .light .task-calendar .rbc-header + .rbc-header {
+    @apply border-l border-gray-200;
+  }
+
+  .light .task-calendar .rbc-month-view {
+    @apply border border-gray-200;
+  }
+
+  .light .task-calendar .rbc-month-row {
+    @apply border-b border-gray-200;
+  }
+
+  .light .task-calendar .rbc-day-bg + .rbc-day-bg {
+    @apply border-l border-gray-200;
+  }
+
+  .light .task-calendar .rbc-day-bg:hover {
+    @apply bg-gray-50;
+  }
+
+  .light .task-calendar .rbc-off-range-bg {
+    @apply bg-gray-50/50;
+  }
+
+  .light .task-calendar .rbc-today {
+    @apply bg-teal-50 border border-teal-200;
+  }
+
+  .light .task-calendar .rbc-date-cell {
+    @apply text-gray-700;
+  }
+
+  .light .task-calendar .rbc-date-cell.rbc-now {
+    @apply text-white font-bold;
+  }
+
+  .light .task-calendar .rbc-date-cell.rbc-now a {
+    @apply inline-flex items-center justify-center w-7 h-7 rounded-full bg-teal-600 text-white font-bold shadow-lg shadow-teal-600/30;
+  }
+
+  .light .task-calendar .rbc-date-cell.rbc-off-range {
+    @apply text-gray-300;
+  }
+
+  .light .task-calendar .rbc-show-more {
+    @apply text-teal-600 hover:text-teal-700;
+  }
+
+  .light .task-calendar .rbc-time-view {
+    @apply border border-gray-200;
+  }
+
+  .light .task-calendar .rbc-time-header {
+    @apply border-b border-gray-200;
+  }
+
+  .light .task-calendar .rbc-time-content {
+    @apply border-t border-gray-200;
+  }
+
+  .light .task-calendar .rbc-timeslot-group {
+    @apply border-b border-gray-100;
+  }
+
+  .light .task-calendar .rbc-time-slot {
+    @apply text-gray-400;
+  }
+
+  .light .task-calendar .rbc-time-gutter {
+    @apply bg-gray-50;
+  }
+
+  .light .task-calendar .rbc-day-slot .rbc-time-slot {
+    @apply border-t border-gray-100;
+  }
+
+  .light .task-calendar .rbc-current-time-indicator {
+    @apply bg-teal-500;
+  }
+
+  .light .task-calendar .rbc-allday-cell {
+    @apply bg-gray-50;
+  }
+
+  .light .task-calendar .rbc-agenda-view {
+    @apply border border-gray-200;
+  }
+
+  .light .task-calendar .rbc-agenda-table thead {
+    @apply bg-gray-50;
+  }
+
+  .light .task-calendar .rbc-agenda-table th {
+    @apply text-gray-700 border-b border-gray-200;
+  }
+
+  .light .task-calendar .rbc-agenda-table td {
+    @apply text-gray-800 border-b border-gray-100;
+  }
+
+  .light .task-calendar .rbc-agenda-time-cell {
+    @apply text-gray-500;
+  }
+
+  .light .task-calendar .rbc-agenda-event-cell {
+    @apply text-gray-900;
+  }
+
+  .light .task-calendar .rbc-agenda-empty {
+    @apply text-gray-400;
+  }
+
+  .light .task-calendar .rbc-slot-selection {
+    @apply bg-teal-100 border border-teal-300;
+  }
+
+  .light .task-calendar .rbc-overlay {
+    @apply bg-white border border-gray-200;
+  }
+
+  .light .task-calendar .rbc-overlay-header {
+    @apply border-b border-gray-200 text-gray-900;
+  }
+}
+
+/* T065: Mobile responsive calendar styles */
+@layer components {
+  /* Mobile calendar adjustments */
+  @media (max-width: 640px) {
+    .task-calendar {
+      @apply min-h-[400px];
+    }
+
+    .task-calendar .rbc-header {
+      @apply text-xs py-1;
+    }
+
+    .task-calendar .rbc-date-cell {
+      @apply text-xs pr-1;
+    }
+
+    .task-calendar .rbc-event-content {
+      @apply text-[10px];
+    }
+
+    .task-calendar .rbc-show-more {
+      @apply text-[10px];
+    }
+
+    .task-calendar .rbc-month-row {
+      @apply min-h-[60px];
+    }
+
+    /* Hide time gutter on small screens in week/day view */
+    .task-calendar .rbc-time-gutter {
+      @apply text-[10px] w-10;
+    }
+
+    .task-calendar .rbc-time-slot {
+      @apply text-[10px];
+    }
+
+    /* Agenda view mobile */
+    .task-calendar .rbc-agenda-table th,
+    .task-calendar .rbc-agenda-table td {
+      @apply py-1.5 px-2 text-xs;
+    }
+  }
+
+  /* Tablet adjustments */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .task-calendar .rbc-header {
+      @apply text-xs;
+    }
+
+    .task-calendar .rbc-event-content {
+      @apply text-[11px];
+    }
+  }
+}

@@ -11,6 +11,7 @@ import { fetchTasks } from '@/actions/tasks'
 import { TaskTable } from './task-table'
 import { EmptyState } from './empty-state'
 import type { TaskSortBy, TaskSortDirection } from '@/types/task'
+import { filterOutPatterns } from '@/lib/task-utils'
 
 interface TaskListProps {
   search?: string
@@ -60,8 +61,10 @@ export async function TaskList({
     )
   }
 
-  const tasks = result.tasks || []
-  const total = result.total || 0
+  // Todoist-style: Filter out only legacy patterns (if any)
+  // New recurring tasks are single tasks with shifting due_date, not patterns
+  const tasks = filterOutPatterns(result.tasks || [])
+  const total = tasks.length  // Use filtered length for display
 
   // Determine if filters are active
   const hasActiveFilters =

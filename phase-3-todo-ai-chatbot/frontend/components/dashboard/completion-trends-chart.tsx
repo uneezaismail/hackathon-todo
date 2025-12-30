@@ -7,6 +7,7 @@
  */
 
 import * as React from 'react'
+import { useTheme } from 'next-themes'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { Task } from '@/types/task'
 import { calculateCompletionTrends } from '@/lib/analytics'
@@ -19,13 +20,31 @@ interface CompletionTrendsChartProps {
 }
 
 export function CompletionTrendsChart({ tasks, days = 7, className }: CompletionTrendsChartProps) {
+  const { theme, systemTheme } = useTheme()
+  const currentTheme = theme === 'system' ? systemTheme : theme
+  const isDark = currentTheme === 'dark'
+
   const data = calculateCompletionTrends(tasks, days)
+
+  // Theme-aware colors
+  const colors = {
+    grid: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.1)',
+    axis: isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(0, 0, 0, 0.4)',
+    text: isDark ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+    tooltipBg: isDark ? '#1a2332' : '#ffffff',
+    tooltipBorder: isDark ? 'rgba(0, 212, 184, 0.3)' : 'rgba(0, 128, 128, 0.3)',
+    tooltipText: isDark ? '#fff' : '#000',
+    labelColor: isDark ? '#00d4b8' : '#008080',
+    completed: isDark ? '#10b981' : '#059669',
+    created: isDark ? '#00d4b8' : '#0d9488',
+  }
 
   return (
     <div
       className={cn(
-        'rounded-2xl border-2 border-[#00d4b8]/20 bg-card p-6 backdrop-blur-md',
-        'hover:border-[#00d4b8]/40 hover:shadow-[0_0_30px_rgba(0,212,184,0.15)]',
+        'rounded-2xl border-2 bg-card p-6 backdrop-blur-md shadow-sm',
+        'border-primary/20 hover:border-primary/40',
+        'dark:hover:shadow-[0_0_30px_rgba(0,212,184,0.15)]',
         'transition-all duration-300',
         className
       )}
@@ -37,48 +56,48 @@ export function CompletionTrendsChart({ tasks, days = 7, className }: Completion
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255, 255, 255, 0.05)" />
+          <CartesianGrid strokeDasharray="3 3" stroke={colors.grid} />
           <XAxis
             dataKey="date"
-            stroke="rgba(255, 255, 255, 0.5)"
-            tick={{ fill: 'rgba(255, 255, 255, 0.7)', fontSize: 12 }}
+            stroke={colors.axis}
+            tick={{ fill: colors.text, fontSize: 12 }}
           />
           <YAxis
-            stroke="rgba(255, 255, 255, 0.5)"
-            tick={{ fill: 'rgba(255, 255, 255, 0.7)', fontSize: 12 }}
+            stroke={colors.axis}
+            tick={{ fill: colors.text, fontSize: 12 }}
             allowDecimals={false}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#1a2332',
-              border: '1px solid rgba(0, 212, 184, 0.3)',
+              backgroundColor: colors.tooltipBg,
+              border: `1px solid ${colors.tooltipBorder}`,
               borderRadius: '8px',
-              color: '#fff',
+              color: colors.tooltipText,
             }}
-            labelStyle={{ color: '#00d4b8' }}
+            labelStyle={{ color: colors.labelColor }}
           />
           <Legend
             wrapperStyle={{
               paddingTop: '20px',
-              color: '#fff',
+              color: colors.text,
             }}
             iconType="line"
           />
           <Line
             type="monotone"
             dataKey="completed"
-            stroke="#10b981"
+            stroke={colors.completed}
             strokeWidth={2}
-            dot={{ fill: '#10b981', r: 4 }}
+            dot={{ fill: colors.completed, r: 4 }}
             activeDot={{ r: 6 }}
             name="Completed"
           />
           <Line
             type="monotone"
             dataKey="created"
-            stroke="#00d4b8"
+            stroke={colors.created}
             strokeWidth={2}
-            dot={{ fill: '#00d4b8', r: 4 }}
+            dot={{ fill: colors.created, r: 4 }}
             activeDot={{ r: 6 }}
             name="Created"
           />

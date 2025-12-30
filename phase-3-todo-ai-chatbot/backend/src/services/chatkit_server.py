@@ -103,6 +103,11 @@ class TaskChatKitServer(ChatKitServer):
             thread: Thread metadata to update
             input_item: User message to generate title from
         """
+        # PERFORMANCE FIX: Disable automatic title generation to save 1 API call per conversation
+        # Titles will show as "New Chat" instead
+        logger.debug(f"Title generation disabled for performance - thread {thread.id}")
+        return
+
         # Skip if thread already has a title
         if thread.title is not None:
             logger.debug(f"Thread {thread.id} already has title: {thread.title}")
@@ -207,7 +212,6 @@ class TaskChatKitServer(ChatKitServer):
         logger.info(f"User message extracted: {user_message}")
 
         # Emit initial progress event to show typing indicator
-        # This stays visible until the first assistant message replaces it
         yield ProgressUpdateEvent(text="Thinking...", icon="bolt")
 
         # Run agent with streaming AND session within MCP server context
@@ -230,7 +234,7 @@ class TaskChatKitServer(ChatKitServer):
             # Track if we've seen any text content yet
             has_text_content = False
 
-            # Stream agent response with ID replacement and progress indicators
+            # Stream agent response with ID replacement
             async for event in stream_agent_response(agent_context, result):
                 # Replace __fake_id__ with real UUID in events
                 if hasattr(event, 'item') and hasattr(event.item, 'id'):
@@ -242,26 +246,32 @@ class TaskChatKitServer(ChatKitServer):
                         # Create a copy of the event with the real ID
                         event.item.id = fake_id_map[item_id]
 
-                # Check event type and emit progress updates during tool execution
+                # Track when we get actual text content - stop emitting progress after this
                 event_type = getattr(event, 'type', None)
-
-                # If this is a tool-related event and we haven't started text yet,
-                # emit a progress update to keep the indicator visible
-                if event_type in ('thread.item.added', 'thread.item.updated'):
-                    item = getattr(event, 'item', None)
-                    if item:
-                        item_type = getattr(item, 'type', None)
-                        # Check if this is a function/tool call item
-                        if item_type in ('function_call', 'tool_call', 'function_call_output'):
-                            # Emit progress to show we're still working
-                            if not has_text_content:
-                                yield ProgressUpdateEvent(text="Working on your request...", icon="bolt")
-
-                # Track when we get actual text content
-                if event_type == 'thread.item.added':
+                if not has_text_content and event_type in ('thread.item.added', 'thread.item.updated'):
                     item = getattr(event, 'item', None)
                     if item and getattr(item, 'type', None) == 'assistant_message':
-                        has_text_content = True
+                        # Check if this message has actual text content
+                        content = getattr(item, 'content', [])
+                        if content and len(content) > 0:
+                            first_block = content[0]
+                            # Check for text in dict or object format
+                            has_text = (isinstance(first_block, dict) and first_block.get('text')) or \
+                                      (hasattr(first_block, 'text') and first_block.text)
+                            if has_text:
+                                has_text_content = True
+                                logger.info("First text content detected - stopping progress indicators")
+
+                # Emit periodic progress updates ONLY before we get text content
+                # This keeps the indicator visible during tool execution and LLM processing
+                if not has_text_content:
+                    # Emit progress on tool-related events
+                    if event_type in ('thread.item.added', 'thread.item.updated'):
+                        item = getattr(event, 'item', None)
+                        if item:
+                            item_type = getattr(item, 'type', None)
+                            if item_type in ('function_call', 'tool_call', 'function_call_output'):
+                                yield ProgressUpdateEvent(text="Working on your request...", icon="bolt")
 
                 yield event
 

@@ -9,11 +9,19 @@ from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Optional
 from uuid import UUID, uuid4
 
+from enum import Enum
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from .conversation import Conversation
+
+
+class MessageRole(str, Enum):
+    """Message sender roles."""
+    USER = "user"
+    ASSISTANT = "assistant"
+    SYSTEM = "system"
 
 
 class Message(SQLModel, table=True):

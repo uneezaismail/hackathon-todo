@@ -7,7 +7,7 @@
 'use client'
 
 import { format } from 'date-fns'
-import { Calendar, Clock, Tag as TagIcon, Flag } from 'lucide-react'
+import { Calendar, Clock, Tag as TagIcon, Flag, Repeat } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import {
@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { getRecurrencePatternText } from '@/lib/analytics'
 import type { Task, Priority } from '@/types/task'
 
 interface TaskDetailsDialogProps {
@@ -78,6 +79,17 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
                 {task.priority}
               </Badge>
             </div>
+
+            {/* Recurring task indicator */}
+            {task.is_recurring && getRecurrencePatternText(task) && (
+              <div className="flex items-center gap-2 bg-[#1a2332]/50 p-2 rounded-lg border border-white/5">
+                <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Recurrence</span>
+                <Badge className="bg-purple-400/10 text-purple-400 border-purple-400/30 hover:bg-purple-400/20">
+                  <Repeat className="mr-1 h-3 w-3" />
+                  {getRecurrencePatternText(task)}
+                </Badge>
+              </div>
+            )}
           </div>
 
           {/* Description */}

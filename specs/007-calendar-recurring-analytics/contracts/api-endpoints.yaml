@@ -1,0 +1,464 @@
+openapi: 3.0.3
+info:
+  title: Todo API - Phase 4 Extensions
+  description: |
+    API extensions for Calendar View, Recurring Tasks & Analytics features.
+    Extends existing /api/{user_id}/tasks endpoints.
+  version: 4.0.0
+
+paths:
+  /api/{user_id}/tasks:
+    post:
+      summary: Create a new task (extended for recurring)
+      description: |
+        Creates a new task. Extended to support recurring task configuration.
+        If is_recurring is true, the task will generate new instances when completed.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskCreateExtended'
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponseExtended'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+    get:
+      summary: List tasks (extended with recurring filter)
+      description: |
+        Lists user's tasks. Extended to support filtering by recurring status.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - name: is_recurring
+          in: query
+          schema:
+            type: boolean
+          description: Filter by recurring status (true = only recurring patterns)
+        - name: parent_task_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter instances of a specific recurring task
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaskResponseExtended'
+                  total:
+                    type: integer
+
+  /api/{user_id}/tasks/{task_id}:
+    patch:
+      summary: Update a task (extended for recurring)
+      description: |
+        Updates a task. For recurring tasks, can update the pattern or single instance.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/taskId'
+        - name: update_series
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: If true, update all future instances of a recurring series
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskUpdateExtended'
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponseExtended'
+
+  /api/{user_id}/tasks/{task_id}/complete:
+    post:
+      summary: Complete a task
+      description: |
+        Marks a task as completed. For recurring tasks, this also triggers
+        generation of the next occurrence (if recurrence is active and not ended).
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/taskId'
+      responses:
+        '200':
+          description: Task completed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TaskResponseExtended'
+                  next_occurrence:
+                    $ref: '#/components/schemas/TaskResponseExtended'
+                    description: New task instance if recurring
+
+  /api/{user_id}/tasks/{task_id}/skip:
+    post:
+      summary: Skip a recurring task occurrence
+      description: |
+        Skips the current occurrence of a recurring task without completing it.
+        Generates the next occurrence.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/taskId'
+      responses:
+        '200':
+          description: Task skipped successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/TaskResponseExtended'
+                    description: Skipped task
+                  next_occurrence:
+                    $ref: '#/components/schemas/TaskResponseExtended'
+                    description: New task instance
+
+  /api/{user_id}/tasks/{task_id}/stop-recurrence:
+    post:
+      summary: Stop task recurrence
+      description: |
+        Stops a recurring task from generating new instances.
+        The task and its history are preserved.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - $ref: '#/components/parameters/taskId'
+      responses:
+        '200':
+          description: Recurrence stopped successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskResponseExtended'
+
+  /api/{user_id}/tasks/recurring:
+    get:
+      summary: List recurring task patterns
+      description: |
+        Lists only recurring task patterns (not instances).
+        Useful for managing recurring task settings.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: Recurring patterns retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaskResponseExtended'
+
+  /api/{user_id}/analytics:
+    get:
+      summary: Get analytics data
+      description: |
+        Returns analytics data for the user's tasks including completion trends,
+        heatmap data, priority distribution, and recurring task statistics.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Start date for analytics range (default: 30 days ago)
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: End date for analytics range (default: today)
+        - name: include_heatmap
+          in: query
+          schema:
+            type: boolean
+            default: true
+          description: Include completion heatmap data
+      responses:
+        '200':
+          description: Analytics data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnalyticsResponse'
+
+components:
+  parameters:
+    userId:
+      name: user_id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Better Auth user ID
+
+    taskId:
+      name: task_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Task UUID
+
+  schemas:
+    RecurrenceConfig:
+      type: object
+      properties:
+        is_recurring:
+          type: boolean
+          default: false
+          description: Whether this task repeats
+        recurrence_type:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+          description: Recurrence pattern type
+        recurrence_interval:
+          type: integer
+          minimum: 1
+          maximum: 365
+          default: 1
+          description: Interval between occurrences
+        recurrence_days:
+          type: string
+          pattern: '^(mon|tue|wed|thu|fri|sat|sun)(,(mon|tue|wed|thu|fri|sat|sun))*$'
+          description: Days for weekly recurrence (e.g., "mon,wed,fri")
+        recurrence_end_date:
+          type: string
+          format: date
+          description: Optional end date for recurrence
+        max_occurrences:
+          type: integer
+          minimum: 1
+          description: Optional maximum number of occurrences
+
+    TaskCreateExtended:
+      allOf:
+        - type: object
+          required:
+            - title
+          properties:
+            title:
+              type: string
+              minLength: 1
+              maxLength: 200
+            description:
+              type: string
+              maxLength: 1000
+            priority:
+              type: string
+              enum: [High, Medium, Low]
+              default: Medium
+            due_date:
+              type: string
+              format: date
+            tags:
+              type: array
+              items:
+                type: string
+        - $ref: '#/components/schemas/RecurrenceConfig'
+
+    TaskUpdateExtended:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+        priority:
+          type: string
+          enum: [High, Medium, Low]
+        due_date:
+          type: string
+          format: date
+        completed:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        is_recurring:
+          type: boolean
+        recurrence_type:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+        recurrence_interval:
+          type: integer
+        recurrence_days:
+          type: string
+        recurrence_end_date:
+          type: string
+          format: date
+        max_occurrences:
+          type: integer
+
+    TaskResponseExtended:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        completed:
+          type: boolean
+        priority:
+          type: string
+          enum: [High, Medium, Low]
+        due_date:
+          type: string
+          format: date
+        tags:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        # Recurrence fields
+        is_recurring:
+          type: boolean
+        recurrence_type:
+          type: string
+          enum: [daily, weekly, monthly, yearly]
+        recurrence_interval:
+          type: integer
+        recurrence_days:
+          type: string
+        recurrence_end_date:
+          type: string
+          format: date
+        max_occurrences:
+          type: integer
+        parent_task_id:
+          type: string
+          format: uuid
+        occurrence_count:
+          type: integer
+
+    AnalyticsResponse:
+      type: object
+      properties:
+        completion_rate:
+          type: number
+          description: Overall completion percentage
+        tasks_completed:
+          type: integer
+        tasks_pending:
+          type: integer
+        avg_completion_time_days:
+          type: number
+        priority_distribution:
+          type: array
+          items:
+            type: object
+            properties:
+              priority:
+                type: string
+              count:
+                type: integer
+              percentage:
+                type: number
+        heatmap_data:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              count:
+                type: integer
+        recurring_stats:
+          type: object
+          properties:
+            total_patterns:
+              type: integer
+            active_patterns:
+              type: integer
+            completion_rate:
+              type: number
+            current_streak:
+              type: integer
+        tag_stats:
+          type: array
+          items:
+            type: object
+            properties:
+              tag:
+                type: string
+              count:
+                type: integer
+              completion_rate:
+                type: number
+
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  code:
+                    type: string

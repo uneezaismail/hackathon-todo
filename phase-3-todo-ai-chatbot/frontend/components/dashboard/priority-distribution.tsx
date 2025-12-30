@@ -7,6 +7,7 @@
  */
 
 import * as React from 'react'
+import { useTheme } from 'next-themes'
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts'
 import { Task } from '@/types/task'
 import { calculatePriorityDistribution } from '@/lib/analytics'
@@ -19,6 +20,10 @@ interface PriorityDistributionProps {
 }
 
 export function PriorityDistribution({ tasks, className }: PriorityDistributionProps) {
+  const { theme, systemTheme } = useTheme()
+  const currentTheme = theme === 'system' ? systemTheme : theme
+  const isDark = currentTheme === 'dark'
+
   const distribution = calculatePriorityDistribution(tasks)
 
   const getIcon = (priority: string) => {
@@ -37,11 +42,17 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
   const activeTasks = tasks.filter(t => !t.completed)
   const hasData = activeTasks.length > 0
 
+  // Theme-aware tooltip colors
+  const tooltipBg = isDark ? '#1a2332' : '#ffffff'
+  const tooltipBorder = isDark ? 'rgba(0, 212, 184, 0.3)' : 'rgba(0, 128, 128, 0.3)'
+  const tooltipText = isDark ? '#fff' : '#000'
+
   return (
     <div
       className={cn(
-        'rounded-2xl border-2 border-[#8b5cf6]/20 bg-card p-6 backdrop-blur-md',
-        'hover:border-[#8b5cf6]/40 hover:shadow-[0_0_30px_rgba(139,92,246,0.15)]',
+        'rounded-2xl border-2 bg-card p-6 backdrop-blur-md shadow-sm',
+        'border-purple-500/20 hover:border-purple-500/40',
+        'dark:hover:shadow-[0_0_30px_rgba(139,92,246,0.15)]',
         'transition-all duration-300',
         className
       )}
@@ -53,8 +64,8 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
 
       {!hasData ? (
         <div className="text-center py-12">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-400/10 mx-auto mb-3">
-            <AlertCircle className="h-8 w-8 text-green-400" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 mx-auto mb-3">
+            <AlertCircle className="h-8 w-8 text-green-500 dark:text-green-400" />
           </div>
           <p className="text-muted-foreground text-sm">No active tasks</p>
           <p className="text-muted-foreground text-xs mt-1">Create some tasks to see distribution</p>
@@ -78,10 +89,10 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
               </Pie>
               <Tooltip
                 contentStyle={{
-                  backgroundColor: '#1a2332',
-                  border: '1px solid rgba(0, 212, 184, 0.3)',
+                  backgroundColor: tooltipBg,
+                  border: `1px solid ${tooltipBorder}`,
                   borderRadius: '8px',
-                  color: '#fff',
+                  color: tooltipText,
                 }}
                 formatter={(value, name, props: any) => [
                   `${value || 0} tasks (${props.payload.percentage}%)`,

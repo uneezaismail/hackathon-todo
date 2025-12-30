@@ -387,6 +387,162 @@ export async function toggleTaskComplete(
 }
 
 /**
+ * T044: Update an existing task with optional series update for recurring tasks
+ */
+export async function updateTaskWithSeries(
+  taskId: string,
+  data: TaskUpdate,
+  updateSeries: boolean = false
+): Promise<{ task?: Task; error?: string }> {
+  const auth = await getAuthenticatedUser()
+
+  if (!auth) {
+    return { error: 'Unauthorized - please sign in' }
+  }
+
+  // Validate input
+  if (data.title !== undefined) {
+    if (!data.title || data.title.trim().length === 0) {
+      return { error: 'Title is required' }
+    }
+
+    if (data.title.length > 200) {
+      return { error: 'Title must be less than 200 characters' }
+    }
+  }
+
+  if (data.description !== undefined && data.description && data.description.length > 1000) {
+    return { error: 'Description must be less than 1000 characters' }
+  }
+
+  const endpoint = `/api/${auth.userId}/tasks/${taskId}?update_series=${updateSeries}`
+
+  const result = await apiRequest<Task>(endpoint, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
+
+  if (result.error) {
+    return { error: result.error }
+  }
+
+  // Extract task from double-nested response
+  const taskResponse = result.data as unknown as { data?: Task } | Task
+  const task = (taskResponse as { data?: Task })?.data || (taskResponse as Task)
+
+  // Revalidate dashboard path to show updated task
+  revalidatePath('/dashboard')
+
+  return { task }
+}
+
+/**
+ * T042: Skip a recurring task occurrence
+ */
+export async function skipTask(
+  taskId: string
+): Promise<{ task?: Task; nextOccurrence?: Task; error?: string }> {
+  const auth = await getAuthenticatedUser()
+
+  if (!auth) {
+    return { error: 'Unauthorized - please sign in' }
+  }
+
+  const endpoint = `/api/${auth.userId}/tasks/${taskId}/skip`
+
+  const result = await apiRequest<{ completed_task: Task; next_occurrence: Task | null }>(endpoint, {
+    method: 'POST',
+  })
+
+  if (result.error) {
+    return { error: result.error }
+  }
+
+  // Extract from double-nested response
+  const response = result.data as unknown as { data?: { completed_task: Task; next_occurrence: Task | null } }
+  const data = response?.data
+
+  // Revalidate dashboard path
+  revalidatePath('/dashboard')
+
+  return {
+    task: data?.completed_task,
+    nextOccurrence: data?.next_occurrence || undefined,
+  }
+}
+
+/**
+ * T043: Stop recurrence for a recurring task
+ */
+export async function stopRecurrence(
+  taskId: string
+): Promise<{ task?: Task; error?: string }> {
+  const auth = await getAuthenticatedUser()
+
+  if (!auth) {
+    return { error: 'Unauthorized - please sign in' }
+  }
+
+  const endpoint = `/api/${auth.userId}/tasks/${taskId}/stop-recurrence`
+
+  const result = await apiRequest<Task>(endpoint, {
+    method: 'POST',
+  })
+
+  if (result.error) {
+    return { error: result.error }
+  }
+
+  // Extract task from double-nested response
+  const taskResponse = result.data as unknown as { data?: Task } | Task
+  const task = (taskResponse as { data?: Task })?.data || (taskResponse as Task)
+
+  // Revalidate dashboard path
+  revalidatePath('/dashboard')
+
+  return { task }
+}
+
+/**
+ * Complete a task using the /complete endpoint (Phase 4)
+ * Handles recurring tasks by returning the next occurrence
+ */
+export async function completeTask(
+  taskId: string
+): Promise<{ task?: Task; nextOccurrence?: Task; error?: string }> {
+  const auth = await getAuthenticatedUser()
+
+  if (!auth) {
+    return { error: 'Unauthorized - please sign in' }
+  }
+
+  const endpoint = `/api/${auth.userId}/tasks/${taskId}/complete`
+
+  const result = await apiRequest<{ completed_task: Task; next_occurrence: Task | null }>(endpoint, {
+    method: 'POST',
+  })
+
+  if (result.error) {
+    return { error: result.error }
+  }
+
+  // Extract from double-nested response
+  const response = result.data as unknown as { data?: { completed_task: Task; next_occurrence: Task | null } }
+  const data = response?.data
+
+  // Revalidate all task-related paths
+  revalidatePath('/dashboard')
+  revalidatePath('/dashboard/tasks')
+  revalidatePath('/dashboard/calendar')
+  revalidatePath('/dashboard/analytics')
+
+  return {
+    task: data?.completed_task,
+    nextOccurrence: data?.next_occurrence || undefined,
+  }
+}
+
+/**
  * T039: Fetch user's tags for autocomplete
  */
 export async function fetchTags(params?: {
@@ -405,8 +561,8 @@ export async function fetchTags(params?: {
   if (params?.limit) queryParams.append('limit', params.limit.toString())
 
   const queryString = queryParams.toString()
-  // Tags endpoint is at /api/{user_id}/tags (relative to tasks router)
-  const endpoint = `/api/${auth.userId}/tags${queryString ? `?${queryString}` : ''}`
+  // Tags endpoint is at /api/{user_id}/tasks/tags
+  const endpoint = `/api/${auth.userId}/tasks/tags${queryString ? `?${queryString}` : ''}`
 
   const result = await apiRequest<Tag[]>(endpoint, {
     method: 'GET',

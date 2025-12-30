@@ -62,3 +62,6 @@ Thumbs.db
 
 # Archives (don't commit zip files)
 *.zip
+*.db
+*.db-shm
+*.db-wal

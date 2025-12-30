@@ -12,7 +12,7 @@
 
 import { useState, useTransition, useOptimistic } from 'react'
 import { toast } from 'sonner'
-import { Pencil, Trash2, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, Loader2, Repeat, SkipForward, StopCircle, MoreHorizontal } from 'lucide-react'
 
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
@@ -27,10 +27,25 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
-import { deleteTask, toggleTaskComplete } from '@/actions/tasks'
+import { deleteTask, toggleTaskComplete, skipTask, stopRecurrence, completeTask } from '@/actions/tasks'
 import { TaskForm } from './task-form'
+import { EditRecurringDialog } from './edit-recurring-dialog'
+import { getRecurrencePatternText } from '@/lib/analytics'
 import type { Task, Priority } from '@/types/task'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface TaskItemProps {
   task: Task
@@ -45,6 +60,11 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showEditRecurringDialog, setShowEditRecurringDialog] = useState(false)
+  const [isSkipping, setIsSkipping] = useState(false)
+  const [isStopping, setIsStopping] = useState(false)
+  const [showStopConfirmDialog, setShowStopConfirmDialog] = useState(false)
+  const [editSeries, setEditSeries] = useState(false)
 
   // T083: Optimistic UI state for task completion
   const [optimisticTask, setOptimisticTask] = useOptimistic(
@@ -57,6 +77,7 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
 
   /**
    * T074, T083, T084: Toggle task completion with optimistic UI and rollback
+   * For recurring tasks, uses the /complete endpoint
    */
   const handleToggleComplete = () => {
     startTransition(async () => {
@@ -65,26 +86,119 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
       // T083: Optimistically update UI
       setOptimisticTask(!previousCompleted)
 
-      // Call server action with current completion state
-      const result = await toggleTaskComplete(task.id, previousCompleted)
-
-      if (result.error) {
-        // T084: Rollback on error
-        setOptimisticTask(previousCompleted)
-
-        // T088: Show error banner
-        toast.error(result.error, {
-          duration: Infinity,
-          action: {
-            label: 'Dismiss',
-            onClick: () => toast.dismiss(),
-          },
-        })
+      // For recurring tasks completing (not uncompleting), use the /complete endpoint
+      if (task.is_recurring && !previousCompleted) {
+        const result = await completeTask(task.id)
+        if (result.error) {
+          setOptimisticTask(previousCompleted)
+          toast.error(result.error, {
+            duration: Infinity,
+            action: { label: 'Dismiss', onClick: () => toast.dismiss() },
+          })
+        } else {
+          if (result.nextOccurrence) {
+            // Todoist-style: Task's due_date shifted to next occurrence
+            toast.success('Task completed! Moved to next occurrence.')
+          } else {
+            // Recurrence ended or non-recurring task
+            toast.success('Task completed!')
+          }
+          onTaskUpdated?.()
+        }
       } else {
-        // Success
-        onTaskUpdated?.()
+        // Regular toggle for non-recurring or uncompleting
+        const result = await toggleTaskComplete(task.id, previousCompleted)
+
+        if (result.error) {
+          // T084: Rollback on error
+          setOptimisticTask(previousCompleted)
+
+          // T088: Show error banner
+          toast.error(result.error, {
+            duration: Infinity,
+            action: {
+              label: 'Dismiss',
+              onClick: () => toast.dismiss(),
+            },
+          })
+        } else {
+          // Success
+          onTaskUpdated?.()
+        }
       }
     })
+  }
+
+  /**
+   * T042: Skip a recurring task occurrence
+   */
+  const handleSkip = async () => {
+    setIsSkipping(true)
+    try {
+      const result = await skipTask(task.id)
+      if (result.error) {
+        toast.error(result.error, {
+          duration: Infinity,
+          action: { label: 'Dismiss', onClick: () => toast.dismiss() },
+        })
+      } else {
+        if (result.nextOccurrence) {
+          toast.success('Occurrence skipped! Next occurrence created.')
+        } else {
+          toast.success('Occurrence skipped!')
+        }
+        onTaskUpdated?.()
+      }
+    } catch (error) {
+      toast.error('Failed to skip occurrence')
+    } finally {
+      setIsSkipping(false)
+    }
+  }
+
+  /**
+   * T043: Stop recurrence for a recurring task
+   */
+  const handleStopRecurrence = async () => {
+    setIsStopping(true)
+    try {
+      const result = await stopRecurrence(task.id)
+      if (result.error) {
+        toast.error(result.error, {
+          duration: Infinity,
+          action: { label: 'Dismiss', onClick: () => toast.dismiss() },
+        })
+      } else {
+        toast.success('Recurrence stopped. No future instances will be created.')
+        setShowStopConfirmDialog(false)
+        onTaskUpdated?.()
+      }
+    } catch (error) {
+      toast.error('Failed to stop recurrence')
+    } finally {
+      setIsStopping(false)
+    }
+  }
+
+  /**
+   * Handle edit button click for recurring tasks
+   */
+  const handleEditClick = () => {
+    if (task.is_recurring) {
+      setShowEditRecurringDialog(true)
+    } else {
+      setIsEditing(true)
+    }
+  }
+
+  const handleEditThisInstance = () => {
+    setEditSeries(false)
+    setIsEditing(true)
+  }
+
+  const handleEditAllInstances = () => {
+    setEditSeries(true)
+    setIsEditing(true)
   }
 
   /**
@@ -153,11 +267,16 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
     return (
       <TaskForm
         task={task}
+        updateSeries={editSeries}
         onSuccess={() => {
           setIsEditing(false)
+          setEditSeries(false)
           onTaskUpdated?.()
         }}
-        onCancel={() => setIsEditing(false)}
+        onCancel={() => {
+          setIsEditing(false)
+          setEditSeries(false)
+        }}
       />
     )
   }
@@ -217,6 +336,23 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
                   {optimisticTask.priority}
                 </Badge>
 
+                {/* Phase 4: Recurring task indicator with tooltip */}
+                {optimisticTask.is_recurring && getRecurrencePatternText(task) && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Badge variant="outline" className="text-xs bg-purple-100 text-purple-700 border-purple-300 cursor-help">
+                          <Repeat className="w-3 h-3 mr-1" />
+                          {getRecurrencePatternText(task)}
+                        </Badge>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Recurring: {getRecurrencePatternText(task)}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+
                 {/* T045: Due date display */}
                 {optimisticTask.due_date && (
                   <Badge variant="outline" className="text-xs">
@@ -247,22 +383,67 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsEditing(true)}
-                disabled={isPending}
+                onClick={handleEditClick}
+                disabled={isPending || isSkipping || isStopping}
                 aria-label="Edit task"
               >
                 <Pencil className="h-4 w-4" />
               </Button>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowDeleteDialog(true)}
-                disabled={isPending}
-                aria-label="Delete task"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {/* T042, T043: Dropdown menu with recurring task actions */}
+              {optimisticTask.is_recurring && !optimisticTask.completed ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={isPending || isSkipping || isStopping}
+                      aria-label="More actions"
+                    >
+                      {isSkipping || isStopping ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <MoreHorizontal className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={handleSkip}
+                      disabled={isSkipping}
+                    >
+                      <SkipForward className="mr-2 h-4 w-4" />
+                      Skip this occurrence
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setShowStopConfirmDialog(true)}
+                      disabled={isStopping}
+                      className="text-orange-600"
+                    >
+                      <StopCircle className="mr-2 h-4 w-4" />
+                      Stop recurrence
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete task
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={isPending}
+                  aria-label="Delete task"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -270,27 +451,33 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
 
       {/* T085: Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md bg-[#131929]/95 backdrop-blur-xl border-2 border-red-500/30 shadow-[0_0_50px_rgba(239,68,68,0.2)]">
           <DialogHeader>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete &quot;{task.title}&quot;? This action cannot be undone.
+            <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-500" />
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription className="text-white/70 text-base pt-2">
+              Are you sure you want to delete <span className="text-[#00d4b8] font-semibold">&quot;{task.title}&quot;</span>?
+              <br />
+              <span className="text-red-400 font-medium">This action cannot be undone.</span>
             </DialogDescription>
           </DialogHeader>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
               onClick={() => setShowDeleteDialog(false)}
               disabled={isDeleting}
+              className="border-white/20 text-white hover:bg-white/10 hover:text-white"
             >
               Cancel
             </Button>
 
             <Button
-              variant="destructive"
               onClick={handleDelete}
               disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700 text-white shadow-lg shadow-red-600/20 border-0"
             >
               {isDeleting ? (
                 <>
@@ -298,7 +485,59 @@ export function TaskItem({ task, onTaskUpdated }: TaskItemProps) {
                   Deleting...
                 </>
               ) : (
-                'Delete'
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* T041: Edit Recurring Dialog */}
+      <EditRecurringDialog
+        open={showEditRecurringDialog}
+        onOpenChange={setShowEditRecurringDialog}
+        onEditThisInstance={handleEditThisInstance}
+        onEditAllInstances={handleEditAllInstances}
+        taskTitle={task.title}
+      />
+
+      {/* T043: Stop Recurrence Confirmation Dialog */}
+      <Dialog open={showStopConfirmDialog} onOpenChange={setShowStopConfirmDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Stop Recurrence</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to stop the recurrence for &quot;{task.title}&quot;?
+              <br /><br />
+              This task will no longer repeat automatically. You can still complete or delete this instance.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowStopConfirmDialog(false)}
+              disabled={isStopping}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              variant="default"
+              onClick={handleStopRecurrence}
+              disabled={isStopping}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {isStopping ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Stopping...
+                </>
+              ) : (
+                'Stop Recurrence'
               )}
             </Button>
           </DialogFooter>
