@@ -47,8 +47,12 @@ export default function CalendarPage() {
         setError(result.error)
         toast.error(result.error)
       } else {
+<<<<<<< HEAD
         // Todoist-style: Filter out only legacy patterns (if any)
         // New recurring tasks are single tasks with shifting due_date
+=======
+        // Filter out recurring task patterns - users should only see instances
+>>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
         const tasks = filterOutPatterns(result.tasks || [])
         setTasks(tasks)
         setError(null)
@@ -172,14 +176,23 @@ export default function CalendarPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
+<<<<<<< HEAD
           <h1 className="text-2xl font-bold text-foreground">Calendar</h1>
           <p className="text-muted-foreground text-sm mt-1">
+=======
+          <h1 className="text-2xl font-bold text-white">Calendar</h1>
+          <p className="text-white/60 text-sm mt-1">
+>>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
             View and manage your tasks by date
           </p>
         </div>
         <Button
           onClick={handleCreateClick}
+<<<<<<< HEAD
           className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2"
+=======
+          className="bg-[#00d4b8] text-[#0b1121] hover:bg-[#00d4b8]/90 gap-2"
+>>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
         >
           <Plus className="h-4 w-4" />
           New Task
@@ -196,7 +209,11 @@ export default function CalendarPage() {
       {/* Main content - responsive layout */}
       <div className="flex flex-col xl:flex-row gap-4 xl:gap-6">
         {/* Calendar */}
+<<<<<<< HEAD
         <div className="flex-1 bg-card rounded-xl p-2 sm:p-4 border border-border overflow-x-auto shadow-sm">
+=======
+        <div className="flex-1 bg-[#131929]/50 rounded-xl p-2 sm:p-4 border border-white/10 overflow-x-auto">
+>>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
           <TaskCalendar
             tasks={tasks}
             onTaskClick={handleTaskClick}
@@ -219,7 +236,11 @@ export default function CalendarPage() {
           />
 
           {/* Unscheduled tasks */}
+<<<<<<< HEAD
           <div className="flex-1 bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+=======
+          <div className="flex-1 bg-[#131929]/50 rounded-xl border border-white/10 overflow-hidden">
+>>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
             <UnscheduledTasks tasks={tasks} onTaskClick={handleTaskClick} />
           </div>
         </div>
