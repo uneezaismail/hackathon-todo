@@ -355,10 +355,7 @@ class RecurringService:
                 updated_at=new_task.updated_at,
                 tags=tag_names,
                 is_recurring=new_task.is_recurring,
-<<<<<<< HEAD
                 is_pattern=new_task.is_pattern,
-=======
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
                 recurrence_type=new_task.recurrence_type,
                 recurrence_interval=new_task.recurrence_interval,
                 recurrence_days=new_task.recurrence_days,
@@ -380,7 +377,6 @@ class RecurringService:
         user_id: str
     ) -> Tuple[TaskResponse, Optional[TaskResponse]]:
         """
-<<<<<<< HEAD
         Complete a recurring task using Todoist-style approach.
 
         TODOIST-STYLE MODEL:
@@ -392,31 +388,14 @@ class RecurringService:
         Args:
             session: Database session
             task: Task to complete
-=======
-        Complete a recurring task and generate the next occurrence.
-
-        PATTERN+INSTANCES MODEL:
-        - If task is a PATTERN (is_pattern=True): DON'T mark as complete, generate first instance
-        - If task is an INSTANCE (is_pattern=False): Mark as complete, generate next instance
-        - Pattern stays active forever (unless user explicitly stops recurrence)
-
-        Args:
-            session: Database session
-            task: Task to complete (pattern or instance)
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
             user_id: User ID for security validation
 
         Returns:
             Tuple of (completed task response, next occurrence response or None)
-<<<<<<< HEAD
             Note: In Todoist-style, both responses refer to the SAME task
         """
         from sqlmodel import select
         from datetime import datetime
-=======
-        """
-        from sqlmodel import select
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
 
         try:
             # Get tags for the task
@@ -427,7 +406,6 @@ class RecurringService:
             )
             tag_names = list(session.exec(tag_query).all())
 
-<<<<<<< HEAD
             if task.is_recurring:
                 # TODOIST-STYLE: Shift due_date instead of creating new instance
                 logger.info(f"Todoist-style: Completing recurring task {task.id}, shifting due_date")
@@ -521,62 +499,10 @@ class RecurringService:
                 logger.info(f"Completing non-recurring task {task.id}")
                 task.completed = True
                 task.updated_at = datetime.utcnow()
-=======
-            # Check if this is a pattern or instance
-            is_pattern = getattr(task, 'is_pattern', False)
-
-            if task.is_recurring and is_pattern:
-                # PATTERN: Don't mark as complete, just generate first instance
-                logger.info(f"Completing PATTERN task {task.id}, generating first instance")
-
-                # Get pattern reference (for building response)
-                pattern_task = task
-
-                # Generate first instance
-                next_occurrence = RecurringService.generate_next_occurrence(
-                    session, pattern_task, user_id
-                )
-
-                # Build "completed" response for pattern (but it's not actually completed)
-                # We return the pattern info so user knows what they're working with
-                completed_response = TaskResponse(
-                    id=pattern_task.id,
-                    user_id=pattern_task.user_id,
-                    title=pattern_task.title,
-                    description=pattern_task.description,
-                    completed=False,  # Pattern stays active
-                    priority=pattern_task.priority,
-                    due_date=pattern_task.due_date,
-                    created_at=pattern_task.created_at,
-                    updated_at=pattern_task.updated_at,
-                    tags=tag_names,
-                    is_recurring=pattern_task.is_recurring,
-                    recurrence_type=pattern_task.recurrence_type,
-                    recurrence_interval=pattern_task.recurrence_interval,
-                    recurrence_days=pattern_task.recurrence_days,
-                    recurrence_end_date=pattern_task.recurrence_end_date,
-                    max_occurrences=pattern_task.max_occurrences,
-                    parent_task_id=pattern_task.parent_task_id,
-                    occurrence_count=pattern_task.occurrence_count,
-                )
-
-                return completed_response, next_occurrence
-
-            else:
-                # INSTANCE: Mark as complete and generate next instance
-                logger.info(f"Completing INSTANCE task {task.id}, generating next instance")
-
-                # Mark task as completed
-                task.completed = True
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
                 session.add(task)
                 session.commit()
                 session.refresh(task)
 
-<<<<<<< HEAD
-=======
-                # Build completed task response
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
                 completed_response = TaskResponse(
                     id=task.id,
                     user_id=task.user_id,
@@ -589,10 +515,7 @@ class RecurringService:
                     updated_at=task.updated_at,
                     tags=tag_names,
                     is_recurring=task.is_recurring,
-<<<<<<< HEAD
                     is_pattern=task.is_pattern,
-=======
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
                     recurrence_type=task.recurrence_type,
                     recurrence_interval=task.recurrence_interval,
                     recurrence_days=task.recurrence_days,
@@ -602,18 +525,7 @@ class RecurringService:
                     occurrence_count=task.occurrence_count,
                 )
 
-<<<<<<< HEAD
                 return completed_response, None
-=======
-                # Generate next occurrence if applicable
-                next_occurrence = None
-                if task.is_recurring:
-                    next_occurrence = RecurringService.generate_next_occurrence(
-                        session, task, user_id
-                    )
-
-                return completed_response, next_occurrence
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
 
         except Exception as e:
             session.rollback()
@@ -627,16 +539,10 @@ class RecurringService:
         user_id: str
     ) -> Tuple[TaskResponse, Optional[TaskResponse]]:
         """
-<<<<<<< HEAD
         Skip the current occurrence using Todoist-style approach.
 
         TODOIST-STYLE: Shift due_date to next occurrence without marking as "completed".
         The task stays pending but moves to the next date.
-=======
-        Skip the current occurrence and generate the next one.
-
-        Marks the task as completed (skipped), then generates next occurrence.
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
 
         Args:
             session: Database session
@@ -647,18 +553,9 @@ class RecurringService:
             Tuple of (skipped task response, next occurrence response or None)
         """
         from sqlmodel import select
-<<<<<<< HEAD
         from datetime import datetime
 
         try:
-=======
-
-        try:
-            # Mark task as completed (skipped)
-            task.completed = True
-            session.add(task)
-
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
             # Get tags for the task
             tag_query = (
                 select(Tag.name)
@@ -667,7 +564,6 @@ class RecurringService:
             )
             tag_names = list(session.exec(tag_query).all())
 
-<<<<<<< HEAD
             if task.is_recurring:
                 # TODOIST-STYLE: Just shift due_date (don't mark completed)
                 next_due_date = RecurringService.calculate_next_due_date(task)
@@ -771,43 +667,6 @@ class RecurringService:
                 )
 
                 return task_response, None
-=======
-            session.commit()
-            session.refresh(task)
-
-            # Build skipped task response
-            skipped_response = TaskResponse(
-                id=task.id,
-                user_id=task.user_id,
-                title=task.title,
-                description=task.description,
-                completed=task.completed,
-                priority=task.priority,
-                due_date=task.due_date,
-                created_at=task.created_at,
-                updated_at=task.updated_at,
-                tags=tag_names,
-                is_recurring=task.is_recurring,
-                recurrence_type=task.recurrence_type,
-                recurrence_interval=task.recurrence_interval,
-                recurrence_days=task.recurrence_days,
-                recurrence_end_date=task.recurrence_end_date,
-                max_occurrences=task.max_occurrences,
-                parent_task_id=task.parent_task_id,
-                occurrence_count=task.occurrence_count,
-            )
-
-            # Generate next occurrence
-            next_occurrence = None
-            if task.is_recurring:
-                next_occurrence = RecurringService.generate_next_occurrence(
-                    session, task, user_id
-                )
-
-            logger.info(f"Skipped task {task.id}, generated next: {next_occurrence.id if next_occurrence else None}")
-
-            return skipped_response, next_occurrence
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
 
         except Exception as e:
             session.rollback()
@@ -867,10 +726,7 @@ class RecurringService:
                 updated_at=task.updated_at,
                 tags=tag_names,
                 is_recurring=task.is_recurring,
-<<<<<<< HEAD
                 is_pattern=task.is_pattern,
-=======
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
                 recurrence_type=task.recurrence_type,
                 recurrence_interval=task.recurrence_interval,
                 recurrence_days=task.recurrence_days,
@@ -990,10 +846,7 @@ class RecurringService:
                 updated_at=task.updated_at,
                 tags=tag_names,
                 is_recurring=task.is_recurring,
-<<<<<<< HEAD
                 is_pattern=task.is_pattern,
-=======
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
                 recurrence_type=task.recurrence_type,
                 recurrence_interval=task.recurrence_interval,
                 recurrence_days=task.recurrence_days,
