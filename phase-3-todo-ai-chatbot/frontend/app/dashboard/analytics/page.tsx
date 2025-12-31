@@ -38,12 +38,7 @@ export default async function AnalyticsPage() {
     sort_direction: 'desc'
   })
 
-<<<<<<< HEAD
-  // Todoist-style: Filter out only legacy patterns (if any)
-  // New recurring tasks are single tasks with shifting due_date
-=======
   // Filter out recurring task patterns - analytics should only count instances
->>>>>>> ebf7d28ff332a09cacc62bfee7a6eddb6e8c3d30
   const tasks = filterOutPatterns(tasksResult.tasks || [])
 
   return <AnalyticsDashboard tasks={tasks} userName={session.user.name || 'User'} />
