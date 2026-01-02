@@ -68,9 +68,9 @@ export function ChartWidget({ title, description, data, delay = 0 }: ChartWidget
             <CardDescription className="dark:text-gray-400 light:text-gray-600">{description}</CardDescription>
           )}
         </CardHeader>
-        <CardContent className="pt-6 pb-4">
-          <ChartContainer config={chartConfig} className="h-70 w-full">
-            <AreaChart data={data} margin={{ top: 10, right: 10, bottom: 5, left: 0 }}>
+        <CardContent className="pt-3 sm:pt-6 px-3 sm:px-6 overflow-x-hidden">
+          <ChartContainer config={chartConfig} className="h-48 sm:h-70 w-full">
+            <AreaChart data={data} margin={{ top: 10, right: 5, bottom: 5, left: -15 }}>
               <defs>
                 <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3} />
@@ -81,16 +81,16 @@ export function ChartWidget({ title, description, data, delay = 0 }: ChartWidget
               <XAxis
                 dataKey="name"
                 stroke="transparent"
-                tick={{ fill: '#94a3b8', fontSize: 12 }}
+                tick={{ fill: '#94a3b8', fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
                 stroke="transparent"
-                tick={{ fill: '#94a3b8', fontSize: 12 }}
+                tick={{ fill: '#94a3b8', fontSize: 10 }}
                 tickLine={false}
                 axisLine={false}
-                width={25}
+                width={30}
               />
               <ChartTooltip content={<CustomTooltip />} />
               <Area
