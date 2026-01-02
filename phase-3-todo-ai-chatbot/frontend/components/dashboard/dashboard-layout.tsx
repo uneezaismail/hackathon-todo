@@ -11,6 +11,7 @@
 'use client'
 
 import * as React from 'react'
+import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Sidebar } from '@/components/layout/sidebar'
 import { DashboardTopbar } from '@/components/layout/dashboard-topbar'
@@ -23,8 +24,14 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const pathname = usePathname()
   const [sidebarCollapsed, setSidebarCollapsed] = React.useState(false)
   const [mobileSidebarOpen, setMobileSidebarOpen] = React.useState(false)
+
+  // Close mobile sidebar when route changes
+  React.useEffect(() => {
+    setMobileSidebarOpen(false)
+  }, [pathname])
 
   return (
     <div className="min-h-screen bg-[#0A0A1F]">
@@ -82,9 +89,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <AnimatePresence>
         {mobileSidebarOpen && (
           <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
+            initial={{ x: '-100%', opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: '-100%', opacity: 0 }}
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="fixed inset-y-0 left-0 z-50 md:hidden"
           >
