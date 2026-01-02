@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 export function HeroSection() {
   return (
-    <section className="relative min-h-[500px] sm:min-h-[600px] lg:min-h-[700px] flex items-center justify-center overflow-hidden bg-dark-background pt-20 sm:pt-24 lg:pt-28 pb-16 sm:pb-20 lg:pb-24">
+    <section className="relative min-h-[600px] sm:min-h-[650px] lg:min-h-[700px] flex items-center justify-center overflow-hidden bg-dark-background pt-20 sm:pt-24 lg:pt-28 pb-16 sm:pb-20 lg:pb-24">
       {/* Grid Background - stays behind all content */}
       <GridBackground3D />
 
