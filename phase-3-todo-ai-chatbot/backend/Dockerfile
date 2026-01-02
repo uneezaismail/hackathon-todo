@@ -46,13 +46,13 @@ USER appuser
 # Add .venv to PATH so we can run uvicorn directly
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Expose port 8000 for FastAPI
-EXPOSE 8000
+# Expose port 7860 for Hugging Face Spaces (required for HF deployment)
+EXPOSE 7860
 
 # Health check to verify application is running
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')" || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:7860/api/health')" || exit 1
 
 # Run database migrations and start server
 # Note: In production, run migrations separately before deploying
-CMD ["sh", "-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8000"]
+CMD ["sh", "-c", "alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 7860"]
