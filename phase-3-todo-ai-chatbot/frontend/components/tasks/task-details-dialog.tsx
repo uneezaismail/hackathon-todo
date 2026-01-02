@@ -10,6 +10,7 @@ import { format } from 'date-fns'
 import { Calendar, Clock, Tag as TagIcon, Flag, Repeat } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -29,11 +30,11 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
   const getPriorityColor = (priority: Priority) => {
     switch (priority) {
       case 'High':
-        return 'bg-red-500/20 text-red-400 border-red-500/30'
+        return 'dark:bg-red-500/20 dark:text-red-400 dark:border-red-500/30 light:bg-red-100 light:text-red-700 light:border-red-300'
       case 'Medium':
-        return 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30'
+        return 'dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30 light:bg-amber-100 light:text-amber-700 light:border-amber-300'
       case 'Low':
-        return 'bg-green-500/20 text-green-400 border-green-500/30'
+        return 'dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30 light:bg-emerald-100 light:text-emerald-700 light:border-emerald-300'
       default:
         return ''
     }
@@ -49,9 +50,18 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[92vw] sm:max-w-lg bg-[#131929]/95 backdrop-blur-xl border-2 border-[#00d4b8]/30 shadow-[0_0_50px_rgba(0,212,184,0.1)] p-0 gap-0 overflow-hidden rounded-2xl sm:rounded-3xl">
+      <DialogContent className={cn(
+        "w-[92vw] sm:max-w-lg p-0 gap-0 overflow-hidden rounded-2xl sm:rounded-3xl border-2 backdrop-blur-xl transition-all duration-200",
+        "dark:bg-[#1a1a2e]/95 dark:border-[#2a2a3e]",
+        "dark:shadow-[0_0_60px_rgba(168,85,247,0.15)]",
+        "light:bg-white light:border-purple-200",
+        "light:shadow-xl"
+      )}>
         <DialogHeader className="p-6 pb-2 text-left">
-          <DialogTitle className="text-xl sm:text-2xl font-bold text-white mb-1" style={{ textShadow: '0 0 20px rgba(0, 229, 204, 0.3)' }}>
+          <DialogTitle className={cn(
+            "text-xl sm:text-2xl font-bold mb-1",
+            "dark:text-white light:text-gray-900"
+          )}>
             {task.title}
           </DialogTitle>
         </DialogHeader>
@@ -59,22 +69,48 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
         <div className="p-6 pt-2 space-y-6">
           {/* Status & Priority Row */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 bg-[#1a2332]/50 p-2 rounded-lg border border-white/5">
-              <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Status</span>
+            <div className={cn(
+              "flex items-center gap-2 p-2 rounded-lg border",
+              "dark:bg-[#2a2a3e]/50 dark:border-[#2a2a3e]",
+              "light:bg-gray-50 light:border-gray-200"
+            )}>
+              <span className={cn(
+                "text-xs font-medium uppercase tracking-wider",
+                "dark:text-gray-400 light:text-gray-600"
+              )}>
+                Status
+              </span>
               {task.completed ? (
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20">
+                <Badge className={cn(
+                  "dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30",
+                  "light:bg-emerald-100 light:text-emerald-700 light:border-emerald-300",
+                  "hover:bg-opacity-20"
+                )}>
                   Completed
                 </Badge>
               ) : (
-                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/20">
+                <Badge className={cn(
+                  "dark:bg-amber-500/20 dark:text-amber-400 dark:border-amber-500/30",
+                  "light:bg-amber-100 light:text-amber-700 light:border-amber-300",
+                  "hover:bg-opacity-20"
+                )}>
                   Pending
                 </Badge>
               )}
             </div>
 
-            <div className="flex items-center gap-2 bg-[#1a2332]/50 p-2 rounded-lg border border-white/5">
-              <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Priority</span>
-              <Badge className={`${getPriorityColor(task.priority)} hover:bg-opacity-20`}>
+            <div className={cn(
+              "flex items-center gap-2 p-2 rounded-lg border",
+              "dark:bg-[#2a2a3e]/50 dark:border-[#2a2a3e]",
+              "light:bg-gray-50 light:border-gray-200"
+            )}>
+              <span className={cn(
+                "text-xs font-medium uppercase tracking-wider",
+                "dark:text-gray-400 light:text-gray-600"
+              )}>
+                Priority
+              </span>
+              <Badge className={cn(getPriorityColor(task.priority), "hover:bg-opacity-20")}>
                 <Flag className="mr-1 h-3 w-3" />
                 {task.priority}
               </Badge>
@@ -82,9 +118,22 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
 
             {/* Recurring task indicator */}
             {task.is_recurring && getRecurrencePatternText(task) && (
-              <div className="flex items-center gap-2 bg-[#1a2332]/50 p-2 rounded-lg border border-white/5">
-                <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Recurrence</span>
-                <Badge className="bg-purple-400/10 text-purple-400 border-purple-400/30 hover:bg-purple-400/20">
+              <div className={cn(
+                "flex items-center gap-2 p-2 rounded-lg border",
+                "dark:bg-[#2a2a3e]/50 dark:border-[#2a2a3e]",
+                "light:bg-gray-50 light:border-gray-200"
+              )}>
+                <span className={cn(
+                  "text-xs font-medium uppercase tracking-wider",
+                  "dark:text-gray-400 light:text-gray-600"
+                )}>
+                  Recurrence
+                </span>
+                <Badge className={cn(
+                  "dark:bg-purple-400/10 dark:text-purple-400 dark:border-purple-400/30",
+                  "light:bg-purple-100 light:text-purple-700 light:border-purple-300",
+                  "hover:bg-opacity-20"
+                )}>
                   <Repeat className="mr-1 h-3 w-3" />
                   {getRecurrencePatternText(task)}
                 </Badge>
@@ -94,30 +143,66 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
 
           {/* Description */}
           <div className="space-y-2">
-            <span className="text-sm font-medium text-white/90">Description</span>
-            <div className="bg-[#1a2332]/80 rounded-xl p-4 border border-white/10 text-white/80 text-sm leading-relaxed min-h-20">
-              {task.description || <span className="text-white/30 italic">No description provided</span>}
+            <span className={cn(
+              "text-sm font-medium",
+              "dark:text-white light:text-gray-900"
+            )}>
+              Description
+            </span>
+            <div className={cn(
+              "rounded-xl p-4 border text-sm leading-relaxed min-h-20",
+              "dark:bg-[#2a2a3e]/80 dark:border-[#2a2a3e] dark:text-gray-300",
+              "light:bg-gray-50 light:border-gray-200 light:text-gray-700"
+            )}>
+              {task.description || (
+                <span className={cn(
+                  "italic",
+                  "dark:text-gray-500 light:text-gray-400"
+                )}>
+                  No description provided
+                </span>
+              )}
             </div>
           </div>
 
           {/* Metadata Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Due Date */}
-            <div className="bg-[#1a2332]/50 p-3 rounded-xl border border-white/5 space-y-1">
-              <span className="text-xs font-medium text-white/50 flex items-center gap-1.5">
+            <div className={cn(
+              "p-3 rounded-xl border space-y-1",
+              "dark:bg-[#2a2a3e]/50 dark:border-[#2a2a3e]",
+              "light:bg-gray-50 light:border-gray-200"
+            )}>
+              <span className={cn(
+                "text-xs font-medium flex items-center gap-1.5",
+                "dark:text-gray-400 light:text-gray-600"
+              )}>
                 <Calendar className="h-3.5 w-3.5" /> Due Date
               </span>
-              <p className="text-sm font-medium text-white">
+              <p className={cn(
+                "text-sm font-medium",
+                "dark:text-white light:text-gray-900"
+              )}>
                 {task.due_date ? formatDate(task.due_date) : 'No due date'}
               </p>
             </div>
 
             {/* Created At */}
-            <div className="bg-[#1a2332]/50 p-3 rounded-xl border border-white/5 space-y-1">
-              <span className="text-xs font-medium text-white/50 flex items-center gap-1.5">
+            <div className={cn(
+              "p-3 rounded-xl border space-y-1",
+              "dark:bg-[#2a2a3e]/50 dark:border-[#2a2a3e]",
+              "light:bg-gray-50 light:border-gray-200"
+            )}>
+              <span className={cn(
+                "text-xs font-medium flex items-center gap-1.5",
+                "dark:text-gray-400 light:text-gray-600"
+              )}>
                 <Clock className="h-3.5 w-3.5" /> Created
               </span>
-              <p className="text-sm font-medium text-white">
+              <p className={cn(
+                "text-sm font-medium",
+                "dark:text-white light:text-gray-900"
+              )}>
                 {formatDate(task.created_at)}
               </p>
             </div>
@@ -126,15 +211,26 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
           {/* Tags */}
           {task.tags && task.tags.length > 0 && (
             <div className="space-y-2">
-              <span className="text-sm font-medium text-white/90 flex items-center gap-2">
-                <TagIcon className="h-4 w-4 text-[#00d4b8]" /> Tags
+              <span className={cn(
+                "text-sm font-medium flex items-center gap-2",
+                "dark:text-white light:text-gray-900"
+              )}>
+                <TagIcon className={cn(
+                  "h-4 w-4",
+                  "dark:text-purple-400 light:text-purple-600"
+                )} />
+                Tags
               </span>
               <div className="flex flex-wrap gap-2">
                 {task.tags.map((tag) => (
-                  <Badge 
-                    key={tag} 
-                    variant="secondary" 
-                    className="bg-[#00d4b8]/10 text-[#00d4b8] border border-[#00d4b8]/20 px-3 py-1 text-xs"
+                  <Badge
+                    key={tag}
+                    variant="secondary"
+                    className={cn(
+                      "px-3 py-1 text-xs border",
+                      "dark:bg-purple-500/10 dark:text-purple-400 dark:border-purple-500/30",
+                      "light:bg-purple-100 light:text-purple-700 light:border-purple-300"
+                    )}
                   >
                     {tag}
                   </Badge>
@@ -145,8 +241,14 @@ export function TaskDetailsDialog({ task, open, onOpenChange }: TaskDetailsDialo
 
           {/* Footer Timestamp */}
           {task.updated_at !== task.created_at && (
-            <div className="pt-4 border-t border-white/10 text-center">
-              <p className="text-xs text-white/30">
+            <div className={cn(
+              "pt-4 border-t text-center",
+              "dark:border-[#2a2a3e] light:border-gray-200"
+            )}>
+              <p className={cn(
+                "text-xs",
+                "dark:text-gray-500 light:text-gray-400"
+              )}>
                 Last updated: {formatDateTime(task.updated_at)}
               </p>
             </div>

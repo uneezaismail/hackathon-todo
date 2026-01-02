@@ -61,7 +61,7 @@ Thumbs.db
 
 # Archives (don't commit zip files)
 *.zip
-.playwright-mcp
+
 
 # Database files (SQLite)
 *.db

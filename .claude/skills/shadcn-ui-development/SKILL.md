@@ -37,10 +37,159 @@ Use this skill when implementing UI components for the Todo application in Phase
 - Use proper labeling and accessibility attributes
 
 ### 5. Styling and Theming
-- All components use Tailwind CSS utility classes
-- Theme colors are defined in CSS variables in `:root`
-- Components adapt to dark mode automatically
-- Custom styling should extend existing component classes, not replace them
+
+#### CSS Variables for Dual-Theme Colors
+Define custom colors in `app/globals.css` for light/dark mode. Use the site's dual-theme color system:
+
+**Light Mode (LinkedIn Wrapped Style):**
+```css
+:root {
+  --background: 255 255 255;        /* #FFFFFF */
+  --foreground: 31 41 55;            /* #1F2937 */
+  --card: 255 255 255;
+  --card-foreground: 31 41 55;
+  --primary: 124 58 237;            /* #7C3AED - Deep Purple */
+  --primary-foreground: 255 255 255;
+  --secondary: 196 181 253;         /* #C4B5FD - Light Lavender */
+  --secondary-foreground: 124 58 237;
+  --muted: 243 244 246;
+  --muted-foreground: 107 114 128;
+  --accent: 196 181 253;
+  --accent-foreground: 124 58 237;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 229 231 235;
+  --input: 229 231 235;
+  --ring: 124 58 237;
+  --radius: 0.75rem;
+}
+```
+
+**Dark Mode (Regulatis AI Dashboard Style):**
+```css
+.dark {
+  --background: 10 10 31;           /* #0A0A1F - Dark Blue-Black */
+  --foreground: 255 255 255;
+  --card: 20 20 40;
+  --card-foreground: 255 255 255;
+  --primary: 168 85 247;            /* #A855F7 - Purple */
+  --primary-foreground: 255 255 255;
+  --secondary: 196 181 253;         /* #C4B5FD - Lavender */
+  --secondary-foreground: 10 10 31;
+  --muted: 30 30 60;
+  --muted-foreground: 163 163 163;
+  --accent: 168 85 247;
+  --accent-foreground: 255 255 255;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 168 85 247 20;         /* Semi-transparent purple */
+  --input: 30 30 60;
+  --ring: 168 85 247;
+}
+```
+
+#### Hover Effects and Transitions
+Add hover effects to shadcn components using Tailwind utility classes:
+
+**Button Hover Effects:**
+```tsx
+<Button className="hover:scale-105 transition-transform duration-200 hover:shadow-lg hover:shadow-purple-500/25">
+  Hover Me
+</Button>
+```
+
+**Card Hover with Scale and Shadow:**
+```tsx
+<Card className="hover:scale-[1.02] transition-all duration-300 hover:shadow-xl hover:shadow-purple-500/20 backdrop-blur-xl bg-white/5 dark:bg-gray-900/50">
+  <CardContent>Card Content</CardContent>
+</Card>
+```
+
+**Interactive Button with Multiple States:**
+```tsx
+<Button className="
+  bg-primary hover:bg-primary/90
+  active:scale-95
+  transition-all duration-200
+  hover:shadow-lg hover:shadow-primary/50
+  focus:ring-2 focus:ring-primary focus:ring-offset-2
+">
+  Interactive Button
+</Button>
+```
+
+#### Glassmorphism Effects
+Apply glassmorphic styling to components:
+
+```tsx
+<Card className="
+  bg-white/10 dark:bg-white/5
+  backdrop-blur-xl
+  border border-white/20 dark:border-white/10
+  shadow-lg
+">
+  Glassmorphic Card
+</Card>
+```
+
+#### Gradient Text and Borders
+```tsx
+<h1 className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+  Gradient Text
+</h1>
+
+<div className="border border-gradient-to-r from-purple-500 to-pink-500">
+  Gradient Border
+</div>
+```
+
+#### Animations
+Add animations using Tailwind:
+
+```tsx
+<motion.div
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+  className="animate-pulse"
+>
+  Animated Content
+</motion.div>
+```
+
+**Fade-in animation:**
+```tsx
+<div className="animate-in fade-in duration-500">
+  Fades in on mount
+</div>
+```
+
+**Slide-in animation:**
+```tsx
+<div className="animate-in slide-in-from-bottom duration-500">
+  Slides up from bottom
+</div>
+```
+
+#### Custom Component Variants
+Extend shadcn components with custom variants:
+
+```tsx
+// Create custom button variant in globals.css
+@layer components {
+  .btn-glass {
+    @apply px-4 py-2 rounded-lg
+           bg-white/10 dark:bg-white/5
+           backdrop-blur-xl
+           border border-white/20
+           hover:bg-white/20 hover:scale-105
+           transition-all duration-200;
+  }
+}
+
+// Use in component
+<Button className="btn-glass">Glass Button</Button>
+```
 
 ### 6. Accessibility
 - All components follow WAI-ARIA best practices

@@ -13,6 +13,7 @@ import {
   DialogTrigger,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 import { TaskForm } from './task-form'
 import type { Task } from '@/types/task'
 
@@ -28,15 +29,33 @@ export function TaskFormDialog({ trigger, task }: TaskFormDialogProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className="w-[92vw] sm:max-w-lg md:max-w-2xl max-h-[85vh] overflow-y-auto bg-transparent border-0 shadow-none p-0 sm:rounded-3xl [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+      <DialogContent className={cn(
+        "p-0 gap-0 border-0 bg-transparent shadow-none",
+        "w-[95vw] sm:w-[90vw] md:w-[600px] lg:w-[700px]",
+        "max-h-[90vh]",
+        "overflow-hidden"
+      )}>
         <DialogTitle className="sr-only">
           {task ? 'Edit Task' : 'Create New Task'}
         </DialogTitle>
-        <TaskForm
-          task={task}
-          onSuccess={() => setOpen(false)}
-          onCancel={() => setOpen(false)}
-        />
+
+        {/* Scrollable container with custom scrollbar */}
+        <div className={cn(
+          "max-h-[90vh] overflow-y-auto",
+          // Custom scrollbar styling
+          "[&::-webkit-scrollbar]:w-2",
+          "[&::-webkit-scrollbar-track]:dark:bg-[#1a1a2e] [&::-webkit-scrollbar-track]:light:bg-gray-100",
+          "[&::-webkit-scrollbar-track]:rounded-full",
+          "[&::-webkit-scrollbar-thumb]:dark:bg-purple-500/30 [&::-webkit-scrollbar-thumb]:light:bg-purple-300",
+          "[&::-webkit-scrollbar-thumb]:rounded-full",
+          "[&::-webkit-scrollbar-thumb]:hover:dark:bg-purple-500/50 [&::-webkit-scrollbar-thumb]:hover:light:bg-purple-400"
+        )}>
+          <TaskForm
+            task={task}
+            onSuccess={() => setOpen(false)}
+            onCancel={() => setOpen(false)}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   )

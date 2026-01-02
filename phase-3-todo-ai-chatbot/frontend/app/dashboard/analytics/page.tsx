@@ -7,12 +7,16 @@
  * - Recurring task statistics
  * - Tag analytics
  * - Summary metrics
+ *
+ * Modern 2025 redesign with purple theme and skeleton loaders
  */
 
+import { Suspense } from 'react'
 import { auth } from '@/lib/auth'
 import { headers } from 'next/headers'
 import { fetchTasks } from '@/actions/tasks'
 import { AnalyticsDashboard } from '@/components/dashboard/analytics-dashboard'
+import { AnalyticsDashboardSkeleton } from '@/components/dashboard/analytics-skeletons'
 import { redirect } from 'next/navigation'
 import { filterOutPatterns } from '@/lib/task-utils'
 
@@ -21,7 +25,7 @@ export const metadata = {
   description: 'View your productivity analytics and task completion patterns',
 }
 
-export default async function AnalyticsPage() {
+async function AnalyticsData() {
   // Get session for user validation
   const session = await auth.api.getSession({
     headers: await headers()
@@ -42,4 +46,12 @@ export default async function AnalyticsPage() {
   const tasks = filterOutPatterns(tasksResult.tasks || [])
 
   return <AnalyticsDashboard tasks={tasks} userName={session.user.name || 'User'} />
+}
+
+export default function AnalyticsPage() {
+  return (
+    <Suspense fallback={<AnalyticsDashboardSkeleton />}>
+      <AnalyticsData />
+    </Suspense>
+  )
 }

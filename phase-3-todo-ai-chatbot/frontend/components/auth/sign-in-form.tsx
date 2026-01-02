@@ -1,5 +1,6 @@
 /**
  * Sign-In Form Component (Client Component)
+ * Modern Split-Screen Design 2025
  *
  * Implements user authentication with:
  * - Email and password fields
@@ -8,7 +9,7 @@
  * - Loading states during submission
  * - Error handling with toast notifications
  * - Automatic redirect to /dashboard on success
- * - Futuristic design matching landing page
+ * - Modern split-screen design with purple theme
  *
  * @component T050: Sign-in form component
  * @component T054: Form validation with Zod
@@ -23,13 +24,14 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { motion } from 'framer-motion'
 import { signIn } from '@/lib/auth-client'
 import { signInSchema, type SignInFormData } from '@/lib/validation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { PasswordInput } from '@/components/ui/password-input'
 import { Label } from '@/components/ui/label'
-import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
+import { Mail, Lock, ArrowRight, AlertCircle, Sparkles, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export default function SignInForm() {
@@ -142,187 +144,301 @@ export default function SignInForm() {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto animate-fade-in">
-      {/* Form Card */}
-      <div
-        className={cn(
-          'relative rounded-3xl p-8 sm:p-10',
-          'border-2 border-[#00d4b8]/30 bg-[#131929]/95',
-          'backdrop-blur-xl',
-          'shadow-[0_0_80px_rgba(0,212,184,0.15)]',
-          'transition-all duration-500',
-          'hover:border-[#00d4b8]/50 hover:shadow-[0_0_100px_rgba(0,212,184,0.25)]'
-        )}
-      >
+    <div className="min-h-screen flex flex-col lg:flex-row">
+      {/* Left Side - Branding & Design (Hidden on mobile, shown on lg+) */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-purple-600 via-purple-700 to-
+     purple-900">
+        {/* Animated background gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(168,85,247,0.3),rgba(139,92,246,0))]" />
+
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px)`,
+            backgroundSize: '50px 50px'
+          }} />
+        </div>
+
+        {/* Floating orbs */}
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+          className="absolute top-20 left-20 w-72 h-72 bg-purple-400/30 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+          className="absolute bottom-20 right-20 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl"
+        />
+
         {/* Content */}
-        <div className="relative z-10">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1
-              className="text-3xl sm:text-4xl font-bold text-white mb-3"
-              style={{
-                textShadow: '0 0 30px rgba(0, 229, 204, 0.3)',
-              }}
-            >
+        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20 text-white">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-md px-4 py-2 text-sm font-medium border border-white/20 mb-6">
+              <Sparkles className="h-4 w-4" />
+              <span>AI-Powered Productivity</span>
+            </div>
+
+            {/* Main heading */}
+            <h1 className="text-5xl xl:text-6xl font-bold mb-6 leading-tight">
+              Welcome Back to Your
+              <span className="block mt-2 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+                Productivity Hub
+              </span>
+            </h1>
+
+            <p className="text-xl text-purple-100 mb-12 leading-relaxed max-w-md">
+              Continue managing your tasks with AI-powered insights and effortless organization.
+            </p>
+
+            {/* Features list */}
+            <div className="space-y-4">
+              {[
+                'AI-powered task suggestions',
+                'Smart prioritization & scheduling',
+                'Collaborative workspace',
+                'Real-time sync across devices'
+              ].map((feature, index) => (
+                <motion.div
+                  key={feature}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.3 + index * 0.1 }}
+                  className="flex items-center gap-3"
+                >
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                    <CheckCircle2 className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-purple-100">{feature}</span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* Right Side - Form */}
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 bg-white dark:bg-[#0A0A1F]">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-md"
+        >
+          {/* Mobile header (only shown on mobile) */}
+          <div className="lg:hidden text-center mb-8">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-2">
               Welcome Back
             </h1>
-            <p className="text-white/60 text-sm sm:text-base">
+            <p className="text-gray-600 dark:text-gray-400">
               Sign in to continue to your dashboard
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Authentication Error Message */}
-            {authError && (
-              <div
-                className={cn(
-                  'flex items-start gap-3 p-4 rounded-xl',
-                  'bg-red-500/10 border-2 border-red-500/30',
-                  'animate-fade-in'
-                )}
-                role="alert"
-              >
-                <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-red-400">
-                    Authentication Failed
-                  </p>
-                  <p className="text-sm text-red-300/80 mt-1">
-                    {authError}
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Email Field */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/90 font-medium">
-                Email Address
-              </Label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40 pointer-events-none" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="john@example.com"
-                  value={formData.email}
-                  onChange={handleChange('email')}
-                  onBlur={handleBlur('email')}
-                  disabled={isLoading}
-                  className={cn(
-                    'pl-12 pr-4 h-12 rounded-xl',
-                    'bg-[#1a2332]/80 border-2 text-white placeholder:text-white/40',
-                    'transition-all duration-300',
-                    'border-white/10 focus:bg-[#1a2332] focus:border-[#00d4b8]/60 focus:shadow-[0_0_20px_rgba(0,212,184,0.2)]',
-                    errors.email
-                      ? 'border-red-500/60 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
-                      : ''
-                  )}
-                  aria-invalid={!!errors.email}
-                  aria-describedby={errors.email ? 'email-error' : undefined}
-                  autoComplete="email"
-                />
-              </div>
-              {errors.email && (
-                <div
-                  id="email-error"
-                  className="flex items-center gap-2 text-sm text-red-400 animate-fade-in"
-                >
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{errors.email}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Password Field */}
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-white/90 font-medium">
-                Password
-              </Label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/40 pointer-events-none z-10" />
-                <PasswordInput
-                  id="password"
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={handleChange('password')}
-                  onBlur={handleBlur('password')}
-                  disabled={isLoading}
-                  className={cn(
-                    'pl-12 h-12 rounded-xl',
-                    'bg-[#1a2332]/80 border-2 text-white placeholder:text-white/40',
-                    'transition-all duration-300',
-                    'border-white/10 focus:bg-[#1a2332] focus:border-[#00d4b8]/60 focus:shadow-[0_0_20px_rgba(0,212,184,0.2)]',
-                    errors.password
-                      ? 'border-red-500/60 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
-                      : ''
-                  )}
-                  aria-invalid={!!errors.password}
-                  aria-describedby={errors.password ? 'password-error' : undefined}
-                  autoComplete="current-password"
-                />
-              </div>
-              {errors.password && (
-                <div
-                  id="password-error"
-                  className="flex items-center gap-2 text-sm text-red-400 animate-fade-in"
-                >
-                  <AlertCircle className="h-4 w-4 shrink-0" />
-                  <span>{errors.password}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className={cn(
-                'w-full h-12 rounded-xl',
-                'bg-[#00d4b8] text-[#0f1729] font-semibold',
-                'border-2 border-[#00d4b8]/50',
-                'hover:bg-[#00e5cc] hover:border-[#00e5cc]',
-                'hover:shadow-[0_0_30px_rgba(0,212,184,0.5)]',
-                'transition-all duration-300',
-                'disabled:opacity-50 disabled:cursor-not-allowed',
-                'active:scale-95',
-                'group'
-              )}
-            >
-              <span className="flex items-center justify-center gap-2">
-                {isLoading ? 'Signing In...' : 'Sign In'}
-                {!isLoading && (
-                  <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                )}
-              </span>
-            </Button>
-
-            {/* Sign Up Link */}
-            <div className="text-center pt-4 border-t border-white/10">
-              <p className="text-sm text-white/60">
-                Don&apos;t have an account?{' '}
-                <Link
-                  href="/sign-up"
-                  className="text-[#00d4b8] hover:text-[#00e5cc] font-medium transition-colors duration-200 hover:underline"
-                >
-                  Create account
-                </Link>
+          {/* Form Card */}
+          <div className="space-y-6">
+            {/* Desktop header */}
+            <div className="hidden lg:block">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Sign In
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Enter your credentials to access your account
               </p>
             </div>
-          </form>
-        </div>
-      </div>
 
-      {/* Back to Home Link */}
-      <div className="text-center mt-6">
-        <Link
-          href="/"
-          className="text-sm text-white/60 hover:text-white/80 transition-colors duration-200 inline-flex items-center gap-1"
-        >
-          <ArrowRight className="h-4 w-4 rotate-180" />
-          Back to home
-        </Link>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Authentication Error Message */}
+              {authError && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  className={cn(
+                    'flex items-start gap-3 p-4 rounded-xl',
+                    'bg-red-50 dark:bg-red-500/10 border-2 border-red-200 dark:border-red-500/30'
+                  )}
+                  role="alert"
+                >
+                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-800 dark:text-red-400">
+                      Authentication Failed
+                    </p>
+                    <p className="text-sm text-red-600 dark:text-red-300/80 mt-1">
+                      {authError}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Email Address
+                </Label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={handleChange('email')}
+                    onBlur={handleBlur('email')}
+                    disabled={isLoading}
+                    className={cn(
+                      'pl-12 pr-4 h-12 rounded-xl',
+                      'bg-gray-50 dark:bg-[#1a1a2e] border-2 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500',
+                      'transition-all duration-300',
+                      'border-gray-200 dark:border-[#2a2a3e]',
+                      'focus:bg-white dark:focus:bg-[#1a1a2e] focus:border-purple-500 dark:focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10',
+                      errors.email
+                        ? 'border-red-500 dark:border-red-500 focus:border-red-500 focus:ring-red-500/10'
+                        : ''
+                    )}
+                    aria-invalid={!!errors.email}
+                    aria-describedby={errors.email ? 'email-error' : undefined}
+                    autoComplete="email"
+                  />
+                </div>
+                {errors.email && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    id="email-error"
+                    className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+                  >
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{errors.email}</span>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Password Field */}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-semibold text-gray-900 dark:text-white">
+                  Password
+                </Label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
+                  <PasswordInput
+                    id="password"
+                    placeholder="Enter your password"
+                    value={formData.password}
+                    onChange={handleChange('password')}
+                    onBlur={handleBlur('password')}
+                    disabled={isLoading}
+                    className={cn(
+                      'pl-12 h-12 rounded-xl',
+                      'bg-gray-50 dark:bg-[#1a1a2e] border-2 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500',
+                      'transition-all duration-300',
+                      'border-gray-200 dark:border-[#2a2a3e]',
+                      'focus:bg-white dark:focus:bg-[#1a1a2e] focus:border-purple-500 dark:focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10',
+                      errors.password
+                        ? 'border-red-500 dark:border-red-500 focus:border-red-500 focus:ring-red-500/10'
+                        : ''
+                    )}
+                    aria-invalid={!!errors.password}
+                    aria-describedby={errors.password ? 'password-error' : undefined}
+                    autoComplete="current-password"
+                  />
+                </div>
+                {errors.password && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    id="password-error"
+                    className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400"
+                  >
+                    <AlertCircle className="h-4 w-4 shrink-0" />
+                    <span>{errors.password}</span>
+                  </motion.div>
+                )}
+              </div>
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className={cn(
+                  'w-full h-12 rounded-xl mt-2',
+                  'bg-purple-600 text-white font-semibold',
+                  'hover:bg-purple-700',
+                  'shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30',
+
+
+                  'transition-all duration-300',
+                  'disabled:opacity-50 disabled:cursor-not-allowed',
+                  'active:scale-[0.98]',
+                  'group'
+                )}
+              >
+                <span className="flex items-center justify-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="h-5 w-5 border-2 border-white border-t-transparent rounded-full"
+                      />
+                      Signing In...
+                    </>
+                  ) : (
+                    <>
+                      Sign In
+                      <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    </>
+                  )}
+                </span>
+              </Button>
+
+              {/* Sign Up Link */}
+              <div className="text-center pt-6 border-t border-gray-200 dark:border-[#2a2a3e]">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Don&apos;t have an account?{' '}
+                  <Link
+                    href="/sign-up"
+                    className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors duration-200 hover:underline"
+                  >
+                    Create account
+                  </Link>
+                </p>
+              </div>
+            </form>
+          </div>
+
+          {/* Back to Home Link */}
+          <div className="text-center mt-8">
+            <Link
+              href="/"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200 inline-flex items-center gap-1"
+            >
+              <ArrowRight className="h-4 w-4 rotate-180" />
+              Back to home
+            </Link>
+          </div>
+        </motion.div>
       </div>
     </div>
   )

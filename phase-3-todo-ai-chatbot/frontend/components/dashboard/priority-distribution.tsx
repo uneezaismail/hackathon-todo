@@ -50,25 +50,25 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
   return (
     <div
       className={cn(
-        'rounded-2xl border-2 bg-card p-6 backdrop-blur-md shadow-sm',
-        'border-purple-500/20 hover:border-purple-500/40',
-        'dark:hover:shadow-[0_0_30px_rgba(139,92,246,0.15)]',
-        'transition-all duration-300',
+        'rounded-2xl border p-6 transition-all duration-300',
+        'dark:bg-[#1a1a2e] dark:border-[#2a2a3e]',
+        'light:bg-white light:border-[#e5e5ea]',
+        'hover:shadow-lg dark:hover:shadow-purple-500/10 light:hover:shadow-purple-500/5',
         className
       )}
     >
       <div className="mb-6">
-        <h3 className="text-xl font-bold text-foreground mb-2">Priority Distribution</h3>
-        <p className="text-sm text-muted-foreground">Breakdown of active tasks by priority</p>
+        <h3 className="text-xl font-bold dark:text-white light:text-gray-900 mb-2">Priority Distribution</h3>
+        <p className="text-sm dark:text-gray-400 light:text-gray-600">Breakdown of active tasks by priority</p>
       </div>
 
       {!hasData ? (
         <div className="text-center py-12">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/10 mx-auto mb-3">
-            <AlertCircle className="h-8 w-8 text-green-500 dark:text-green-400" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-600/10 dark:bg-purple-600/10 light:bg-purple-50 mx-auto mb-4">
+            <AlertCircle className="h-8 w-8 text-purple-500 dark:text-purple-400 light:text-purple-600 opacity-50" />
           </div>
-          <p className="text-muted-foreground text-sm">No active tasks</p>
-          <p className="text-muted-foreground text-xs mt-1">Create some tasks to see distribution</p>
+          <p className="text-sm dark:text-gray-300 light:text-gray-700 font-medium mb-2">No active tasks</p>
+          <p className="text-xs dark:text-gray-500 light:text-gray-500">Create some tasks to see distribution</p>
         </div>
       ) : (
         <>
@@ -94,10 +94,11 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
                   borderRadius: '8px',
                   color: tooltipText,
                 }}
-                formatter={(value, name, props: any) => [
-                  `${value || 0} tasks (${props.payload.percentage}%)`,
-                  props.payload.priority
-                ] as [string, string]}
+                formatter={(value: number, name: string, props: any) => {
+                  const percentage = props?.payload?.percentage || 0
+                  const priority = props?.payload?.priority || name
+                  return [`${value || 0} tasks (${percentage}%)`, priority]
+                }}
               />
             </PieChart>
           </ResponsiveContainer>
@@ -106,11 +107,15 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
             {distribution.map((item) => (
               <div
                 key={item.priority}
-                className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary hover:bg-secondary transition-all"
+                className={cn(
+                  "flex items-center justify-between p-3 rounded-xl border transition-all",
+                  "dark:border-[#2a2a3e] light:border-[#e5e5ea]",
+                  "hover:bg-purple-500/5"
+                )}
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className="flex h-8 w-8 items-center justify-center rounded-lg"
+                    className="flex h-10 w-10 items-center justify-center rounded-xl"
                     style={{
                       backgroundColor: `${item.color}20`,
                       border: `1px solid ${item.color}50`,
@@ -120,13 +125,16 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
                     {getIcon(item.priority)}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-foreground">{item.priority}</p>
-                    <p className="text-xs text-muted-foreground">{item.count} tasks</p>
+                    <p className="text-sm font-semibold dark:text-white light:text-gray-900">{item.priority}</p>
+                    <p className="text-xs dark:text-gray-400 light:text-gray-600">{item.count} tasks</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <div
-                    className="h-2 w-16 rounded-full bg-secondary overflow-hidden"
+                    className={cn(
+                      "h-2 w-20 rounded-full overflow-hidden",
+                      "dark:bg-gray-800 light:bg-gray-200"
+                    )}
                   >
                     <div
                       className="h-full rounded-full transition-all duration-500"
@@ -137,7 +145,7 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
                     />
                   </div>
                   <span
-                    className="text-sm font-semibold w-12 text-right"
+                    className="text-sm font-bold w-12 text-right"
                     style={{ color: item.color }}
                   >
                     {item.percentage}%
@@ -147,9 +155,13 @@ export function PriorityDistribution({ tasks, className }: PriorityDistributionP
             ))}
           </div>
 
-          <div className="mt-4 p-3 rounded-lg bg-secondary border border-border">
-            <p className="text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">{activeTasks.length}</span> total active tasks
+          <div className={cn(
+            "mt-4 p-4 rounded-xl border",
+            "dark:border-[#2a2a3e] light:border-[#e5e5ea]",
+            "dark:bg-purple-500/5 light:bg-purple-50/50"
+          )}>
+            <p className="text-sm dark:text-gray-300 light:text-gray-700">
+              <span className="font-bold text-purple-600 dark:text-purple-400 light:text-purple-700">{activeTasks.length}</span> total active tasks
             </p>
           </div>
         </>

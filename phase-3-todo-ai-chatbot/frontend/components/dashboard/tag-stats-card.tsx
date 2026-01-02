@@ -46,15 +46,27 @@ export function TagStatsCard({ tasks, limit = 5, className }: TagStatsCardProps)
   const hasTags = tagStats.length > 0
 
   return (
-    <Card className={cn("", className)}>
-      <CardHeader className="pb-3">
+    <Card className={cn(
+      "border-2 transition-all duration-300",
+      "dark:bg-[#1a1a2e] dark:border-[#A855F7]/20",
+      "light:bg-white light:border-[#A855F7]/20",
+      "hover:shadow-lg hover:border-[#A855F7]/40 dark:hover:shadow-purple-500/20 light:hover:shadow-purple-500/10",
+      className
+    )}>
+      <CardHeader className={cn(
+        "pb-4 border-b",
+        "dark:border-[#A855F7]/20",
+        "light:border-[#A855F7]/10"
+      )}>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <Tag className="h-5 w-5 text-blue-500" />
+            <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white light:text-gray-900">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 dark:bg-purple-600/10 light:bg-purple-50">
+                <Tag className="h-5 w-5 text-purple-500 dark:text-purple-400 light:text-purple-600" />
+              </div>
               Tag Analytics
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="dark:text-gray-400 light:text-gray-600">
               {hasTags
                 ? `${tagStats.length} tag${tagStats.length !== 1 ? 's' : ''} in use`
                 : 'No tags used yet'}
@@ -62,49 +74,49 @@ export function TagStatsCard({ tasks, limit = 5, className }: TagStatsCardProps)
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="pt-6 space-y-5">
         {hasTags ? (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {tagStats.map((tag, index) => {
               const color = getTagColor(index)
 
               return (
-                <div key={tag.name} className="space-y-2">
+                <div key={tag.name} className="p-3 rounded-lg border border-[#A855F7]/10 dark:border-[#A855F7]/10 light:border-[#A855F7]/5 bg-[#A855F7]/5 dark:bg-[#A855F7]/5 light:bg-[#A855F7]/2 space-y-3">
                   {/* Tag header */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Badge
                         variant="secondary"
-                        className={cn("font-medium", color.text, color.bg)}
+                        className={cn("font-semibold border-2", color.text, color.bg)}
                       >
                         {tag.name}
                       </Badge>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs dark:text-gray-300 light:text-gray-700 font-medium">
                         {tag.totalTasks} task{tag.totalTasks !== 1 ? 's' : ''}
                       </span>
                     </div>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-bold text-purple-500 dark:text-purple-300 light:text-purple-600">
                       {tag.completionRate}%
                     </span>
                   </div>
 
                   {/* Progress bar */}
-                  <Progress value={tag.completionRate} className="h-1.5" />
+                  <Progress value={tag.completionRate} className="h-2" />
 
                   {/* Stats row */}
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-4 text-xs dark:text-gray-400 light:text-gray-600 font-medium">
                     <div className="flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                      {tag.completedTasks} done
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 dark:text-emerald-400 light:text-emerald-600" />
+                      <span className="font-medium">{tag.completedTasks} done</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Circle className="h-3 w-3 text-amber-500" />
-                      {tag.pendingTasks} pending
+                      <Circle className="h-3.5 w-3.5 text-amber-500 dark:text-amber-400 light:text-amber-600" />
+                      <span className="font-medium">{tag.pendingTasks} pending</span>
                     </div>
                     {tag.avgCompletionTime > 0 && (
                       <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {tag.avgCompletionTime}d avg
+                        <Clock className="h-3.5 w-3.5 text-purple-500 dark:text-purple-400 light:text-purple-600" />
+                        <span className="font-medium">{tag.avgCompletionTime}d avg</span>
                       </div>
                     )}
                   </div>
@@ -113,12 +125,14 @@ export function TagStatsCard({ tasks, limit = 5, className }: TagStatsCardProps)
             })}
           </div>
         ) : (
-          <div className="text-center py-6">
-            <Tag className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground mb-2">
+          <div className="text-center py-12">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#A855F7]/20 to-[#A855F7]/5 dark:bg-gradient-to-br dark:from-[#A855F7]/20 dark:to-[#A855F7]/5 light:bg-gradient-to-br light:from-[#A855F7]/10 light:to-[#A855F7]/5 mx-auto mb-4 border border-[#A855F7]/20">
+              <Tag className="h-8 w-8 text-purple-500 dark:text-purple-400 light:text-purple-600" />
+            </div>
+            <p className="text-sm dark:text-gray-200 light:text-gray-800 font-semibold mb-2">
               No tags used yet
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs dark:text-gray-400 light:text-gray-600">
               Add tags to your tasks to see analytics here
             </p>
           </div>

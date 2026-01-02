@@ -3,7 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/providers/theme-provider";
+import { ThemeProvider } from "@/components/theme/theme-provider";
 import { GlobalChatButton } from "@/components/chat";
 
 const geistSans = Geist({
@@ -18,15 +18,21 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Todo App - Task Management Made Simple",
-    template: "%s | Todo App",
+    default: "Taskio - AI-Powered Task Management",
+    template: "%s | Taskio",
   },
   description:
-    "Organize your work and life with our intuitive task management app. Stay productive, meet deadlines, and achieve your goals with ease.",
-  keywords: ["todo", "task management", "productivity", "tasks", "organizer", "todo list", "task tracker"],
-  authors: [{ name: "Todo App Team" }],
-  creator: "Todo App",
-  publisher: "Todo App",
+    "Transform your productivity with AI-powered task management. Natural language commands, smart scheduling, and intelligent insights.",
+  keywords: ["taskio", "ai todo", "task management", "productivity", "ai assistant", "smart tasks", "task automation"],
+  authors: [{ name: "Taskio Team" }],
+  creator: "Taskio",
+  publisher: "Taskio",
+  icons: {
+    icon: "/favicon.svg",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
   ),
@@ -34,10 +40,10 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    title: "Todo App - Task Management Made Simple",
+    title: "Taskio - AI-Powered Task Management",
     description:
-      "Organize your work and life with our intuitive task management app.",
-    siteName: "Todo App",
+      "Transform your productivity with AI-powered task management.",
+    siteName: "Taskio",
     images: [
       {
         url: "/og-image.png",
@@ -49,9 +55,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Todo App - Task Management Made Simple",
+    title: "Taskio - AI-Powered Task Management",
     description:
-      "Organize your work and life with our intuitive task management app.",
+      "Transform your productivity with AI-powered task management.",
     images: ["/og-image.png"],
   },
   robots: {
@@ -80,12 +86,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <ThemeProvider>
           {children}
           <Toaster />
           {/* Global floating chat button - shows on authenticated pages */}

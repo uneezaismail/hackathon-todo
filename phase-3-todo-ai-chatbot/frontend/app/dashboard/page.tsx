@@ -1,20 +1,20 @@
 /**
- * Dashboard Page - Main Home View (Enhanced)
+ * Dashboard Page - Modern 2025 Design
  *
  * Production-ready dashboard with:
- * - Welcome message
- * - Real-time statistics (total, completed, in progress, overdue)
- * - Completion trends chart (7 days)
- * - Today's focus (actionable tasks)
- * - Upcoming deadlines
- * - Productivity metrics (streaks, completion rate)
- * - Priority distribution
+ * - LinkedIn Wrapped purple theme (light & dark)
+ * - Modern stat cards with gradients
+ * - Shimmer skeleton loaders
+ * - Activity feed
+ * - Chart widgets
+ * - Responsive layout
+ * - Best practices from 2025
  *
  * For full task management, see /dashboard/tasks
  */
 
-import { DashboardHomeEnhanced } from '@/components/dashboard/dashboard-home-enhanced'
+import { ModernDashboardHome } from '@/components/dashboard/modern-dashboard-home'
 
 export default function DashboardPage() {
-  return <DashboardHomeEnhanced />
+  return <ModernDashboardHome />
 }

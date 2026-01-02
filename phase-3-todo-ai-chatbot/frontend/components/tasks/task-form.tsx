@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
 
 import { createTask, updateTask, updateTaskWithSeries } from '@/actions/tasks'
 import type { Task, Priority, RecurrenceType } from '@/types/task'
@@ -201,14 +202,28 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
 
   return (
     <div className="w-full mx-auto">
-      <div className="relative rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 border-[#00d4b8]/30 bg-[#131929]/95 backdrop-blur-xl shadow-[0_0_80px_rgba(0,212,184,0.15)]">
-        
+      <div className={cn(
+        "relative rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 backdrop-blur-xl transition-all duration-300",
+        // Dark mode
+        "dark:bg-[#1a1a2e]/95 dark:border-[#2a2a3e]",
+        "dark:shadow-[0_0_60px_rgba(168,85,247,0.15)]",
+        // Light mode
+        "light:bg-white/95 light:border-purple-200",
+        "light:shadow-xl"
+      )}>
+
         {/* Header */}
         <div className="mb-4 sm:mb-6 text-center sm:text-left">
-          <h2 className="text-xl sm:text-2xl font-bold text-white mb-1" style={{ textShadow: '0 0 20px rgba(0, 229, 204, 0.3)' }}>
+          <h2 className={cn(
+            "text-xl sm:text-2xl font-bold mb-1",
+            "dark:text-white light:text-gray-900"
+          )}>
             {isEditing ? 'Edit Task' : 'Create New Task'}
           </h2>
-          <p className="text-white/60 text-xs sm:text-sm">
+          <p className={cn(
+            "text-xs sm:text-sm",
+            "dark:text-gray-400 light:text-gray-600"
+          )}>
             {isEditing ? 'Update your task details below' : 'Add a new task to your list'}
           </p>
         </div>
@@ -216,23 +231,47 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-5">
           {/* Title Field */}
           <div className="space-y-1.5">
-            <Label htmlFor="title" className="text-white/90 font-medium text-sm">
-              Title <span className="text-[#00d4b8]">*</span>
+            <Label
+              htmlFor="title"
+              className={cn(
+                "font-semibold text-sm",
+                "dark:text-white light:text-gray-900"
+              )}
+            >
+              Title <span className="text-purple-500 dark:text-purple-400 light:text-purple-600">*</span>
             </Label>
             <Input
               id="title"
               placeholder="Enter task title..."
               {...register('title')}
               disabled={isPending}
-              className={`h-11 rounded-xl bg-[#1a2332]/80 border-2 text-white placeholder:text-white/40 transition-all duration-300 ${
+              className={cn(
+                "h-12 rounded-xl border-2 font-medium transition-all duration-200",
                 errors.title
-                  ? 'border-red-500/60 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
-                  : 'border-white/10 focus:bg-[#1a2332] focus:border-[#00d4b8]/60 focus:shadow-[0_0_20px_rgba(0,212,184,0.2)]'
-              }`}
+                  ? cn(
+                      "border-red-500/60 focus:border-red-500",
+                      "dark:shadow-[0_0_15px_rgba(239,68,68,0.2)]",
+                      "light:shadow-sm"
+                    )
+                  : cn(
+                      // Dark mode
+                      "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+                      "dark:text-white dark:placeholder:text-gray-400",
+                      "dark:hover:bg-[#2a2a3e] dark:hover:border-purple-500/40",
+                      "dark:focus:border-purple-500/60 dark:focus:ring-2 dark:focus:ring-purple-500/20",
+                      // Light mode
+                      "light:bg-white light:border-gray-200",
+                      "light:text-gray-900 light:placeholder:text-gray-500",
+                      "light:hover:bg-gray-50 light:hover:border-purple-400",
+                      "light:focus:border-purple-500 light:focus:ring-2 light:focus:ring-purple-500/20"
+                    )
+              )}
             />
             <div className="flex justify-between items-center text-xs">
               <span className="text-red-400 font-medium min-h-[16px]">{errors.title?.message}</span>
-              <span className={titleLength > 200 ? 'text-red-400 font-medium' : 'text-white/40'}>
+              <span className={cn(
+                titleLength > 200 ? 'text-red-400 font-medium' : 'dark:text-gray-500 light:text-gray-500'
+              )}>
                 {titleLength}/200
               </span>
             </div>
@@ -240,8 +279,14 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
 
           {/* Description Field */}
           <div className="space-y-1.5">
-            <Label htmlFor="description" className="text-white/90 font-medium text-sm">
-              Description <span className="text-white/40 font-normal text-xs ml-1">(optional)</span>
+            <Label
+              htmlFor="description"
+              className={cn(
+                "font-semibold text-sm",
+                "dark:text-white light:text-gray-900"
+              )}
+            >
+              Description <span className="dark:text-gray-500 light:text-gray-500 font-normal text-xs ml-1">(optional)</span>
             </Label>
             <Textarea
               id="description"
@@ -249,15 +294,33 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
               rows={3}
               {...register('description')}
               disabled={isPending}
-              className={`resize-none rounded-xl bg-[#1a2332]/80 border-2 text-white placeholder:text-white/40 transition-all duration-300 ${
+              className={cn(
+                "resize-none rounded-xl border-2 font-medium transition-all duration-200",
                 errors.description
-                  ? 'border-red-500/60 focus:border-red-500 shadow-[0_0_15px_rgba(239,68,68,0.2)]'
-                  : 'border-white/10 focus:bg-[#1a2332] focus:border-[#00d4b8]/60 focus:shadow-[0_0_20px_rgba(0,212,184,0.2)]'
-              }`}
+                  ? cn(
+                      "border-red-500/60 focus:border-red-500",
+                      "dark:shadow-[0_0_15px_rgba(239,68,68,0.2)]",
+                      "light:shadow-sm"
+                    )
+                  : cn(
+                      // Dark mode
+                      "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+                      "dark:text-white dark:placeholder:text-gray-400",
+                      "dark:hover:bg-[#2a2a3e] dark:hover:border-purple-500/40",
+                      "dark:focus:border-purple-500/60 dark:focus:ring-2 dark:focus:ring-purple-500/20",
+                      // Light mode
+                      "light:bg-white light:border-gray-200",
+                      "light:text-gray-900 light:placeholder:text-gray-500",
+                      "light:hover:bg-gray-50 light:hover:border-purple-400",
+                      "light:focus:border-purple-500 light:focus:ring-2 light:focus:ring-purple-500/20"
+                    )
+              )}
             />
             <div className="flex justify-between items-center text-xs">
               <span className="text-red-400 font-medium min-h-[16px]">{errors.description?.message}</span>
-              <span className={descriptionLength > 1000 ? 'text-red-400 font-medium' : 'text-white/40'}>
+              <span className={cn(
+                descriptionLength > 1000 ? 'text-red-400 font-medium' : 'dark:text-gray-500 light:text-gray-500'
+              )}>
                 {descriptionLength}/1000
               </span>
             </div>
@@ -301,14 +364,21 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
           />
 
           {/* Actions */}
-          <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-3 border-t border-white/10">
+          <div className={cn(
+            "flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t",
+            "dark:border-[#2a2a3e] light:border-gray-200"
+          )}>
             {onCancel && (
               <Button
                 type="button"
                 variant="ghost"
                 onClick={handleCancel}
                 disabled={isPending}
-                className="w-full sm:w-auto min-w-[100px] h-11 text-white/70 hover:text-white hover:bg-white/10"
+                className={cn(
+                  "w-full sm:w-auto min-w-[100px] h-11 font-medium rounded-xl transition-all duration-200",
+                  "dark:text-gray-400 dark:hover:text-white dark:hover:bg-[#2a2a3e]",
+                  "light:text-gray-600 light:hover:text-gray-900 light:hover:bg-gray-100"
+                )}
               >
                 Cancel
               </Button>
@@ -317,7 +387,13 @@ export function TaskForm({ task, defaultDueDate, updateSeries = false, onSuccess
             <Button
               type="submit"
               disabled={isPending}
-              className="w-full sm:w-auto min-w-[140px] h-11 font-semibold rounded-xl bg-[#00d4b8] text-[#0f1729] hover:bg-[#00e5cc] hover:shadow-[0_0_20px_rgba(0,212,184,0.5)] transition-all duration-300"
+              className={cn(
+                "w-full sm:w-auto min-w-[140px] h-11 font-semibold rounded-xl transition-all duration-300",
+                "dark:bg-purple-500 dark:text-white dark:hover:bg-purple-600",
+                "dark:shadow-lg dark:hover:shadow-[0_0_20px_rgba(168,85,247,0.5)]",
+                "light:bg-purple-600 light:text-white light:hover:bg-purple-700",
+                "light:shadow-lg light:hover:shadow-xl"
+              )}
             >
               {isPending ? (
                 <>

@@ -12,12 +12,14 @@
 'use client'
 
 import * as React from 'react'
+import { Suspense } from 'react'
 import { Task } from '@/types/task'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { AnalyticsDateFilter } from './analytics-date-filter'
 import { CompletionHeatmap } from './completion-heatmap'
 import { RecurringStatsCard } from './recurring-stats-card'
 import { TagStatsCard } from './tag-stats-card'
+import { PriorityDistribution } from './priority-distribution'
 import { filterTasksByDateRange, calculateProductivityMetrics, getRecurringTaskStats } from '@/lib/analytics'
 import {
   BarChart3,
@@ -31,6 +33,7 @@ import {
   Minus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ChartCardSkeleton } from './modern-skeletons'
 
 interface AnalyticsDashboardProps {
   tasks: Task[]
@@ -74,15 +77,17 @@ export function AnalyticsDashboard({ tasks, userName }: AnalyticsDashboardProps)
   }).length
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in-50 duration-500">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-            <BarChart3 className="h-8 w-8 text-purple-500" />
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold dark:text-white light:text-gray-900 flex items-center gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-600/10 dark:bg-purple-600/10 light:bg-purple-50">
+              <BarChart3 className="h-7 w-7 text-purple-500 dark:text-purple-400 light:text-purple-600" />
+            </div>
             Analytics
           </h1>
-          <p className="text-muted-foreground">
+          <p className="dark:text-gray-400 light:text-gray-600 text-lg">
             Track your productivity patterns and task completion trends
           </p>
         </div>
@@ -156,51 +161,83 @@ export function AnalyticsDashboard({ tasks, userName }: AnalyticsDashboardProps)
         <RecurringStatsCard tasks={filteredTasks} />
       </div>
 
-      {/* Tag Analytics - Full width */}
-      <TagStatsCard tasks={filteredTasks} limit={8} className="w-full" />
+      {/* Tag Analytics and Priority Distribution - Side by side, responsive */}
+      <Suspense fallback={<ChartCardSkeleton />}> 
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <TagStatsCard tasks={filteredTasks} limit={5} className="w-full" />
+        <PriorityDistribution tasks={filteredTasks} />
+      </div>
+      </Suspense>
 
       {/* Weekly Activity Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-blue-500" />
+      <Card className={cn(
+        "border transition-all duration-300",
+        "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+        "light:bg-white light:border-[#e5e5ea]",
+        "hover:shadow-lg dark:hover:shadow-purple-500/10 light:hover:shadow-purple-500/5"
+      )}>
+        <CardHeader className={cn(
+          "border-b",
+          "dark:border-[#2a2a3e]",
+          "light:border-[#e5e5ea]"
+        )}>
+          <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white light:text-gray-900">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 dark:bg-purple-600/10 light:bg-purple-50">
+              <Calendar className="h-5 w-5 text-purple-500 dark:text-purple-400 light:text-purple-600" />
+            </div>
             This Week&apos;s Activity
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="dark:text-gray-400 light:text-gray-600">
             Quick summary of your weekly productivity
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center p-4 rounded-lg bg-muted/30">
-              <div className="text-3xl font-bold text-emerald-500">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className={cn(
+              "text-center p-4 rounded-xl border transition-colors",
+              "dark:border-[#2a2a3e] light:border-[#e5e5ea]",
+              "hover:bg-purple-500/5"
+            )}>
+              <div className="text-3xl font-bold text-emerald-500 dark:text-emerald-400 light:text-emerald-600 mb-2">
                 {metrics.tasksCompletedThisWeek}
               </div>
-              <div className="text-sm text-muted-foreground mt-1">
+              <div className="text-xs dark:text-gray-400 light:text-gray-600 uppercase tracking-wide font-medium">
                 Completed this week
               </div>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/30">
-              <div className="text-3xl font-bold text-blue-500">
+            <div className={cn(
+              "text-center p-4 rounded-xl border transition-colors",
+              "dark:border-[#2a2a3e] light:border-[#e5e5ea]",
+              "hover:bg-purple-500/5"
+            )}>
+              <div className="text-3xl font-bold text-blue-500 dark:text-blue-400 light:text-blue-600 mb-2">
                 {metrics.tasksCompletedToday}
               </div>
-              <div className="text-sm text-muted-foreground mt-1">
+              <div className="text-xs dark:text-gray-400 light:text-gray-600 uppercase tracking-wide font-medium">
                 Completed today
               </div>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/30">
-              <div className="text-3xl font-bold text-purple-500">
+            <div className={cn(
+              "text-center p-4 rounded-xl border transition-colors",
+              "dark:border-[#2a2a3e] light:border-[#e5e5ea]",
+              "hover:bg-purple-500/5"
+            )}>
+              <div className="text-3xl font-bold text-purple-500 dark:text-purple-400 light:text-purple-600 mb-2">
                 {recurringStats.activeRecurringTasks}
               </div>
-              <div className="text-sm text-muted-foreground mt-1">
+              <div className="text-xs dark:text-gray-400 light:text-gray-600 uppercase tracking-wide font-medium">
                 Active recurring patterns
               </div>
             </div>
-            <div className="text-center p-4 rounded-lg bg-muted/30">
-              <div className="text-3xl font-bold text-amber-500">
+            <div className={cn(
+              "text-center p-4 rounded-xl border transition-colors",
+              "dark:border-[#2a2a3e] light:border-[#e5e5ea]",
+              "hover:bg-purple-500/5"
+            )}>
+              <div className="text-3xl font-bold text-amber-500 dark:text-amber-400 light:text-amber-600 mb-2">
                 {recurringStats.completedOccurrences}
               </div>
-              <div className="text-sm text-muted-foreground mt-1">
+              <div className="text-xs dark:text-gray-400 light:text-gray-600 uppercase tracking-wide font-medium">
                 Recurring completions
               </div>
             </div>
@@ -222,25 +259,30 @@ interface QuickStatCardProps {
 
 function QuickStatCard({ title, value, icon: Icon, color, subtitle }: QuickStatCardProps) {
   const colorClasses = {
-    blue: 'text-blue-500 bg-blue-500/10',
-    emerald: 'text-emerald-500 bg-emerald-500/10',
-    amber: 'text-amber-500 bg-amber-500/10',
-    red: 'text-red-500 bg-red-500/10',
-    purple: 'text-purple-500 bg-purple-500/10',
+    blue: 'text-blue-500 dark:text-blue-400 light:text-blue-600 bg-blue-500/10 dark:bg-blue-500/10 light:bg-blue-50',
+    emerald: 'text-emerald-500 dark:text-emerald-400 light:text-emerald-600 bg-emerald-500/10 dark:bg-emerald-500/10 light:bg-emerald-50',
+    amber: 'text-amber-500 dark:text-amber-400 light:text-amber-600 bg-amber-500/10 dark:bg-amber-500/10 light:bg-amber-50',
+    red: 'text-red-500 dark:text-red-400 light:text-red-600 bg-red-500/10 dark:bg-red-500/10 light:bg-red-50',
+    purple: 'text-purple-500 dark:text-purple-400 light:text-purple-600 bg-purple-500/10 dark:bg-purple-500/10 light:bg-purple-50',
   }
 
   return (
-    <Card>
-      <CardContent className="p-4">
+    <Card className={cn(
+      "border transition-all duration-300",
+      "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+      "light:bg-white light:border-[#e5e5ea]",
+      "hover:shadow-lg dark:hover:shadow-purple-500/10 light:hover:shadow-purple-500/5"
+    )}>
+      <CardContent className="p-6">
         <div className="flex items-center gap-3">
-          <div className={cn('p-2 rounded-lg', colorClasses[color])}>
-            <Icon className="h-5 w-5" />
+          <div className={cn('p-3 rounded-xl', colorClasses[color])}>
+            <Icon className="h-6 w-6" />
           </div>
           <div>
-            <div className="text-2xl font-bold">{value}</div>
-            <div className="text-xs text-muted-foreground">{title}</div>
+            <div className="text-3xl font-bold dark:text-white light:text-gray-900">{value}</div>
+            <div className="text-xs dark:text-gray-400 light:text-gray-600 uppercase tracking-wide font-medium mt-1">{title}</div>
             {subtitle && (
-              <div className="text-xs text-muted-foreground/70">{subtitle}</div>
+              <div className="text-xs dark:text-gray-500 light:text-gray-500 mt-0.5">{subtitle}</div>
             )}
           </div>
         </div>
@@ -260,32 +302,39 @@ interface TrendCardProps {
 
 function TrendCard({ title, value, trend, icon, description }: TrendCardProps) {
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">{title}</div>
-          {icon && icon}
+    <Card className={cn(
+      "border transition-all duration-300",
+      "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+      "light:bg-white light:border-[#e5e5ea]",
+      "hover:shadow-lg dark:hover:shadow-purple-500/10 light:hover:shadow-purple-500/5"
+    )}>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-sm dark:text-gray-400 light:text-gray-600 uppercase tracking-wide font-medium">{title}</div>
+          {icon && <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 dark:bg-purple-600/10 light:bg-purple-50">{icon}</div>}
           {trend !== undefined && (
             <div
               className={cn(
-                'flex items-center gap-1 text-xs font-medium',
-                trend > 0 ? 'text-emerald-500' : trend < 0 ? 'text-red-500' : 'text-muted-foreground'
+                'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold',
+                trend > 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 light:text-emerald-700 border border-emerald-500/20' :
+                trend < 0 ? 'bg-red-500/10 text-red-600 dark:text-red-400 light:text-red-700 border border-red-500/20' :
+                'bg-purple-500/10 text-purple-600 dark:text-purple-400 light:text-purple-700 border border-purple-500/20'
               )}
             >
               {trend > 0 ? (
-                <TrendingUp className="h-3 w-3" />
+                <TrendingUp className="h-3.5 w-3.5" />
               ) : trend < 0 ? (
-                <TrendingDown className="h-3 w-3" />
+                <TrendingDown className="h-3.5 w-3.5" />
               ) : (
-                <Minus className="h-3 w-3" />
+                <Minus className="h-3.5 w-3.5" />
               )}
               {Math.abs(trend)}%
             </div>
           )}
         </div>
-        <div className="text-2xl font-bold mt-2">{value}</div>
+        <div className="text-3xl font-bold dark:text-white light:text-gray-900 mb-2">{value}</div>
         {description && (
-          <div className="text-xs text-muted-foreground mt-1">{description}</div>
+          <div className="text-sm dark:text-gray-500 light:text-gray-500">{description}</div>
         )}
       </CardContent>
     </Card>

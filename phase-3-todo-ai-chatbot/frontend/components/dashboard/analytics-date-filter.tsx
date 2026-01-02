@@ -148,12 +148,29 @@ export function AnalyticsDateFilter({
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {/* Preset selector */}
       <Select value={selectedPreset} onValueChange={handlePresetChange}>
-        <SelectTrigger className="w-[160px]">
+        <SelectTrigger className={cn(
+          "w-[160px] transition-all",
+          "dark:bg-[#1a1a2e] dark:border-[#2a2a3e] dark:text-white",
+          "light:bg-white light:border-[#e5e5ea] light:text-gray-900",
+          "hover:border-purple-500/40 dark:hover:border-purple-500/40 light:hover:border-purple-300",
+          "focus:ring-2 focus:ring-purple-500/20"
+        )}>
           <SelectValue placeholder="Select range" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className={cn(
+          "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+          "light:bg-white light:border-[#e5e5ea]"
+        )}>
           {PRESET_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              className={cn(
+                "dark:text-white light:text-gray-900",
+                "dark:focus:bg-purple-500/10 light:focus:bg-purple-50",
+                "dark:hover:bg-purple-500/10 light:hover:bg-purple-50"
+              )}
+            >
               {option.label}
             </SelectItem>
           ))}
@@ -166,15 +183,23 @@ export function AnalyticsDateFilter({
           <Button
             variant="outline"
             className={cn(
-              "justify-start text-left font-normal min-w-[200px]",
-              !startDate && !endDate && "text-muted-foreground"
+              "justify-start text-left font-normal min-w-[200px] transition-all",
+              "dark:bg-[#1a1a2e] dark:border-[#2a2a3e] dark:text-white",
+              "light:bg-white light:border-[#e5e5ea] light:text-gray-900",
+              "hover:border-purple-500/40 dark:hover:border-purple-500/40 light:hover:border-purple-300",
+              "dark:hover:bg-purple-500/10 light:hover:bg-purple-50",
+              !startDate && !endDate && "dark:text-gray-400 light:text-gray-600"
             )}
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="mr-2 h-4 w-4 text-purple-500 dark:text-purple-400 light:text-purple-600" />
             {formatDateRange()}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className={cn(
+          "w-auto p-0",
+          "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+          "light:bg-white light:border-[#e5e5ea]"
+        )} align="start">
           <Calendar
             mode="range"
             selected={dateRange}
@@ -182,19 +207,34 @@ export function AnalyticsDateFilter({
             numberOfMonths={2}
             defaultMonth={startDate || undefined}
             disabled={(date) => date > new Date()}
+            className={cn(
+              "dark:text-white light:text-gray-900"
+            )}
           />
-          <div className="flex items-center justify-between p-3 border-t">
+          <div className={cn(
+            "flex items-center justify-between p-3 border-t",
+            "dark:border-[#2a2a3e] light:border-[#e5e5ea]"
+          )}>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleClearDates}
-              className="text-muted-foreground"
+              className={cn(
+                "dark:text-gray-400 light:text-gray-600",
+                "dark:hover:text-purple-400 dark:hover:bg-purple-500/10",
+                "light:hover:text-purple-700 light:hover:bg-purple-50"
+              )}
             >
               Clear
             </Button>
             <Button
               size="sm"
               onClick={() => setIsCalendarOpen(false)}
+              className={cn(
+                "bg-purple-600 hover:bg-purple-700 text-white",
+                "dark:bg-purple-600 dark:hover:bg-purple-700",
+                "light:bg-purple-600 light:hover:bg-purple-700"
+              )}
             >
               Apply
             </Button>
@@ -208,7 +248,11 @@ export function AnalyticsDateFilter({
           variant="ghost"
           size="icon"
           onClick={handleClearDates}
-          className="h-9 w-9"
+          className={cn(
+            "h-9 w-9 transition-all",
+            "dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-500/10",
+            "light:text-gray-600 light:hover:text-purple-700 light:hover:bg-purple-50"
+          )}
         >
           <X className="h-4 w-4" />
           <span className="sr-only">Clear dates</span>
