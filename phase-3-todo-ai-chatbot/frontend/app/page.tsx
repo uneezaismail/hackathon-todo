@@ -10,7 +10,7 @@ import { LandingFooter } from '@/components/layout/landing-footer'
 export default function Home() {
   return (
     <>
-      <div className="min-h-screen bg-dark-background">
+      <div className="lg:min-h-screen bg-dark-background">
         <LandingHeader />
         <HeroSection />
         <ProductMockup />
