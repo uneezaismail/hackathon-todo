@@ -43,8 +43,6 @@ export async function DashboardStats() {
         value={total}
         iconName="ListTodo"
         description="All tasks in system"
-        iconColor="text-[#00d4b8]"
-        iconBgColor="bg-[#00d4b8]/10"
       />
       <StatCard
         title="Completed"
@@ -55,16 +53,12 @@ export async function DashboardStats() {
           value: Math.abs(completionTrend),
           isPositive: completionTrend > 0
         }}
-        iconColor="text-green-400"
-        iconBgColor="bg-green-400/10"
       />
       <StatCard
         title="In Progress"
         value={pending}
         iconName="Clock"
         description="Currently active"
-        iconColor="text-blue-400"
-        iconBgColor="bg-blue-400/10"
       />
       <StatCard
         title="Overdue"
@@ -75,8 +69,6 @@ export async function DashboardStats() {
           value: overdue,
           isPositive: false
         } : undefined}
-        iconColor="text-red-400"
-        iconBgColor="bg-red-400/10"
       />
     </div>
   )

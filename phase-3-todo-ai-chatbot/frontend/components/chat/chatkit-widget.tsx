@@ -20,7 +20,7 @@ import { useChatKit, ChatKit } from "@openai/chatkit-react";
 import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { Bot } from "lucide-react";
+import { Bot, Loader2 } from "lucide-react";
 
 interface ChatKitWidgetProps {
   /**
@@ -108,33 +108,40 @@ export function ChatKitWidget({ domainKey, className = "" }: ChatKitWidgetProps)
   }, []);
 
   /**
-   * Render loading state
+   * Render loading state - Professional purple-themed loader
    */
   if (isLoading) {
     return (
-      <div className={cn("flex items-center justify-center p-8", className)}>
+      <div className="flex items-center justify-center p-8 h-full bg-[#0A0A1F]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading chat...</p>
+          {/* Purple gradient spinner */}
+          <div className="relative inline-flex items-center justify-center mb-4">
+            <div className="absolute inset-0 bg-purple-500/20 blur-xl rounded-full animate-pulse" />
+            <Loader2 className="relative h-10 w-10 lg:h-12 lg:w-12 text-purple-500 animate-spin" />
+          </div>
+          <p className="text-purple-300/80 text-sm font-medium">Connecting to AI assistant...</p>
         </div>
       </div>
     );
   }
 
   /**
-   * Render authentication required state
+   * Render authentication required state - Professional purple-themed
    */
   if (!isAuthenticated) {
     return (
-      <div className={cn("flex items-center justify-center p-8", className)}>
+      <div className="flex items-center justify-center p-8 h-full bg-[#0A0A1F]">
         <div className="text-center">
-          <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <p className="text-muted-foreground mb-4">
+          <div className="relative inline-block mb-4">
+            <div className="absolute inset-0 bg-purple-500/20 blur-xl rounded-full animate-pulse" />
+            <Bot className="relative h-12 w-12 text-purple-400 mx-auto" />
+          </div>
+          <p className="text-purple-300/80 mb-4 font-medium">
             Please sign in to use the chat feature
           </p>
           <a
             href="/sign-in"
-            className="text-primary hover:underline"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-purple-500/20 text-purple-300 font-medium border border-purple-500/30 hover:bg-purple-500/30 transition-all duration-200"
           >
             Go to Sign In
           </a>
@@ -144,16 +151,20 @@ export function ChatKitWidget({ domainKey, className = "" }: ChatKitWidgetProps)
   }
 
   /**
-   * Render error state
+   * Render error state - Professional purple-themed
    */
   if (error) {
     return (
-      <div className={cn("flex items-center justify-center p-8", className)}>
+      <div className="flex items-center justify-center p-8 h-full bg-[#0A0A1F]">
         <div className="text-center">
-          <p className="text-destructive mb-4">Error: {error}</p>
+          <div className="relative inline-block mb-4">
+            <div className="absolute inset-0 bg-red-500/20 blur-xl rounded-full animate-pulse" />
+            <Bot className="relative h-12 w-12 text-red-400 mx-auto" />
+          </div>
+          <p className="text-red-300/80 mb-4 font-medium">Error: {error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="text-primary hover:underline"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-red-500/20 text-red-300 font-medium border border-red-500/30 hover:bg-red-500/30 transition-all duration-200"
           >
             Reload
           </button>
@@ -163,13 +174,18 @@ export function ChatKitWidget({ domainKey, className = "" }: ChatKitWidgetProps)
   }
 
   /**
-   * Render initializing state (waiting for token)
+   * Render initializing state (waiting for token) - Professional purple-themed loader
    */
   if (!userId || !jwtToken) {
     return (
-      <div className={cn("flex items-center justify-center p-8", className)}>
+      <div className="flex items-center justify-center p-8 h-full bg-[#0A0A1F]">
         <div className="text-center">
-          <p className="text-muted-foreground">Initializing chat...</p>
+          {/* Purple gradient spinner */}
+          <div className="relative inline-flex items-center justify-center mb-4">
+            <div className="absolute inset-0 bg-purple-500/20 blur-xl rounded-full animate-pulse" />
+            <Loader2 className="relative h-10 w-10 lg:h-12 lg:w-12 text-purple-500 animate-spin" />
+          </div>
+          <p className="text-purple-300/80 text-sm font-medium">Initializing AI assistant...</p>
         </div>
       </div>
     );
@@ -229,13 +245,21 @@ function ChatKitWidgetInner({
       },
     },
 
-    // Theme customization - matches app's teal/cyan accent colors
+    // Theme customization - matches app's purple theme (#A855F7)
     theme: {
       colorScheme: "dark",
       radius: "round",
       color: {
-        accent: { primary: "#00d4b8", level: 2 },
+        accent: {
+          primary: "#A855F7", // Purple from your theme
+          level: 2,
+        },
       },
+    },
+
+    // Composer (input field) customization
+    composer: {
+      placeholder: "How can I help you today?",
     },
 
     // Start screen with smart suggestion prompts

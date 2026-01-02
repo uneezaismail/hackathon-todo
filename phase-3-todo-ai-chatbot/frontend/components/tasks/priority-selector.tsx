@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { cn } from '@/lib/utils'
 import type { Priority } from '@/types/task'
 
 interface PrioritySelectorProps {
@@ -43,9 +44,12 @@ export function PrioritySelector({
   const selectedOption = PRIORITY_OPTIONS.find((opt) => opt.value === value)
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={cn("space-y-2", className)}>
       {!hideLabel && (
-        <Label htmlFor="priority-selector" className="text-sm font-semibold text-white/90">
+        <Label
+          htmlFor="priority-selector"
+          className="text-sm font-semibold dark:text-white light:text-gray-900"
+        >
           Priority
         </Label>
       )}
@@ -56,27 +60,51 @@ export function PrioritySelector({
       >
         <SelectTrigger
           id="priority-selector"
-          className="h-12 w-full text-base bg-[#1a2332]/80 border-2 border-white/10 text-white placeholder:text-white/40 focus:ring-0 focus:border-[#00d4b8]/60 transition-all duration-300 rounded-xl"
+          className={cn(
+            "h-12 w-full text-base font-medium transition-all duration-200 rounded-xl",
+            // Dark mode
+            "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+            "dark:text-white dark:placeholder:text-gray-400",
+            "dark:hover:bg-[#2a2a3e] dark:hover:border-purple-500/40",
+            "focus:dark:border-purple-500/60 focus:dark:ring-2 focus:dark:ring-purple-500/20",
+            // Light mode
+            "light:bg-white light:border-gray-200",
+            "light:text-gray-900 light:placeholder:text-gray-500",
+            "light:hover:bg-gray-50 light:hover:border-purple-400",
+            "focus:light:border-purple-500 focus:light:ring-2 focus:light:ring-purple-500/20"
+          )}
         >
           <SelectValue placeholder="Select priority">
             {selectedOption && (
               <span className="flex items-center gap-2">
-                <span className={`h-3 w-3 rounded-full ${selectedOption.dotColor} shadow-[0_0_8px_currentColor]`} />
-                <span className={`font-medium text-white`}>{selectedOption.label}</span>
+                <span className={`h-3 w-3 rounded-full ${selectedOption.dotColor} shadow-sm`} />
+                <span className="font-medium dark:text-white light:text-gray-900">
+                  {selectedOption.label}
+                </span>
               </span>
             )}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="bg-[#131929] border-[#00d4b8]/30 text-white">
+        <SelectContent
+          className={cn(
+            "rounded-xl border shadow-lg",
+            "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+            "light:bg-white light:border-gray-200"
+          )}
+        >
           {PRIORITY_OPTIONS.map((option) => (
             <SelectItem
               key={option.value}
               value={option.value}
-              className="cursor-pointer focus:bg-[#00d4b8]/20 focus:text-white"
+              className={cn(
+                "cursor-pointer rounded-lg transition-colors",
+                "dark:focus:bg-purple-500/20 dark:text-white dark:focus:text-white",
+                "light:focus:bg-purple-50 light:text-gray-900 light:focus:text-gray-900"
+              )}
             >
               <span className="flex items-center gap-2">
-                <span className={`h-3 w-3 rounded-full ${option.dotColor} shadow-[0_0_8px_currentColor]`} />
-                <span className={`font-medium text-white`}>{option.label}</span>
+                <span className={`h-3 w-3 rounded-full ${option.dotColor} shadow-sm`} />
+                <span className="font-medium">{option.label}</span>
               </span>
             </SelectItem>
           ))}

@@ -2,10 +2,12 @@
  * Dashboard Skeleton Loaders
  *
  * Provides loading states for all dashboard components
+ * Uses shimmer animation matching purple theme
  */
 
 import * as React from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 // Pre-computed heights for chart bars (avoids Math.random during render)
 const CHART_BAR_HEIGHTS = [45, 72, 35, 88, 55, 68, 42]
@@ -187,34 +189,34 @@ export function DashboardHomeSkeleton() {
 }
 
 /**
- * T064: Calendar Page Skeleton
+ * Calendar Page Skeleton - Uses shimmer animation like other pages
  */
 export function CalendarPageSkeleton() {
   return (
-    <div className="space-y-6 animate-pulse">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-pulse">
         <div>
-          <Skeleton className="h-8 w-32 bg-secondary mb-2" />
-          <Skeleton className="h-4 w-64 bg-secondary" />
+          <Skeleton className="h-8 w-32 mb-2 bg-primary/10" />
+          <Skeleton className="h-4 w-64 bg-primary/10" />
         </div>
-        <Skeleton className="h-10 w-28 rounded-lg bg-secondary" />
+        <Skeleton className="h-10 w-28 rounded-lg bg-primary/10" />
       </div>
 
       {/* Workload Header */}
-      <div className="rounded-xl border-2 border-border bg-card p-4">
+      <div className="rounded-xl border-2 border-[#A855F7]/20 bg-gradient-to-br from-[#A855F7]/5 to-[#A855F7]/2 p-4 animate-pulse">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {[...Array(3)].map((_, i) => (
               <div key={i} className="text-center">
-                <Skeleton className="h-8 w-12 bg-secondary mb-1" />
-                <Skeleton className="h-3 w-16 bg-secondary" />
+                <Skeleton className="h-8 w-12 mb-1 bg-primary/10" />
+                <Skeleton className="h-3 w-16 bg-primary/10" />
               </div>
             ))}
           </div>
           <div className="flex gap-2">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-8 w-16 rounded-md bg-secondary" />
+              <Skeleton key={i} className="h-8 w-16 rounded-md bg-primary/10" />
             ))}
           </div>
         </div>
@@ -223,16 +225,16 @@ export function CalendarPageSkeleton() {
       {/* Main content */}
       <div className="flex gap-6">
         {/* Calendar */}
-        <div className="flex-1 rounded-xl border-2 border-border bg-card p-4">
+        <div className="flex-1 rounded-xl border-2 border-[#A855F7]/20 bg-gradient-to-br from-[#A855F7]/5 to-[#A855F7]/2 p-4 animate-pulse">
           {/* Calendar Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Skeleton className="h-8 w-8 rounded-md bg-secondary" />
-              <Skeleton className="h-6 w-32 bg-secondary" />
-              <Skeleton className="h-8 w-8 rounded-md bg-secondary" />
+              <Skeleton className="h-8 w-8 rounded-md bg-primary/10" />
+              <Skeleton className="h-6 w-32 bg-primary/10" />
+              <Skeleton className="h-8 w-8 rounded-md bg-primary/10" />
             </div>
             <div className="flex gap-2">
-              <Skeleton className="h-8 w-20 rounded-md bg-secondary" />
+              <Skeleton className="h-8 w-20 rounded-md bg-primary/10" />
             </div>
           </div>
 
@@ -240,35 +242,38 @@ export function CalendarPageSkeleton() {
           <div className="grid grid-cols-7 gap-1">
             {/* Day headers */}
             {[...Array(7)].map((_, i) => (
-              <Skeleton key={`header-${i}`} className="h-8 w-full bg-secondary" />
+              <Skeleton key={`header-${i}`} className="h-8 w-full bg-primary/10" />
             ))}
             {/* Calendar cells - 6 rows */}
             {[...Array(42)].map((_, i) => (
-              <Skeleton key={`cell-${i}`} className="h-24 w-full bg-secondary/50" />
+              <Skeleton key={`cell-${i}`} className="h-24 w-full bg-primary/10" />
             ))}
           </div>
         </div>
 
-        {/* Sidebar */}
+        {/* Sidebar - Hidden on mobile, shows on xl */}
         <div className="hidden xl:flex flex-col gap-4 w-72">
           {/* Mini Heatmap */}
-          <div className="rounded-xl border-2 border-border bg-card p-4">
-            <Skeleton className="h-5 w-24 bg-secondary mb-3" />
+          <div className="rounded-xl border-2 border-[#A855F7]/20 bg-gradient-to-br from-[#A855F7]/5 to-[#A855F7]/2 p-4 animate-pulse">
+            <Skeleton className="h-5 w-24 mb-3 bg-primary/10" />
             <div className="grid grid-cols-7 gap-1">
               {[...Array(35)].map((_, i) => (
-                <Skeleton key={i} className="h-4 w-4 rounded-sm bg-secondary/50" />
+                <Skeleton key={i} className="h-4 w-4 bg-primary/10" />
               ))}
             </div>
           </div>
 
           {/* Unscheduled Tasks */}
-          <div className="flex-1 rounded-xl border-2 border-border bg-card p-4">
-            <Skeleton className="h-5 w-32 bg-secondary mb-4" />
+          <div className="flex-1 rounded-xl border-2 border-[#A855F7]/20 bg-gradient-to-br from-[#A855F7]/5 to-[#A855F7]/2 p-4 animate-pulse">
+            <Skeleton className="h-5 w-32 mb-4 bg-primary/10" />
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
-                <div key={i} className="flex items-center gap-2 p-2 rounded-lg border border-border">
-                  <Skeleton className="h-4 w-4 rounded-full bg-secondary" />
-                  <Skeleton className="h-4 flex-1 bg-secondary" />
+                <div key={i} className="flex items-center gap-2 p-2 rounded-lg border border-[#A855F7]/10">
+                  <Skeleton className="h-4 w-4 rounded-full bg-primary/10" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-24 bg-primary/10" />
+                    <Skeleton className="h-3 w-16 bg-primary/10" />
+                  </div>
                 </div>
               ))}
             </div>

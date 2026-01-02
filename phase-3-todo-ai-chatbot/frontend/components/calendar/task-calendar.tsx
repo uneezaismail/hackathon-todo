@@ -45,11 +45,11 @@ interface TaskCalendarProps {
   className?: string
 }
 
-// Priority colors
+// Priority colors - visible on both light and dark backgrounds
 const priorityColors: Record<string, string> = {
-  High: 'bg-red-500/20 border-red-500 text-red-400',
-  Medium: 'bg-amber-500/20 border-amber-500 text-amber-400',
-  Low: 'bg-blue-500/20 border-blue-500 text-blue-400',
+  High: 'bg-red-500 dark:bg-red-600 text-white border-red-600 dark:border-red-500',
+  Medium: 'bg-amber-500 dark:bg-amber-600 text-white border-amber-600 dark:border-amber-500',
+  Low: 'bg-blue-500 dark:bg-blue-600 text-white border-blue-600 dark:border-blue-500',
 }
 
 export function TaskCalendar({
@@ -153,11 +153,15 @@ export function TaskCalendar({
 
     return {
       className: cn(
-        'rounded-md border-l-2 px-1.5 py-0.5 text-xs font-medium transition-all',
+        'rounded-lg border-l-4 px-2 py-1 text-xs font-semibold transition-all shadow-sm',
         priorityClass,
-        task.completed && 'opacity-50 line-through',
-        isOverdue && !task.completed && 'ring-1 ring-red-500 animate-pulse'
+        task.completed && 'opacity-60 bg-gray-400 dark:bg-gray-600 border-gray-500 dark:border-gray-500',
+        isOverdue && !task.completed && 'ring-2 ring-red-500 dark:ring-red-400'
       ),
+      style: {
+        border: 'none',
+        borderLeft: '4px solid',
+      }
     }
   }, [])
 
@@ -171,7 +175,7 @@ export function TaskCalendar({
   )
 
   return (
-    <div className={cn('h-full min-h-[700px]', className)}>
+    <div className={cn('h-full w-full', className)}>
       <Calendar
         localizer={localizer}
         events={events}
@@ -191,7 +195,8 @@ export function TaskCalendar({
         views={['month', 'week', 'day', 'agenda']}
         step={60}
         showMultiDayTimes
-        className="task-calendar"
+        className="h-full"
+        style={{ height: '100%' }}
       />
     </div>
   )

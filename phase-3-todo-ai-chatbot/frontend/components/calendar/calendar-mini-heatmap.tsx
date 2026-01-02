@@ -33,11 +33,11 @@ interface DayData {
 }
 
 const LEVEL_COLORS = {
-  0: 'bg-muted/30 hover:bg-muted/50',
-  1: 'bg-emerald-500/20 hover:bg-emerald-500/30',
-  2: 'bg-emerald-500/40 hover:bg-emerald-500/50',
-  3: 'bg-amber-500/40 hover:bg-amber-500/50',
-  4: 'bg-red-500/40 hover:bg-red-500/50',
+  0: 'bg-[#A855F7]/20 hover:bg-[#A855F7]/30',
+  1: 'bg-emerald-500/40 hover:bg-emerald-500/50',
+  2: 'bg-emerald-500/60 hover:bg-emerald-500/70',
+  3: 'bg-amber-500/60 hover:bg-amber-500/70',
+  4: 'bg-red-500/60 hover:bg-red-500/70',
 }
 
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -99,10 +99,15 @@ export function CalendarMiniHeatmap({
   const totalOverdue = weekData.reduce((sum, d) => sum + d.overdueTasks, 0)
 
   return (
-    <Card className={cn('', className)}>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Activity className="h-4 w-4 text-purple-500" />
+    <Card className={cn(
+      'border-2 border-[#A855F7]/20 bg-gradient-to-br from-[#A855F7]/5 to-[#A855F7]/2 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-xl hover:border-[#A855F7]/40 transition-all duration-300',
+      className
+    )}>
+      <CardHeader className="pb-2 border-b border-[#A855F7]/20">
+        <CardTitle className="text-sm font-semibold flex items-center gap-2 text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/20">
+            <Activity className="h-4 w-4 text-purple-400" />
+          </div>
           This Week&apos;s Workload
         </CardTitle>
       </CardHeader>
@@ -111,18 +116,18 @@ export function CalendarMiniHeatmap({
         <div className="grid grid-cols-7 gap-1 mb-3">
           {DAY_NAMES.map((name, i) => (
             <div key={name} className="text-center">
-              <div className="text-[10px] text-muted-foreground mb-1">{name}</div>
+              <div className="text-[10px] text-gray-400 mb-2 font-medium">{name}</div>
               <button
                 onClick={() => onDayClick?.(weekData[i].date)}
                 className={cn(
-                  'w-full aspect-square rounded-md flex items-center justify-center transition-all',
+                  'w-full aspect-square rounded-lg flex items-center justify-center transition-all font-semibold text-white',
                   LEVEL_COLORS[weekData[i].level],
-                  isToday(weekData[i].date) && 'ring-2 ring-primary ring-offset-1 ring-offset-background',
-                  'cursor-pointer'
+                  isToday(weekData[i].date) && 'ring-2 ring-[#A855F7] ring-offset-2 ring-offset-[#1a1a2e]',
+                  'cursor-pointer hover:scale-105'
                 )}
                 title={`${format(weekData[i].date, 'MMM d')}: ${weekData[i].pendingTasks} pending, ${weekData[i].completedTasks} done`}
               >
-                <span className="text-xs font-medium">
+                <span className="text-sm font-bold">
                   {format(weekData[i].date, 'd')}
                 </span>
               </button>
@@ -131,26 +136,26 @@ export function CalendarMiniHeatmap({
         </div>
 
         {/* Legend */}
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1">
-            <span className="text-muted-foreground">Less</span>
+        <div className="flex items-center justify-between text-xs mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 font-medium">Less</span>
             {[0, 1, 2, 3, 4].map((level) => (
               <div
                 key={level}
-                className={cn('w-2.5 h-2.5 rounded-sm', LEVEL_COLORS[level as keyof typeof LEVEL_COLORS])}
+                className={cn('w-3 h-3 rounded-sm border border-white/10', LEVEL_COLORS[level as keyof typeof LEVEL_COLORS])}
               />
             ))}
-            <span className="text-muted-foreground">More</span>
+            <span className="text-gray-400 font-medium">More</span>
           </div>
         </div>
 
         {/* Summary */}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t text-xs">
-          <span className="text-muted-foreground">
+        <div className="flex items-center justify-between pt-3 border-t border-[#A855F7]/15 text-xs">
+          <span className="text-gray-300 font-medium">
             {totalPending} pending this week
           </span>
           {totalOverdue > 0 && (
-            <span className="text-red-400 font-medium">
+            <span className="text-red-400 font-semibold">
               {totalOverdue} overdue
             </span>
           )}

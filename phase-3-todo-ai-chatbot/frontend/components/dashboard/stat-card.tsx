@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { motion } from 'framer-motion'
 import {
   CheckCircle2,
   Clock,
@@ -28,8 +29,7 @@ interface StatCardProps {
     value: number
     isPositive: boolean
   }
-  iconColor?: string
-  iconBgColor?: string
+  delay?: number
 }
 
 export function StatCard({
@@ -38,49 +38,52 @@ export function StatCard({
   iconName,
   description,
   trend,
-  iconColor = 'text-[#00d4b8]',
-  iconBgColor = 'bg-[#00d4b8]/10'
+  delay = 0
 }: StatCardProps) {
   const Icon = iconMap[iconName]
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay }}
       className={cn(
         'group relative rounded-2xl p-6 overflow-hidden',
-        'bg-[#131929]/40 border-2 border-[#00d4b8]/20',
-        'backdrop-blur-md transition-all duration-300',
-        'hover:bg-[#131929]/60 hover:border-[#00d4b8]/40',
-        'hover:shadow-[0_0_30px_rgba(0,212,184,0.15)]',
-        'hover:scale-105 transform'
+        'border transition-all duration-300',
+        'dark:bg-[#1a1a2e] dark:border-[#2a2a3e]',
+        'light:bg-white light:border-[#e5e5ea]',
+        'hover:shadow-lg',
+        'dark:hover:shadow-purple-500/10',
+        'light:hover:shadow-purple-500/5'
       )}
     >
-      {/* Background gradient effect */}
-      <div className="absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00d4b8]/5 via-transparent to-[#00d4b8]/5 rounded-2xl" />
-      </div>
-
       {/* Content */}
       <div className="relative z-10">
         {/* Header with icon and trend */}
         <div className="flex items-center justify-between mb-4">
           <div
             className={cn(
-              'flex h-14 w-14 items-center justify-center rounded-xl',
-              iconBgColor,
-              'border border-[#00d4b8]/30',
-              'shadow-lg group-hover:shadow-[0_0_20px_rgba(0,212,184,0.3)]',
+              'flex h-12 w-12 items-center justify-center rounded-xl',
+              'bg-purple-600/10',
+              'dark:bg-purple-600/10',
+              'light:bg-purple-50',
               'transition-all duration-300'
             )}
           >
-            <Icon className={cn('h-7 w-7', iconColor)} />
+            <Icon className={cn(
+              "h-6 w-6",
+              "text-purple-500",
+              "dark:text-purple-400",
+              "light:text-purple-600"
+            )} />
           </div>
           {trend && (
             <div
               className={cn(
-                'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium',
-                trend.isPositive
-                  ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                  : 'bg-red-500/10 text-red-400 border border-red-500/20'
+                'flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold',
+                'bg-purple-500/10 text-purple-600 border border-purple-500/20',
+                'dark:text-purple-400 dark:border-purple-500/20',
+                'light:text-purple-700 light:bg-purple-50 light:border-purple-200'
               )}
             >
               {trend.isPositive ? (
@@ -94,25 +97,36 @@ export function StatCard({
         </div>
 
         {/* Title */}
-        <h3 className="text-sm font-medium text-muted-foreground mb-2 uppercase tracking-wider">
+        <h3 className={cn(
+          "text-sm font-medium mb-2 uppercase tracking-wide",
+          "text-gray-500",
+          "dark:text-gray-400",
+          "light:text-gray-600"
+        )}>
           {title}
         </h3>
 
         {/* Value */}
-        <div className="text-4xl font-bold text-foreground mb-1 transition-colors group-hover:text-[#00d4b8]">
+        <div className={cn(
+          "text-4xl font-bold mb-1 transition-colors",
+          "dark:text-white",
+          "light:text-gray-900"
+        )}>
           {value.toLocaleString()}
         </div>
 
         {/* Description */}
         {description && (
-          <p className="text-xs text-muted-foreground mt-2">
+          <p className={cn(
+            "text-xs mt-2 leading-relaxed",
+            "text-gray-500",
+            "dark:text-gray-400",
+            "light:text-gray-600"
+          )}>
             {description}
           </p>
         )}
       </div>
-
-      {/* Decorative corner accent */}
-      <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[#00d4b8]/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-    </div>
+    </motion.div>
   )
 }

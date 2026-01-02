@@ -64,24 +64,36 @@ export function RecurringStatsCard({ tasks, className }: RecurringStatsCardProps
   const hasRecurringTasks = stats.totalRecurringTasks > 0
 
   return (
-    <Card className={cn("", className)}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+    <Card className={cn(
+      "border transition-all duration-300",
+      "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+      "light:bg-white light:border-[#e5e5ea]",
+      "hover:shadow-lg dark:hover:shadow-purple-500/10 light:hover:shadow-purple-500/5",
+      className
+    )}>
+      <CardHeader className={cn(
+        "pb-3 border-b",
+        "dark:border-[#2a2a3e]",
+        "light:border-[#e5e5ea]"
+      )}>
+        <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <Repeat className="h-5 w-5 text-purple-500" />
+            <CardTitle className="text-lg font-semibold flex items-center gap-2 dark:text-white light:text-gray-900">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 dark:bg-purple-600/10 light:bg-purple-50">
+                <Repeat className="h-5 w-5 text-purple-500 dark:text-purple-400 light:text-purple-600" />
+              </div>
               Recurring Tasks
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="dark:text-gray-400 light:text-gray-600">
               {hasRecurringTasks
                 ? `${stats.activeRecurringTasks} active patterns`
                 : 'No recurring tasks yet'}
             </CardDescription>
           </div>
           {stats.streakByRecurring > 0 && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <Flame className="h-3 w-3 text-orange-500" />
-              {stats.streakByRecurring} day streak
+            <Badge variant="secondary" className="flex items-center gap-1 bg-orange-500/10 dark:bg-orange-500/10 light:bg-orange-50 text-orange-600 dark:text-orange-400 light:text-orange-700 border border-orange-500/20">
+              <Flame className="h-3 w-3" />
+              <span className="font-semibold">{stats.streakByRecurring} day streak</span>
             </Badge>
           )}
         </div>
@@ -91,19 +103,27 @@ export function RecurringStatsCard({ tasks, className }: RecurringStatsCardProps
           <>
             {/* Summary stats */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="text-2xl font-bold">{stats.totalRecurringTasks}</div>
-                <div className="text-xs text-muted-foreground">Total Patterns</div>
+              <div className={cn(
+                "p-4 rounded-xl border transition-colors",
+                "dark:border-[#2a2a3e] light:border-[#e5e5ea]",
+                "hover:bg-purple-500/5"
+              )}>
+                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 light:text-purple-700">{stats.totalRecurringTasks}</div>
+                <div className="text-xs dark:text-gray-400 light:text-gray-600 uppercase tracking-wide font-medium mt-1">Total Patterns</div>
               </div>
-              <div className="p-3 rounded-lg bg-muted/50">
-                <div className="text-2xl font-bold">{stats.completedOccurrences}</div>
-                <div className="text-xs text-muted-foreground">Completed</div>
+              <div className={cn(
+                "p-4 rounded-xl border transition-colors",
+                "dark:border-[#2a2a3e] light:border-[#e5e5ea]",
+                "hover:bg-purple-500/5"
+              )}>
+                <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 light:text-purple-700">{stats.completedOccurrences}</div>
+                <div className="text-xs dark:text-gray-400 light:text-gray-600 uppercase tracking-wide font-medium mt-1">Completed</div>
               </div>
             </div>
 
             {/* Breakdown by type */}
             <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">By Recurrence Type</h4>
+              <h4 className="text-sm font-semibold dark:text-gray-300 light:text-gray-700 uppercase tracking-wide">By Recurrence Type</h4>
               {(Object.entries(stats.recurringByType) as [keyof typeof RECURRENCE_TYPE_CONFIG, number][])
                 .filter(([_, count]) => count > 0)
                 .map(([type, count]) => {
@@ -112,41 +132,43 @@ export function RecurringStatsCard({ tasks, className }: RecurringStatsCardProps
                   const completionRate = stats.completionRateByType[type]
 
                   return (
-                    <div key={type} className="space-y-1">
+                    <div key={type} className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className={cn("p-1.5 rounded", config.bgColor)}>
-                            <Icon className={cn("h-3.5 w-3.5", config.color)} />
+                          <div className={cn("p-2 rounded-xl", config.bgColor)}>
+                            <Icon className={cn("h-4 w-4", config.color)} />
                           </div>
-                          <span className="text-sm font-medium">{config.label}</span>
-                          <Badge variant="outline" className="text-xs">
+                          <span className="text-sm font-semibold dark:text-white light:text-gray-900">{config.label}</span>
+                          <Badge variant="outline" className="text-xs font-semibold dark:bg-purple-500/10 dark:border-purple-500/20 dark:text-purple-400 light:bg-purple-50 light:border-purple-300 light:text-purple-700">
                             {count}
                           </Badge>
                         </div>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm font-bold text-purple-600 dark:text-purple-400 light:text-purple-700">
                           {completionRate}%
                         </span>
                       </div>
-                      <Progress value={completionRate} className="h-1.5" />
+                      <Progress value={completionRate} className="h-2" />
                     </div>
                   )
                 })}
 
               {/* Show message if no types have tasks */}
               {Object.values(stats.recurringByType).every(count => count === 0) && (
-                <p className="text-sm text-muted-foreground text-center py-2">
+                <p className="text-sm dark:text-gray-400 light:text-gray-600 text-center py-3">
                   Create recurring tasks to see breakdown
                 </p>
               )}
             </div>
           </>
         ) : (
-          <div className="text-center py-6">
-            <Repeat className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground mb-2">
+          <div className="text-center py-8">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-600/10 dark:bg-purple-600/10 light:bg-purple-50 mx-auto mb-4">
+              <Repeat className="h-8 w-8 text-purple-500 dark:text-purple-400 light:text-purple-600 opacity-50" />
+            </div>
+            <p className="text-sm dark:text-gray-300 light:text-gray-700 font-medium mb-2">
               No recurring tasks created yet
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs dark:text-gray-500 light:text-gray-500">
               Create a task with a recurrence pattern to track your habits
             </p>
           </div>

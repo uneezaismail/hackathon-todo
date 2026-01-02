@@ -9,9 +9,10 @@
  */
 
 import { Suspense } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, ListTodo } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { TaskList } from '@/components/tasks/task-list'
+import { TaskListModern } from '@/components/tasks/task-list-modern'
+import { TaskSkeleton } from '@/components/tasks/task-skeleton'
 import { TaskFormDialog } from '@/components/tasks/task-form-dialog'
 import { DashboardClient } from '../dashboard-client'
 import { fetchTasks } from '@/actions/tasks'
@@ -90,11 +91,30 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with modern styling */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-foreground">All Tasks</h1>
-          <p className="text-muted-foreground mt-2 text-lg">
+          <div className="flex items-center gap-3 mb-2">
+            <div className={cn(
+              "p-2 rounded-xl",
+              "dark:bg-purple-500/10 light:bg-purple-100"
+            )}>
+              <ListTodo className={cn(
+                "h-6 w-6",
+                "dark:text-purple-400 light:text-purple-600"
+              )} />
+            </div>
+            <h1 className={cn(
+              "text-3xl sm:text-4xl font-bold",
+              "dark:text-white light:text-gray-900"
+            )}>
+              All Tasks
+            </h1>
+          </div>
+          <p className={cn(
+            "text-sm sm:text-base",
+            "dark:text-gray-400 light:text-gray-600"
+          )}>
             Manage and organize all your tasks
           </p>
         </div>
@@ -104,10 +124,13 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
             <Button
               size="lg"
               className={cn(
-                'bg-[#00d4b8] text-[#0f1729] hover:bg-[#00e5cc]',
-                'hover:shadow-[0_0_20px_rgba(0,212,184,0.5)]',
-                'transition-all duration-300',
-                'dark:text-[#0f1729]'
+                "font-semibold shadow-lg transition-all duration-300",
+                // Dark mode
+                "dark:bg-purple-500 dark:text-white dark:hover:bg-purple-600",
+                "dark:hover:shadow-[0_0_20px_rgba(168,85,247,0.5)]",
+                // Light mode
+                "light:bg-purple-600 light:text-white light:hover:bg-purple-700",
+                "light:hover:shadow-xl"
               )}
             >
               <Plus className="mr-2 h-5 w-5" />
@@ -128,20 +151,9 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
         initialSortDirection={sortDirection}
       />
 
-      {/* Task List */}
-      <Suspense
-        fallback={
-          <div className="space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div
-                key={i}
-                className="h-24 bg-card animate-pulse rounded-xl border-2 border-border"
-              />
-            ))}
-          </div>
-        }
-      >
-        <TaskList
+      {/* Modern Task List with Cards */}
+      <Suspense fallback={<TaskSkeleton count={5} />}>
+        <TaskListModern
           search={search}
           status={status}
           priority={priority}

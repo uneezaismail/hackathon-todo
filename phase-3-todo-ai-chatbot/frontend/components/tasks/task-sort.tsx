@@ -11,6 +11,7 @@
 import { ChevronDown } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +57,7 @@ export function TaskSort({
   const currentDirectionLabel = SORT_DIRECTIONS.find(opt => opt.value === sortDirection)?.label || 'Descending'
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {/* Sort Field Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -64,19 +65,35 @@ export function TaskSort({
             variant="outline"
             size="default"
             disabled={disabled}
-            className="gap-2 bg-card/50 border-[#00d4b8]/20 hover:bg-card hover:border-[#00d4b8]/40 hover:shadow-[0_0_15px_rgba(0,212,184,0.1)] transition-all duration-300 backdrop-blur-sm"
+            className={cn(
+              "h-11 gap-2 rounded-xl border-2 font-medium transition-all duration-200",
+              // Dark mode
+              "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+              "dark:text-white dark:hover:bg-[#2a2a3e] dark:hover:border-purple-500/40",
+              // Light mode
+              "light:bg-white light:border-gray-200",
+              "light:text-gray-900 light:hover:bg-gray-50 light:hover:border-purple-400"
+            )}
           >
             {currentFieldLabel}
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-40 bg-card border-[#00d4b8]/20 backdrop-blur-md">
+        <DropdownMenuContent align="start" className={cn(
+          "w-40 rounded-xl border-2",
+          "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+          "light:bg-white light:border-gray-200"
+        )}>
           <DropdownMenuRadioGroup value={sortBy} onValueChange={(v) => onSortByChange(v as TaskSortBy)}>
             {SORT_FIELDS.map((option) => (
               <DropdownMenuRadioItem
                 key={option.value}
                 value={option.value}
-                className="hover:bg-secondary transition-colors"
+                className={cn(
+                  "transition-colors",
+                  "dark:hover:bg-purple-500/10 dark:text-white",
+                  "light:hover:bg-purple-50 light:text-gray-900"
+                )}
               >
                 {option.label}
               </DropdownMenuRadioItem>
@@ -92,19 +109,35 @@ export function TaskSort({
             variant="outline"
             size="default"
             disabled={disabled}
-            className="gap-2 bg-card/50 border-[#00d4b8]/20 hover:bg-card hover:border-[#00d4b8]/40 hover:shadow-[0_0_15px_rgba(0,212,184,0.1)] transition-all duration-300 backdrop-blur-sm"
+            className={cn(
+              "h-11 gap-2 rounded-xl border-2 font-medium transition-all duration-200",
+              // Dark mode
+              "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+              "dark:text-white dark:hover:bg-[#2a2a3e] dark:hover:border-purple-500/40",
+              // Light mode
+              "light:bg-white light:border-gray-200",
+              "light:text-gray-900 light:hover:bg-gray-50 light:hover:border-purple-400"
+            )}
           >
             {currentDirectionLabel}
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-40 bg-card border-[#00d4b8]/20 backdrop-blur-md">
+        <DropdownMenuContent align="start" className={cn(
+          "w-40 rounded-xl border-2",
+          "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+          "light:bg-white light:border-gray-200"
+        )}>
           <DropdownMenuRadioGroup value={sortDirection} onValueChange={(v) => onSortDirectionChange(v as TaskSortDirection)}>
             {SORT_DIRECTIONS.map((option) => (
               <DropdownMenuRadioItem
                 key={option.value}
                 value={option.value}
-                className="hover:bg-secondary transition-colors"
+                className={cn(
+                  "transition-colors",
+                  "dark:hover:bg-purple-500/10 dark:text-white",
+                  "light:hover:bg-purple-50 light:text-gray-900"
+                )}
               >
                 {option.label}
               </DropdownMenuRadioItem>

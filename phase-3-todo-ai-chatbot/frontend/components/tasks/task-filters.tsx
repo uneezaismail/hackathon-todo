@@ -14,6 +14,7 @@ import { ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { cn } from '@/lib/utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -81,7 +82,7 @@ export function TaskFilters({
   }
 
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className}`}>
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {/* Status Filter Dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -89,19 +90,35 @@ export function TaskFilters({
             variant="outline"
             size="default"
             disabled={disabled}
-            className="gap-2 bg-card/50 border-[#00d4b8]/20 hover:bg-card hover:border-[#00d4b8]/40 hover:shadow-[0_0_15px_rgba(0,212,184,0.1)] transition-all duration-300 backdrop-blur-sm"
+            className={cn(
+              "h-11 gap-2 rounded-xl border-2 font-medium transition-all duration-200",
+              // Dark mode
+              "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+              "dark:text-white dark:hover:bg-[#2a2a3e] dark:hover:border-purple-500/40",
+              // Light mode
+              "light:bg-white light:border-gray-200",
+              "light:text-gray-900 light:hover:bg-gray-50 light:hover:border-purple-400"
+            )}
           >
             {currentStatusLabel}
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-40 bg-card border-[#00d4b8]/20 backdrop-blur-md">
+        <DropdownMenuContent align="start" className={cn(
+          "w-40 rounded-xl border-2",
+          "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+          "light:bg-white light:border-gray-200"
+        )}>
           <DropdownMenuRadioGroup value={status} onValueChange={onStatusChange}>
             {STATUS_OPTIONS.map((option) => (
               <DropdownMenuRadioItem
                 key={option.value}
                 value={option.value}
-                className="hover:bg-secondary transition-colors"
+                className={cn(
+                  "transition-colors",
+                  "dark:hover:bg-purple-500/10 dark:text-white",
+                  "light:hover:bg-purple-50 light:text-gray-900"
+                )}
               >
                 {option.label}
               </DropdownMenuRadioItem>
@@ -117,19 +134,35 @@ export function TaskFilters({
             variant="outline"
             size="default"
             disabled={disabled}
-            className="gap-2 bg-card/50 border-[#00d4b8]/20 hover:bg-card hover:border-[#00d4b8]/40 hover:shadow-[0_0_15px_rgba(0,212,184,0.1)] transition-all duration-300 backdrop-blur-sm"
+            className={cn(
+              "h-11 gap-2 rounded-xl border-2 font-medium transition-all duration-200",
+              // Dark mode
+              "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+              "dark:text-white dark:hover:bg-[#2a2a3e] dark:hover:border-purple-500/40",
+              // Light mode
+              "light:bg-white light:border-gray-200",
+              "light:text-gray-900 light:hover:bg-gray-50 light:hover:border-purple-400"
+            )}
           >
             {currentPriorityLabel}
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-40 bg-card border-[#00d4b8]/20 backdrop-blur-md">
+        <DropdownMenuContent align="start" className={cn(
+          "w-40 rounded-xl border-2",
+          "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+          "light:bg-white light:border-gray-200"
+        )}>
           <DropdownMenuRadioGroup value={priority} onValueChange={onPriorityChange}>
             {PRIORITY_OPTIONS.map((option) => (
               <DropdownMenuRadioItem
                 key={option.value}
                 value={option.value}
-                className="hover:bg-secondary transition-colors"
+                className={cn(
+                  "transition-colors",
+                  "dark:hover:bg-purple-500/10 dark:text-white",
+                  "light:hover:bg-purple-50 light:text-gray-900"
+                )}
               >
                 {option.label}
               </DropdownMenuRadioItem>
@@ -145,12 +178,24 @@ export function TaskFilters({
             variant="outline"
             size="default"
             disabled={disabled}
-            className="gap-2 bg-card/50 border-[#00d4b8]/20 hover:bg-card hover:border-[#00d4b8]/40 hover:shadow-[0_0_15px_rgba(0,212,184,0.1)] transition-all duration-300 backdrop-blur-sm"
+            className={cn(
+              "h-11 gap-2 rounded-xl border-2 font-medium transition-all duration-200",
+              // Dark mode
+              "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+              "dark:text-white dark:hover:bg-[#2a2a3e] dark:hover:border-purple-500/40",
+              // Light mode
+              "light:bg-white light:border-gray-200",
+              "light:text-gray-900 light:hover:bg-gray-50 light:hover:border-purple-400"
+            )}
           >
             {tags.length > 0 ? (
               <>
                 Tags
-                <Badge variant="secondary" className="ml-1 rounded-full px-1.5 py-0 text-xs bg-[#00d4b8]/20 text-[#00d4b8] border-[#00d4b8]/30">
+                <Badge variant="secondary" className={cn(
+                  "ml-1 rounded-full px-1.5 py-0 text-xs",
+                  "dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30",
+                  "light:bg-purple-100 light:text-purple-700 light:border-purple-200"
+                )}>
                   {tags.length}
                 </Badge>
               </>
@@ -160,20 +205,36 @@ export function TaskFilters({
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56 bg-card border-[#00d4b8]/20 backdrop-blur-md">
+        <DropdownMenuContent align="start" className={cn(
+          "w-56 rounded-xl border-2",
+          "dark:bg-[#1a1a2e] dark:border-[#2a2a3e]",
+          "light:bg-white light:border-gray-200"
+        )}>
           {availableTags.length === 0 ? (
-            <div className="p-3 text-sm text-muted-foreground text-center">
+            <div className={cn(
+              "p-3 text-sm text-center",
+              "dark:text-gray-400 light:text-gray-600"
+            )}>
               No tags available
             </div>
           ) : (
             <>
               <div className="flex items-center justify-between px-2 py-1.5">
-                <DropdownMenuLabel className="p-0 font-medium text-foreground">Filter by Tags</DropdownMenuLabel>
+                <DropdownMenuLabel className={cn(
+                  "p-0 font-medium",
+                  "dark:text-white light:text-gray-900"
+                )}>
+                  Filter by Tags
+                </DropdownMenuLabel>
                 {tags.length > 0 && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-auto px-2 py-1 text-xs text-muted-foreground hover:text-[#00d4b8] hover:bg-secondary transition-colors"
+                    className={cn(
+                      "h-auto px-2 py-1 text-xs transition-colors",
+                      "dark:text-gray-400 dark:hover:text-purple-400 dark:hover:bg-purple-500/10",
+                      "light:text-gray-600 light:hover:text-purple-700 light:hover:bg-purple-50"
+                    )}
                     onClick={(e) => {
                       e.preventDefault()
                       handleClearTags()
@@ -183,20 +244,29 @@ export function TaskFilters({
                   </Button>
                 )}
               </div>
-              <DropdownMenuSeparator className="bg-border" />
+              <DropdownMenuSeparator className={cn(
+                "dark:bg-[#2a2a3e] light:bg-gray-200"
+              )} />
               <div className="max-h-[200px] overflow-y-auto">
                 {availableTags.map((tag) => (
                   <div
                     key={tag}
-                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-secondary rounded-sm cursor-pointer transition-colors"
+                    className={cn(
+                      "flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer transition-colors",
+                      "dark:hover:bg-purple-500/10 light:hover:bg-purple-50"
+                    )}
                     onClick={() => handleTagToggle(tag, !tags.includes(tag))}
                   >
                     <Checkbox
                       checked={tags.includes(tag)}
                       onCheckedChange={(checked) => handleTagToggle(tag, checked === true)}
-                      className="data-[state=checked]:bg-[#00d4b8] data-[state=checked]:border-[#00d4b8]"
                     />
-                    <span className="text-sm flex-1 text-foreground">{tag}</span>
+                    <span className={cn(
+                      "text-sm flex-1",
+                      "dark:text-white light:text-gray-900"
+                    )}>
+                      {tag}
+                    </span>
                   </div>
                 ))}
               </div>

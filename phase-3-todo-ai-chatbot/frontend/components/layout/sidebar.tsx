@@ -1,3 +1,13 @@
+/**
+ * Dashboard Sidebar Component
+ *
+ * Features:
+ * - Minimal 80px width design
+ * - Circular icons with lavender/purple colors
+ * - Supports collapsed state (icons only with tooltips)
+ * - Glow effect on active state
+ */
+
 'use client'
 
 import * as React from 'react'
@@ -8,26 +18,19 @@ import {
   ListTodo,
   Settings,
   LogOut,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  MessageSquare,
   Calendar,
   BarChart3
 } from 'lucide-react'
-import { useSession } from '@/lib/auth-client'
 import { authClient } from '@/lib/auth-client'
 import { Button } from '@/components/ui/button'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { cn } from '@/lib/utils'
+import { motion } from 'framer-motion'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'All Tasks', href: '/dashboard/tasks', icon: ListTodo },
   { name: 'Calendar', href: '/dashboard/calendar', icon: Calendar },
   { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
-  // AI Chat removed from sidebar per user requirement - accessible via /chat URL or Global FAB
-  // { name: 'AI Chat', href: '/chat', icon: MessageSquare },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
@@ -39,29 +42,7 @@ interface SidebarProps {
 
 export function Sidebar({ className, forceCollapsed = false, onClose }: SidebarProps) {
   const pathname = usePathname()
-  const { data: session } = useSession()
-  const [internalCollapsed, setInternalCollapsed] = React.useState(false)
-
-  const collapsed = forceCollapsed || internalCollapsed
-
-  // Load collapsed state from localStorage
-  React.useEffect(() => {
-    if (!forceCollapsed) {
-      const saved = localStorage.getItem('sidebar-collapsed')
-      if (saved) {
-        setInternalCollapsed(saved === 'true')
-      }
-    }
-  }, [forceCollapsed])
-
-  // Save collapsed state to localStorage
-  const toggleCollapsed = () => {
-    if (forceCollapsed) return
-    const newState = !internalCollapsed
-    setInternalCollapsed(newState)
-    localStorage.setItem('sidebar-collapsed', String(newState))
-    window.dispatchEvent(new Event('storage'))
-  }
+  const [hoveredItem, setHoveredItem] = React.useState<string | null>(null)
 
   const handleSignOut = async () => {
     try {
@@ -85,123 +66,136 @@ export function Sidebar({ className, forceCollapsed = false, onClose }: SidebarP
   return (
     <aside
       className={cn(
-        'fixed left-0 top-0 h-full transition-all duration-300 ease-in-out z-40',
-        'bg-[#0b1121] backdrop-blur-xl border-r border-white/5 shadow-[4px_0_24px_rgba(0,0,0,0.2)]',
-        collapsed ? 'w-20' : 'w-64',
+        'flex flex-col h-full',
+        'bg-[#1a1a2e] border-r border-[#2a2a3e]',
+        'transition-all duration-300',
         className
       )}
     >
-      <div className="flex h-full flex-col">
-        {/* Logo and Toggle */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-white/5 bg-[#0b1121]/50">
-          {!collapsed && (
-            <Link href="/dashboard" className="flex items-center gap-2 group">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-cyan shadow-[0_0_15px_rgba(0,229,204,0.3)] transition-transform group-hover:scale-105">
-                <CheckCircle2 className="h-5 w-5 text-brand-navy" />
-              </div>
-              <span className="text-xl font-bold text-white tracking-tight group-hover:text-[#00d4b8] transition-colors">TaskFlow</span>
-            </Link>
-          )}
-          {collapsed && (
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-cyan shadow-[0_0_15px_rgba(0,229,204,0.3)] mx-auto hover:scale-105 transition-transform">
-              <CheckCircle2 className="h-5 w-5 text-brand-navy" />
-            </div>
-          )}
-          
-          {/* Show toggle button only if not forced collapsed */}
-          {!forceCollapsed && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleCollapsed}
-              className={cn(
-                'text-white/40 hover:text-white hover:bg-white/5 rounded-lg transition-all h-8 w-8',
-                collapsed && 'absolute right-2'
-              )}
-            >
-              {collapsed ? (
-                <ChevronRight className="h-4 w-4" />
-              ) : (
-                <ChevronLeft className="h-4 w-4" />
-              )}
-            </Button>
-          )}
-        </div>
+      <div className={cn(
+        "flex flex-col h-full py-6 transition-all duration-300",
+        forceCollapsed ? "items-center" : "items-start px-4"
+      )}>
+        {/* Logo */}
+        <Link href="/dashboard" className={cn(
+          "mb-8 flex-shrink-0 transition-all duration-300",
+          forceCollapsed ? "" : "ml-2"
+        )}>
+          <div className={cn(
+            "flex h-12 w-12 items-center justify-center rounded-full",
+            "bg-gradient-to-br from-purple-400 to-purple-300",
+            "shadow-lg shadow-purple-400/30 hover:shadow-purple-400/50",
+            "transition-all duration-300 hover:scale-110"
+          )}>
+            <span className="text-2xl font-bold text-white">T</span>
+          </div>
+        </Link>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1.5 px-3 py-6">
+        <nav className={cn(
+          "flex-1 flex flex-col gap-3 w-full transition-all duration-300",
+          forceCollapsed ? "px-3" : "px-0"
+        )}>
           {navigation.map((item) => {
             const isActive = pathname === item.href
+            const Icon = item.icon
+            const isHovered = hoveredItem === item.name
+
             return (
-              <Link
+              <div
                 key={item.name}
-                href={item.href}
-                onClick={onClose}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-hidden',
-                  isActive
-                    ? 'bg-[#00d4b8]/10 text-[#00d4b8]'
-                    : 'text-white/60 hover:bg-white/5 hover:text-white',
-                  collapsed && 'justify-center px-2'
+                  "relative flex",
+                  forceCollapsed ? "justify-center" : "justify-start"
                 )}
-                title={collapsed ? item.name : undefined}
+                onMouseEnter={() => setHoveredItem(item.name)}
+                onMouseLeave={() => setHoveredItem(null)}
               >
                 {isActive && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#00d4b8] rounded-r-full shadow-[0_0_10px_#00d4b8]" />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-purple-300 rounded-r-full shadow-[0_0_10px_rgba(192,132,252,0.6)]"
+                  />
                 )}
-                <item.icon className={cn("h-5 w-5 flex-shrink-0 transition-colors", isActive ? "text-[#00d4b8]" : "group-hover:text-[#00d4b8]")} />
-                {!collapsed && <span>{item.name}</span>}
-              </Link>
+
+                {/* Tooltip - only show when collapsed */}
+                {isHovered && forceCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-1.5 rounded-lg bg-[#2a2a3e] text-white text-sm font-medium whitespace-nowrap z-50 shadow-lg border border-[#3a3a4e]"
+                  >
+                    {item.name}
+                  </motion.div>
+                )}
+
+                <Link
+                  href={item.href}
+                  onClick={onClose}
+                  className={cn(
+                    'flex items-center gap-3 transition-all duration-200 group',
+                    forceCollapsed
+                      ? 'h-12 w-12 rounded-full justify-center'
+                      : 'h-12 px-4 rounded-lg w-full',
+                    isActive
+                      ? 'bg-purple-400/20 text-purple-300 shadow-[0_0_15px_rgba(192,132,252,0.4)]'
+                      : 'text-gray-400 hover:bg-purple-400/10 hover:text-purple-300'
+                  )}
+                >
+                  <Icon className="h-5 w-5 flex-shrink-0" />
+                  {!forceCollapsed && (
+                    <span className="text-sm font-medium whitespace-nowrap">
+                      {item.name}
+                    </span>
+                  )}
+                </Link>
+              </div>
             )
           })}
         </nav>
 
-        {/* User Profile */}
-        <div className="border-t border-white/5 p-4 space-y-3 bg-[#0b1121]/50">
-          {!collapsed ? (
-            <>
-              <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-[#0f1729] border border-white/5 group hover:border-[#00d4b8]/30 transition-all cursor-default">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00d4b8]/10 text-[#00d4b8] font-bold text-sm border border-[#00d4b8]/20 group-hover:bg-[#00d4b8] group-hover:text-[#0b1121] transition-all">
-                  {session?.user?.name?.[0]?.toUpperCase() || 'U'}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate group-hover:text-[#00d4b8] transition-colors">
-                    {session?.user?.name || 'User'}
-                  </p>
-                  <p className="text-xs text-white/40 truncate">
-                    {session?.user?.email || 'user@example.com'}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <ThemeToggle className="flex-1 bg-[#0f1729] border border-white/5 hover:border-white/20 text-white/60 hover:text-white" />
-                <Button
-                  onClick={handleSignOut}
-                  variant="ghost"
-                  className="flex-1 justify-start gap-2 text-white/60 hover:text-red-400 hover:bg-red-400/10 transition-all bg-[#0f1729] border border-white/5 hover:border-red-400/20"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span className="text-xs">Sign Out</span>
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="flex flex-col items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#00d4b8]/10 text-[#00d4b8] font-bold text-sm border border-[#00d4b8]/20 hover:bg-[#00d4b8] hover:text-[#0b1121] transition-all cursor-default">
-                {session?.user?.name?.[0]?.toUpperCase() || 'U'}
-              </div>
-              <ThemeToggle className="h-9 w-9" />
-              <Button
-                onClick={handleSignOut}
-                variant="ghost"
-                size="icon"
-                className="text-white/60 hover:text-red-400 hover:bg-red-400/10 h-9 w-9"
-                title="Sign Out"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
+        {/* Logout Button */}
+        <div
+          className={cn(
+            "relative flex mt-auto",
+            forceCollapsed ? "justify-center" : "justify-start w-full"
           )}
+          onMouseEnter={() => setHoveredItem('Sign Out')}
+          onMouseLeave={() => setHoveredItem(null)}
+        >
+          {/* Tooltip - only show when collapsed */}
+          {hoveredItem === 'Sign Out' && forceCollapsed && (
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-3 py-1.5 rounded-lg bg-[#2a2a3e] text-white text-sm font-medium whitespace-nowrap z-50 shadow-lg border border-[#3a3a4e]"
+            >
+              Sign Out
+            </motion.div>
+          )}
+
+          <Button
+            onClick={handleSignOut}
+            variant="ghost"
+            size={forceCollapsed ? "icon" : "default"}
+            className={cn(
+              "bg-purple-400/10 text-purple-300",
+              "hover:bg-purple-400/20 hover:text-purple-200",
+              "transition-all duration-200",
+              forceCollapsed
+                ? "h-12 w-12 rounded-full"
+                : "h-12 w-full rounded-lg justify-start gap-3 px-4"
+            )}
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {!forceCollapsed && (
+              <span className="text-sm font-medium whitespace-nowrap">
+                Sign Out
+              </span>
+            )}
+          </Button>
         </div>
       </div>
     </aside>

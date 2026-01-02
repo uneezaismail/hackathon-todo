@@ -27,5 +27,6 @@
   "enabledMcpjsonServers": [
     "next-devtools",
     "shadcn"
-  ]
+  ],
+  "enableAllProjectMcpServers": true
 }

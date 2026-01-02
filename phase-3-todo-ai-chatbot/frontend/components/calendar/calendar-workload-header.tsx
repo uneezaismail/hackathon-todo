@@ -109,10 +109,10 @@ function calculateWorkloadMetrics(tasks: Task[], start: Date, end: Date): Worklo
 }
 
 const workloadColors = {
-  light: 'text-emerald-500 bg-emerald-500/10',
-  moderate: 'text-blue-500 bg-blue-500/10',
-  busy: 'text-amber-500 bg-amber-500/10',
-  overloaded: 'text-red-500 bg-red-500/10',
+  light: 'text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-500/10',
+  moderate: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/10',
+  busy: 'text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-500/10',
+  overloaded: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-500/10',
 }
 
 const workloadLabels = {
@@ -149,57 +149,119 @@ export function CalendarWorkloadHeader({
   }, [currentDate, view, start, end])
 
   return (
-    <Card className={cn('mb-4', className)}>
-      <CardContent className="py-3">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+    <Card className={cn(
+      'mb-4 border-2 transition-all duration-200',
+      'bg-white dark:bg-[#1a1a2e]/95',
+      'border-gray-200 dark:border-[#2a2a3e]',
+      'shadow-md dark:shadow-[0_0_20px_rgba(168,85,247,0.05)]',
+      className
+    )}>
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           {/* Date range label */}
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">{dateRangeLabel}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Calendar className={cn(
+              'h-4 w-4 shrink-0',
+              'text-purple-600 dark:text-purple-400'
+            )} />
+            <span className={cn(
+              'text-sm sm:text-base font-semibold',
+              'text-gray-900 dark:text-white'
+            )}>
+              {dateRangeLabel}
+            </span>
             <Badge
               variant="secondary"
-              className={cn('text-xs', workloadColors[metrics.workloadLevel])}
+              className={cn(
+                'text-xs font-medium',
+                workloadColors[metrics.workloadLevel]
+              )}
             >
               {workloadLabels[metrics.workloadLevel]}
             </Badge>
           </div>
 
           {/* Quick stats */}
-          <div className="flex flex-wrap items-center gap-4 text-sm">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm">
             <div className="flex items-center gap-1.5">
-              <div className="p-1 rounded bg-muted/50">
-                <Clock className="h-3.5 w-3.5 text-blue-500" />
+              <div className={cn(
+                'p-1 rounded shrink-0',
+                'bg-blue-100 dark:bg-blue-500/10'
+              )}>
+                <Clock className={cn(
+                  'h-3 w-3 sm:h-3.5 sm:w-3.5',
+                  'text-blue-600 dark:text-blue-400'
+                )} />
               </div>
-              <span className="text-muted-foreground">{metrics.pendingTasks} pending</span>
+              <span className={cn(
+                'text-gray-600 dark:text-gray-400 whitespace-nowrap'
+              )}>
+                {metrics.pendingTasks} pending
+              </span>
             </div>
 
             <div className="flex items-center gap-1.5">
-              <div className="p-1 rounded bg-muted/50">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
+              <div className={cn(
+                'p-1 rounded shrink-0',
+                'bg-emerald-100 dark:bg-emerald-500/10'
+              )}>
+                <CheckCircle2 className={cn(
+                  'h-3 w-3 sm:h-3.5 sm:w-3.5',
+                  'text-emerald-600 dark:text-emerald-400'
+                )} />
               </div>
-              <span className="text-muted-foreground">{metrics.completedTasks} done</span>
+              <span className={cn(
+                'text-gray-600 dark:text-gray-400 whitespace-nowrap'
+              )}>
+                {metrics.completedTasks} done
+              </span>
             </div>
 
             {metrics.overdueTasks > 0 && (
               <div className="flex items-center gap-1.5">
-                <div className="p-1 rounded bg-red-500/10">
-                  <AlertTriangle className="h-3.5 w-3.5 text-red-500" />
+                <div className={cn(
+                  'p-1 rounded shrink-0',
+                  'bg-red-100 dark:bg-red-500/10'
+                )}>
+                  <AlertTriangle className={cn(
+                    'h-3 w-3 sm:h-3.5 sm:w-3.5',
+                    'text-red-600 dark:text-red-400'
+                  )} />
                 </div>
-                <span className="text-red-400 font-medium">{metrics.overdueTasks} overdue</span>
+                <span className={cn(
+                  'font-medium whitespace-nowrap',
+                  'text-red-600 dark:text-red-400'
+                )}>
+                  {metrics.overdueTasks} overdue
+                </span>
               </div>
             )}
 
             {metrics.highPriorityTasks > 0 && (
               <div className="flex items-center gap-1.5">
-                <div className="p-1 rounded bg-amber-500/10">
-                  <TrendingUp className="h-3.5 w-3.5 text-amber-500" />
+                <div className={cn(
+                  'p-1 rounded shrink-0',
+                  'bg-amber-100 dark:bg-amber-500/10'
+                )}>
+                  <TrendingUp className={cn(
+                    'h-3 w-3 sm:h-3.5 sm:w-3.5',
+                    'text-amber-600 dark:text-amber-400'
+                  )} />
                 </div>
-                <span className="text-amber-400">{metrics.highPriorityTasks} high priority</span>
+                <span className={cn(
+                  'text-amber-600 dark:text-amber-400 whitespace-nowrap'
+                )}>
+                  {metrics.highPriorityTasks} high priority
+                </span>
               </div>
             )}
 
             {metrics.busiestDay && view !== 'day' && (
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground border-l pl-4">
+              <div className={cn(
+                'hidden sm:flex items-center gap-1.5 text-xs border-l pl-3 sm:pl-4',
+                'text-gray-600 dark:text-gray-400',
+                'border-gray-300 dark:border-[#2a2a3e]'
+              )}>
                 Busiest: {format(metrics.busiestDay.date, 'MMM d')} ({metrics.busiestDay.count} tasks)
               </div>
             )}
