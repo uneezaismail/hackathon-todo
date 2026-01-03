@@ -65,8 +65,8 @@ export function ActivityFeed({ activities, delay = 0 }: ActivityFeedProps) {
             Your latest task updates
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
+       <CardContent className="pt-3 sm:pt-6 px-3 sm:px-6 overflow-x-hidden">
+          <div className="space-y-3 sm:space-y-4">
             {activities.length === 0 ? (
               <p className="text-sm dark:text-gray-400 light:text-gray-600 text-center py-8">
                 No recent activity
@@ -82,16 +82,16 @@ export function ActivityFeed({ activities, delay = 0 }: ActivityFeedProps) {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: delay + index * 0.05 }}
-                    className="flex items-start gap-3 group hover:bg-purple-500/5 p-3 -mx-3 rounded-xl transition-colors"
+                    className="flex items-start gap-2 sm:gap-3 group hover:bg-purple-500/5 p-2 sm:p-3 -mx-2 sm:-mx-3 rounded-xl transition-colors"
                   >
-                    <div className={cn("flex h-10 w-10 items-center justify-center rounded-xl shrink-0", config.bgColor)}>
-                      <Icon className={cn("h-5 w-5", config.color)} />
+                    <div className={cn("flex h-8 sm:h-10 w-8 sm:w-10 items-center justify-center rounded-lg sm:rounded-xl shrink-0", config.bgColor)}>
+                      <Icon className={cn("h-4 sm:h-5 w-4 sm:w-5", config.color)} />
                     </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-medium dark:text-white light:text-gray-900 leading-tight">
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <p className="text-xs sm:text-sm font-medium dark:text-white light:text-gray-900 leading-tight truncate">
                         {activity.title}
                       </p>
-                      <p className="text-xs dark:text-gray-400 light:text-gray-600">
+                      <p className="text-xs dark:text-gray-400 light:text-gray-600 truncate">
                         {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
                       </p>
                     </div>
