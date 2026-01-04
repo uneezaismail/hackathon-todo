@@ -1,44 +1,43 @@
 <!--
 SYNC IMPACT REPORT
 ==================
-Version Change: 1.1.0 → 1.2.0
-Type: MINOR (New sections added for Phase III AI Chatbot architecture)
-Date: 2025-12-19
+Version Change: 1.2.0 → 1.3.0
+Type: MINOR (New sections added for Phase IV Kubernetes Deployment)
+Date: 2026-01-03
 
 Modified Principles:
-- N/A
+- Section IV: "Immutable Tech Stack" - Added Container Orchestration and Health Monitoring
+- Section VIII: "Governance" - Added Phase IV Mandatory Requirements enforcement
 
 Added Sections:
-- Section XIII: "Conversational AI Architecture" (OpenAI Agents SDK, MCP Server patterns)
-- Section XIV: "Stateless Service Pattern" (Database-backed conversation state)
-- Section XV: "MCP Tool Design Standards" (Tool naming, parameters, security)
-- Section XVI: "AI Safety and User Isolation" (Agent security and user data protection)
-- Section XVII: "Conversation Management" (Chat history persistence and retrieval)
+- Section XVIII: "Phase IV Mandatory Requirements" (Kubernetes deployment infrastructure)
+- New subsection in "6. Phase IV: Kubernetes Deployment Principles"
 
 Removed Sections:
 - N/A
 
 Templates Requiring Updates:
-- ✅ spec-template.md - Already aligned (user stories support chatbot scenarios)
+- ✅ spec-template.md - Already aligned (user stories support deployment scenarios)
 - ✅ plan-template.md - Already aligned (constitution check validates principles)
-- ✅ tasks-template.md - Already aligned (task categorization supports MCP and chat tasks)
-- ⚠️ commands/*.md - Review for any agent-specific references (pending manual check)
+- ✅ tasks-template.md - Already aligned (task categorization supports deployment tasks)
 
 Follow-up TODOs:
 - None - all placeholders filled
 
 Rationale:
-Phase III introduces AI-Powered Chatbot functionality with OpenAI Agents SDK and MCP Server.
+Phase IV introduces Kubernetes Deployment with Minikube, Helm, and containerization.
 The new principles explicitly require:
-1. Stateless chat endpoints with database-backed conversation state
-2. MCP tools following single-purpose design with user isolation
-3. Agent responses that are deterministic and testable
-4. Security validation on every MCP tool call
-5. Comprehensive testing for both MCP tools and agent behavior
+1. Local Kubernetes cluster (Minikube) with Helm chart deployment
+2. Health checks (liveness and readiness probes) for automatic failure detection
+3. Stateless design with external database and storage dependencies
+4. Configuration separation (Secrets vs ConfigMaps)
+5. One-command deployment automation script
+6. AI DevOps tools (kubectl-ai, kagent, Docker AI) documented with examples
+7. Horizontal scaling support with configurable replicas
+8. Security: non-root containers, no hardcoded credentials
 
-These principles extend the existing Evolutionary Architecture and User Isolation patterns
-from Phase II to the AI/conversational interface layer, ensuring consistency and security
-as the system evolves toward Kubernetes deployment in Phases IV and V.
+These principles extend the existing Evolutionary Architecture from Phase III
+to containerized orchestration, preparing for cloud deployment in Phase V.
 -->
 
 # Evolution of Todo Constitution
@@ -112,6 +111,8 @@ The following stack is the **Destination**.  must not deviate from these choices
 * **Frontend:** Next.js 15+ (App Router), Tailwind CSS, Openai-agents SDK , OpenAI ChatKit (Phase III).
 * **Data & Auth:** Neon (Serverless PostgreSQL), Better Auth (JWT Plugin).
 * **AI & Ops:** OpenAI Agents SDK, Official MCP Python SDK, Docker (Gordon), Kubernetes (Minikube/DOKS), Helm, Kafka (Redpanda), Dapr.
+* **Container Orchestration:** Minikube 1.32+, Helm 3.x, Kubernetes 1.28+
+* **Health Monitoring:** Liveness and readiness probes for all pods
 
 ---
 
@@ -180,6 +181,50 @@ The following stack is the **Destination**.  must not deviate from these choices
 
 ---
 
+## 6. Phase IV: Kubernetes Deployment Principles
+
+### XVIII. Phase IV Mandatory Requirements
+**Every Phase IV requirement is MANDATORY - no exceptions permitted.**
+
+**Kubernetes Deployment Infrastructure (All Required)**
+Every Kubernetes deployment component MUST be fully implemented:
+
+* **Minikube Cluster** - The application MUST run on a local Minikube Kubernetes cluster
+* **Helm Packaging** - Deployment MUST use Helm 3.x charts for packaging and versioning
+* **Pod Health Probes** - Every pod MUST have liveness and readiness probes configured
+* **Environment Configuration** - All environment variables MUST use ConfigMaps and Secrets
+* **Network Services** - Frontend MUST expose NodePort service, backend MUST use ClusterIP
+* **Automated Deployment** - A single deployment command MUST provision the entire stack
+* **AI Operations Tooling** - Integration with kubectl-ai, kagent, and Docker AI MUST be documented
+
+**Technology Stack (All Required)**
+
+* **Orchestration Platform:** Minikube version 1.32 or higher MUST provide the Kubernetes environment
+* **Chart Management:** Helm version 3.x MUST handle all application deployments
+* **Containerization:** Docker 24+ MUST run via Minikube's internal Docker daemon
+* **Image Registry:** Container images MUST build within Minikube (no external registries required)
+* **External Services:** PostgreSQL database (Neon) and object storage (Cloudflare R2) MUST stay external
+
+**Deployment Architecture (All Required)**
+
+* **Zero-State Pods:** Every pod MUST be stateless with no persistent volume claims
+* **Replica Scalability:** The system MUST allow horizontal pod autoscaling across replicas
+* **Automated Recovery:** Health probes MUST trigger automatic pod restarts on failure
+* **Secret Isolation:** Sensitive credentials MUST be isolated in Secrets, configuration in ConfigMaps
+* **Environment Injection:** All secrets MUST be injected at runtime, never hardcoded
+
+**Success Criteria (All Required)**
+
+* Frontend and backend containers MUST achieve Ready status within 120 seconds of deployment start
+* The frontend MUST respond to requests via NodePort within 5 seconds after pod readiness
+* Complete user workflows (authentication, chat interface, task operations) MUST function without errors
+* Liveness probes MUST identify failed pods and trigger restarts within 30 seconds
+* Deployment logs and pod environments MUST NOT expose secrets or API keys in plaintext
+* The automated deployment script MUST complete the full stack provisioning in under 10 minutes
+* Documentation MUST include functional examples of kubectl-ai, kagent, and Docker AI usage
+
+---
+
 ## 7. Definition of Done
 
 Before marking any task or feature as complete, verify:
@@ -196,8 +241,9 @@ Before marking any task or feature as complete, verify:
 * **Authority:** This Constitution supersedes all other documentation.
 * **Versioning:** Semantic versioning (MAJOR.MINOR.PATCH) must be used.
 * **Process:** Any architectural change requires an ADR and explicit approval.
+* **Phase IV Mandatory:** All Kubernetes deployment features are mandatory
 
 
 ---
 
-**Version**: 1.2.0 | **Ratified**: 2025-12-07 | **Last Amended**: 2025-12-19
+**Version**: 1.3.0 | **Ratified**: 2025-12-07 | **Last Amended**: 2026-01-03

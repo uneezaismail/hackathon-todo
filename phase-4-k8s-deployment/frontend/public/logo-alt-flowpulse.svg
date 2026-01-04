@@ -1,0 +1,106 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="pulse-gradient-1" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#A855F7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C084FC;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="pulse-gradient-2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C084FC;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#A855F7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Circle -->
+  <circle cx="256" cy="256" r="220" fill="url(#pulse-gradient-1)" opacity="0.08"/>
+  <circle cx="256" cy="256" r="200" stroke="url(#pulse-gradient-1)" stroke-width="2" fill="none" opacity="0.3"/>
+
+  <!-- Flow/Pulse Wave Pattern (3 waves representing task flow) -->
+  <!-- Wave 1 (Top) -->
+  <path
+    d="M 80 180 Q 140 140, 200 180 T 320 180 T 432 180"
+    stroke="url(#pulse-gradient-1)"
+    stroke-width="8"
+    stroke-linecap="round"
+    fill="none"
+    opacity="0.9"
+  >
+    <animate attributeName="opacity" values="0.9;1;0.9" dur="2s" repeatCount="indefinite"/>
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values="0,0; 5,0; 0,0"
+      dur="2s"
+      repeatCount="indefinite"
+    />
+  </path>
+
+  <!-- Wave 2 (Middle - Main) -->
+  <path
+    d="M 60 256 Q 120 216, 180 256 T 300 256 T 420 256 T 452 256"
+    stroke="url(#pulse-gradient-1)"
+    stroke-width="12"
+    stroke-linecap="round"
+    fill="none"
+  >
+    <animate attributeName="opacity" values="1;0.8;1" dur="1.8s" repeatCount="indefinite"/>
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values="0,0; -5,0; 0,0"
+      dur="1.8s"
+      repeatCount="indefinite"
+    />
+  </path>
+
+  <!-- Wave 3 (Bottom) -->
+  <path
+    d="M 80 332 Q 140 372, 200 332 T 320 332 T 432 332"
+    stroke="url(#pulse-gradient-2)"
+    stroke-width="8"
+    stroke-linecap="round"
+    fill="none"
+    opacity="0.9"
+  >
+    <animate attributeName="opacity" values="0.9;1;0.9" dur="2.2s" repeatCount="indefinite"/>
+    <animateTransform
+      attributeName="transform"
+      type="translate"
+      values="0,0; 5,0; 0,0"
+      dur="2.2s"
+      repeatCount="indefinite"
+    />
+  </path>
+
+  <!-- Central Infinity Symbol (representing continuous flow) -->
+  <path
+    d="M 180 256 Q 200 220, 230 256 Q 260 292, 282 256 Q 300 230, 332 256 Q 300 282, 282 256 Q 260 220, 230 256 Q 200 292, 180 256 Z"
+    fill="url(#pulse-gradient-1)"
+    opacity="0.7"
+  >
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Accent Dots (Task nodes) -->
+  <circle cx="130" cy="256" r="8" fill="#A855F7">
+    <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+  </circle>
+
+  <circle cx="256" cy="200" r="6" fill="#8B5CF6">
+    <animate attributeName="r" values="6;10;6" dur="2.2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2.2s" repeatCount="indefinite"/>
+  </circle>
+
+  <circle cx="382" cy="256" r="8" fill="#C084FC">
+    <animate attributeName="r" values="8;12;8" dur="1.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+
+  <circle cx="256" cy="312" r="6" fill="#A855F7">
+    <animate attributeName="r" values="6;10;6" dur="2.4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="2.4s" repeatCount="indefinite"/>
+  </circle>
+</svg>

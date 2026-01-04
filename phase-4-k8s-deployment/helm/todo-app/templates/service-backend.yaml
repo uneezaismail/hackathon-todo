@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "todo-app.fullname" . }}-backend
+  labels:
+    {{- include "todo-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
+spec:
+  type: {{ .Values.service.backend.type }}
+  ports:
+  - port: {{ .Values.service.backend.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+    {{- if and (eq .Values.service.backend.type "NodePort") .Values.service.backend.nodePort }}
+    nodePort: {{ .Values.service.backend.nodePort }}
+    {{- end }}
+  selector:
+    {{- include "todo-app.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: backend
