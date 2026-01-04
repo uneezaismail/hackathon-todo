@@ -1,0 +1,127 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="zenith-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#A855F7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C084FC;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="zenith-accent" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#C084FC;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:0.6" />
+    </linearGradient>
+  </defs>
+
+  <!-- Hexagonal Frame -->
+  <path
+    d="M 256 80 L 380 155 L 380 305 L 256 380 L 132 305 L 132 155 Z"
+    stroke="url(#zenith-gradient)"
+    stroke-width="4"
+    fill="url(#zenith-gradient)"
+    opacity="0.1"
+  />
+
+  <!-- 3D Geometric Crystal (Layered Triangles) -->
+  <!-- Top Triangle -->
+  <path
+    d="M 256 120 L 340 200 L 256 240 Z"
+    fill="url(#zenith-gradient)"
+    opacity="0.8"
+  >
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Left Triangle -->
+  <path
+    d="M 256 120 L 172 200 L 256 240 Z"
+    fill="url(#zenith-accent)"
+    opacity="0.7"
+  >
+    <animate attributeName="opacity" values="0.7;0.9;0.7" dur="2.2s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Center Diamond (Main focal point) -->
+  <path
+    d="M 256 180 L 300 230 L 256 280 L 212 230 Z"
+    fill="url(#zenith-gradient)"
+    opacity="0.95"
+  >
+    <animateTransform
+      attributeName="transform"
+      type="scale"
+      values="1;1.05;1"
+      dur="2s"
+      repeatCount="indefinite"
+      additive="sum"
+    />
+  </path>
+
+  <!-- Right Middle Triangle -->
+  <path
+    d="M 256 240 L 340 280 L 256 320 Z"
+    fill="url(#zenith-gradient)"
+    opacity="0.75"
+  >
+    <animate attributeName="opacity" values="0.75;0.95;0.75" dur="1.8s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Left Middle Triangle -->
+  <path
+    d="M 256 240 L 172 280 L 256 320 Z"
+    fill="url(#zenith-accent)"
+    opacity="0.65"
+  >
+    <animate attributeName="opacity" values="0.65;0.85;0.65" dur="2.4s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Bottom Triangle -->
+  <path
+    d="M 256 320 L 340 360 L 256 392 Z"
+    fill="url(#zenith-gradient)"
+    opacity="0.6"
+  >
+    <animate attributeName="opacity" values="0.6;0.8;0.6" dur="2.6s" repeatCount="indefinite"/>
+  </path>
+
+  <path
+    d="M 256 320 L 172 360 L 256 392 Z"
+    fill="url(#zenith-accent)"
+    opacity="0.55"
+  >
+    <animate attributeName="opacity" values="0.55;0.75;0.55" dur="2.8s" repeatCount="indefinite"/>
+  </path>
+
+  <!-- Orbital Rings (representing task organization) -->
+  <circle cx="256" cy="230" r="60" stroke="url(#zenith-gradient)" stroke-width="2" fill="none" opacity="0.4">
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      values="0 256 230; 360 256 230"
+      dur="20s"
+      repeatCount="indefinite"
+    />
+  </circle>
+
+  <circle cx="256" cy="230" r="80" stroke="url(#zenith-gradient)" stroke-width="1.5" fill="none" opacity="0.3">
+    <animateTransform
+      attributeName="transform"
+      type="rotate"
+      values="360 256 230; 0 256 230"
+      dur="30s"
+      repeatCount="indefinite"
+    />
+  </circle>
+
+  <!-- Accent Particles -->
+  <circle cx="320" cy="170" r="5" fill="#A855F7">
+    <animate attributeName="opacity" values="0.4;1;0.4" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+
+  <circle cx="192" cy="290" r="4" fill="#C084FC">
+    <animate attributeName="opacity" values="0.5;1;0.5" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+
+  <circle cx="350" cy="260" r="4" fill="#8B5CF6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2.1s" repeatCount="indefinite"/>
+  </circle>
+</svg>

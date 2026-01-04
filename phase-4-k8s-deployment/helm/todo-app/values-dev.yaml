@@ -1,0 +1,34 @@
+# Development overrides for local Minikube deployment
+# Use with: helm install -f values-dev.yaml
+
+# Use fewer replicas for local development
+replicaCount:
+  frontend: 1
+  backend: 1
+
+# Local development uses images built in Minikube Docker daemon
+image:
+  frontend:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: Never  # Never pull - use local images only
+  backend:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: Never  # Never pull - use local images only
+
+# Minikube-specific configuration
+config:
+  # Backend URL uses internal service name - Next.js rewrites will proxy
+  BACKEND_URL: "http://todo-app-backend:8000"
+  FRONTEND_URL: "http://localhost:3000"
+
+  # Development logging
+  LOG_LEVEL: "debug"
+
+# Secrets are loaded from environment variables during deployment
+# The deploy.sh script will inject these via --set flags
+secrets:
+  DATABASE_URL: ""  # Set via: --set secrets.DATABASE_URL="$DATABASE_URL"
+  BETTER_AUTH_SECRET: ""  # Set via: --set secrets.BETTER_AUTH_SECRET="$BETTER_AUTH_SECRET"
+  OPENAI_API_KEY: ""  # Set via: --set secrets.OPENAI_API_KEY="$OPENAI_API_KEY"

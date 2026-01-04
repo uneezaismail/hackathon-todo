@@ -1,0 +1,760 @@
+@import "tailwindcss/index.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-background: 250 84% 8%;
+  --color-foreground: 0 0% 100%;
+  --color-card: 247 50% 13%;
+  --color-card-foreground: 0 0% 100%;
+  --color-popover: 247 50% 13%;
+  --color-popover-foreground: 0 0% 100%;
+  --color-primary: 261 90% 60%;
+  --color-primary-foreground: 0 0% 100%;
+  --color-secondary: 247 40% 18%;
+  --color-secondary-foreground: 0 0% 100%;
+  --color-muted: 247 40% 18%;
+  --color-muted-foreground: 0 0% 70%;
+  --color-accent: 261 90% 60%;
+  --color-accent-foreground: 0 0% 100%;
+  --color-destructive: 0 62.8% 50%;
+  --color-destructive-foreground: 0 0% 100%;
+  --color-border: 261 90% 60% / 0.2;
+  --color-input: 247 40% 18%;
+  --color-ring: 261 90% 60%;
+  --color-radius: 0.5rem;
+}
+
+@layer base {
+  :root {
+    --background: var(--color-background);
+    --foreground: var(--color-foreground);
+    --card: var(--color-card);
+    --card-foreground: var(--color-card-foreground);
+    --popover: var(--color-popover);
+    --popover-foreground: var(--color-popover-foreground);
+    --primary: var(--color-primary);
+    --primary-foreground: var(--color-primary-foreground);
+    --secondary: var(--color-secondary);
+    --secondary-foreground: var(--color-secondary-foreground);
+    --muted: var(--color-muted);
+    --muted-foreground: var(--color-muted-foreground);
+    --accent: var(--color-accent);
+    --accent-foreground: var(--color-accent-foreground);
+    --destructive: var(--color-destructive);
+    --destructive-foreground: var(--color-destructive-foreground);
+    --border: var(--color-border);
+    --input: var(--color-input);
+    --ring: var(--color-ring);
+    --radius: var(--color-radius);
+  }
+
+  /* Light Mode - LinkedIn Wrapped 2025 Purple Theme */
+  .light {
+    --background: 248 100% 98%;        /* #FAFBFC - Very light lavender */
+    --foreground: 222 47% 11%;         /* #1F2937 - Dark grey text */
+    --card: 0 0% 100%;                 /* #FFFFFF - Pure white cards */
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 262 83% 58%;            /* #7C3AED - Purple accent */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 248 100% 95%;         /* #F1F5F9 - Light lavender */
+    --secondary-foreground: 222 47% 11%;
+    --muted: 248 100% 95%;             /* #F1F5F9 - Light lavender muted */
+    --muted-foreground: 215 16% 47%;   /* #64748B - Muted grey text */
+    --accent: 261 90% 60%;             /* #A855F7 - Purple accent */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 91%;             /* #E5E7EB - Light grey border */
+    --input: 220 13% 91%;
+    --ring: 262 83% 58%;
+  }
+
+  /* Dark Mode (default) - Regulatis Purple Theme */
+  .dark {
+    --background: 250 84% 8%; /* #0A0A1F - Deep purple-black */
+    --foreground: 0 0% 100%;
+    --card: 247 50% 13%; /* #141428 - Dark purple-grey */
+    --card-foreground: 0 0% 100%;
+    --popover: 247 50% 13%;
+    --popover-foreground: 0 0% 100%;
+    --primary: 261 90% 60%; /* #A855F7 - Purple */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 247 40% 18%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 247 40% 18%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 261 90% 60%; /* #A855F7 - Purple */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 261 90% 60% / 0.2; /* Purple with transparency */
+    --input: 247 40% 18%;
+    --ring: 261 90% 60%; /* Purple */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply bg-background;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* Dark mode specific - Regulatis Purple-Black */
+  .dark html {
+    background-color: #0A0A1F;
+  }
+
+  .dark body {
+    background-color: #0A0A1F;
+  }
+
+  /* Light mode specific - Lavender tinted background */
+  .light html {
+    background: linear-gradient(180deg, #FAFBFC 0%, #F8F9FA 100%);
+  }
+
+  .light body {
+    background: linear-gradient(180deg, #FAFBFC 0%, #F8F9FA 100%);
+  }
+}
+
+/* react-big-calendar styles for dark theme */
+@layer components {
+  .task-calendar {
+    @apply h-full;
+  }
+
+  /* Calendar container */
+  .task-calendar .rbc-calendar {
+    @apply bg-transparent;
+  }
+
+  /* Header row (day names) */
+  .task-calendar .rbc-header {
+    @apply bg-white/5 border-white/10 py-2 text-sm font-medium text-white/70;
+  }
+
+  .task-calendar .rbc-header + .rbc-header {
+    @apply border-l border-white/10;
+  }
+
+  /* Month view cells */
+  .task-calendar .rbc-month-view {
+    @apply border border-white/10 rounded-lg overflow-hidden;
+  }
+
+  .task-calendar .rbc-month-row {
+    @apply border-b border-white/10;
+  }
+
+  .task-calendar .rbc-month-row:last-child {
+    @apply border-b-0;
+  }
+
+  .task-calendar .rbc-day-bg {
+    @apply bg-transparent transition-colors;
+  }
+
+  .task-calendar .rbc-day-bg + .rbc-day-bg {
+    @apply border-l border-white/10;
+  }
+
+  .task-calendar .rbc-day-bg:hover {
+    @apply bg-white/5;
+  }
+
+  .task-calendar .rbc-off-range-bg {
+    @apply bg-white/[0.02];
+  }
+
+  .task-calendar .rbc-today {
+    @apply bg-[#A855F7]/5;
+  }
+
+  /* Date cells */
+  .task-calendar .rbc-date-cell {
+    @apply text-right pr-2 pt-1 text-sm text-white/60;
+  }
+
+  .task-calendar .rbc-date-cell.rbc-now {
+    @apply text-white font-bold;
+  }
+
+  .task-calendar .rbc-date-cell.rbc-now a {
+    @apply inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#A855F7] text-white font-bold shadow-lg shadow-[#A855F7]/50;
+  }
+
+  .task-calendar .rbc-date-cell.rbc-off-range {
+    @apply text-white/30;
+  }
+
+  .task-calendar .rbc-date-cell > a {
+    @apply text-white/60 hover:text-white;
+  }
+
+  /* Events */
+  .task-calendar .rbc-event {
+    @apply bg-transparent border-0 p-0 rounded-md;
+  }
+
+  .task-calendar .rbc-event:focus {
+    @apply outline-none ring-2 ring-[#A855F7] ring-offset-1 ring-offset-transparent;
+  }
+
+  .task-calendar .rbc-event-content {
+    @apply text-xs;
+  }
+
+  .task-calendar .rbc-show-more {
+    @apply text-xs text-[#A855F7] hover:text-[#A855F7]/80 bg-transparent font-medium cursor-pointer py-0.5;
+  }
+
+  .task-calendar .rbc-show-more:hover {
+    @apply underline;
+  }
+
+  /* Event more link in month view */
+  .task-calendar .rbc-more-link {
+    @apply text-xs text-[#A855F7] hover:text-[#A855F7]/80 bg-transparent font-medium cursor-pointer;
+  }
+
+  /* Toolbar styling */
+  .task-calendar .rbc-toolbar {
+    @apply mb-4 flex flex-wrap gap-2 items-center justify-between;
+  }
+
+  .task-calendar .rbc-toolbar button {
+    @apply px-3 py-1.5 rounded-md text-sm font-medium transition-colors bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white;
+  }
+
+  .task-calendar .rbc-toolbar button:focus {
+    @apply outline-none ring-2 ring-[#A855F7];
+  }
+
+  .task-calendar .rbc-toolbar button.rbc-active {
+    @apply bg-[#A855F7]/20 border-[#A855F7] text-[#A855F7];
+  }
+
+  .task-calendar .rbc-toolbar-label {
+    @apply text-lg font-semibold text-white;
+  }
+
+  /* Week/Day view */
+  .task-calendar .rbc-time-view {
+    @apply border border-white/10 rounded-lg overflow-hidden;
+    min-height: 700px; /* Ensure week/day view has enough height */
+  }
+
+  .task-calendar .rbc-time-header {
+    @apply border-b border-white/10;
+  }
+
+  .task-calendar .rbc-time-content {
+    @apply border-t border-white/10;
+    height: auto !important; /* Allow content to expand fully */
+    min-height: 650px; /* Minimum height for time slots */
+  }
+
+  .task-calendar .rbc-timeslot-group {
+    @apply border-b border-white/5;
+  }
+
+  .task-calendar .rbc-time-slot {
+    @apply text-xs text-white/40;
+  }
+
+  .task-calendar .rbc-time-gutter {
+    @apply bg-white/[0.02];
+  }
+
+  .task-calendar .rbc-day-slot .rbc-time-slot {
+    @apply border-t border-white/5;
+  }
+
+  .task-calendar .rbc-current-time-indicator {
+    @apply bg-[#A855F7] h-0.5;
+  }
+
+  /* All day events area */
+  .task-calendar .rbc-allday-cell {
+    @apply bg-white/[0.02];
+  }
+
+  /* Agenda view */
+  .task-calendar .rbc-agenda-view {
+    @apply border border-white/10 rounded-lg overflow-hidden;
+  }
+
+  .task-calendar .rbc-agenda-view table {
+    @apply w-full;
+  }
+
+  .task-calendar .rbc-agenda-table {
+    @apply w-full;
+  }
+
+  .task-calendar .rbc-agenda-table thead {
+    @apply bg-white/5;
+  }
+
+  .task-calendar .rbc-agenda-table th {
+    @apply py-2 px-3 text-left text-sm font-medium text-white/70 border-b border-white/10;
+  }
+
+  .task-calendar .rbc-agenda-table td {
+    @apply py-2 px-3 text-sm text-white/80 border-b border-white/5;
+  }
+
+  .task-calendar .rbc-agenda-date-cell {
+    @apply whitespace-nowrap;
+  }
+
+  .task-calendar .rbc-agenda-time-cell {
+    @apply whitespace-nowrap text-white/50;
+  }
+
+  .task-calendar .rbc-agenda-event-cell {
+    @apply text-white;
+  }
+
+  .task-calendar .rbc-agenda-empty {
+    @apply text-center py-8 text-white/40;
+  }
+
+  /* Selected slot */
+  .task-calendar .rbc-slot-selection {
+    @apply bg-[#A855F7]/20 border border-[#A855F7]/50;
+  }
+
+  /* Popup overlay */
+  .task-calendar .rbc-overlay {
+    @apply bg-[#0A0A1F] border border-white/10 rounded-lg shadow-xl p-2 z-50;
+  }
+
+  .task-calendar .rbc-overlay-header {
+    @apply border-b border-white/10 pb-2 mb-2 text-sm font-medium text-white;
+  }
+}
+
+/* Light mode calendar overrides */
+@layer components {
+  .light .task-calendar .rbc-header {
+    @apply bg-gray-50 border-gray-200 text-gray-700;
+  }
+
+  .light .task-calendar .rbc-header + .rbc-header {
+    @apply border-l border-gray-200;
+  }
+
+  .light .task-calendar .rbc-month-view {
+    @apply border border-gray-200;
+  }
+
+  .light .task-calendar .rbc-month-row {
+    @apply border-b border-gray-200;
+  }
+
+  .light .task-calendar .rbc-day-bg + .rbc-day-bg {
+    @apply border-l border-gray-200;
+  }
+
+  .light .task-calendar .rbc-day-bg:hover {
+    @apply bg-gray-50;
+  }
+
+  .light .task-calendar .rbc-off-range-bg {
+    @apply bg-gray-50/50;
+  }
+
+  .light .task-calendar .rbc-today {
+    @apply bg-purple-50 border border-purple-200;
+  }
+
+  .light .task-calendar .rbc-date-cell {
+    @apply text-gray-700;
+  }
+
+  .light .task-calendar .rbc-date-cell.rbc-now {
+    @apply text-white font-bold;
+  }
+
+  .light .task-calendar .rbc-date-cell.rbc-now a {
+    @apply inline-flex items-center justify-center w-7 h-7 rounded-full bg-purple-600 text-white font-bold shadow-lg shadow-purple-600/30;
+  }
+
+  .light .task-calendar .rbc-date-cell.rbc-off-range {
+    @apply text-gray-300;
+  }
+
+  .light .task-calendar .rbc-date-cell > a {
+    @apply text-gray-600 hover:text-gray-900;
+  }
+
+  .light .task-calendar .rbc-show-more {
+    @apply text-purple-600 hover:text-purple-700;
+  }
+
+  .light .task-calendar .rbc-more-link {
+    @apply text-purple-600 hover:text-purple-700;
+  }
+
+  .light .task-calendar .rbc-toolbar button {
+    @apply bg-white border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900;
+  }
+
+  .light .task-calendar .rbc-toolbar button.rbc-active {
+    @apply bg-purple-100 border-purple-500 text-purple-700;
+  }
+
+  .light .task-calendar .rbc-toolbar-label {
+    @apply text-gray-900;
+  }
+
+  .light .task-calendar .rbc-time-view {
+    @apply border border-gray-200;
+  }
+
+  .light .task-calendar .rbc-time-header {
+    @apply border-b border-gray-200;
+  }
+
+  .light .task-calendar .rbc-time-content {
+    @apply border-t border-gray-200;
+  }
+
+  .light .task-calendar .rbc-timeslot-group {
+    @apply border-b border-gray-100;
+  }
+
+  .light .task-calendar .rbc-time-slot {
+    @apply text-gray-400;
+  }
+
+  .light .task-calendar .rbc-time-gutter {
+    @apply bg-gray-50;
+  }
+
+  .light .task-calendar .rbc-day-slot .rbc-time-slot {
+    @apply border-t border-gray-100;
+  }
+
+  .light .task-calendar .rbc-current-time-indicator {
+    @apply bg-purple-500;
+  }
+
+  .light .task-calendar .rbc-allday-cell {
+    @apply bg-gray-50;
+  }
+
+  .light .task-calendar .rbc-agenda-view {
+    @apply border border-gray-200;
+  }
+
+  .light .task-calendar .rbc-agenda-table thead {
+    @apply bg-gray-50;
+  }
+
+  .light .task-calendar .rbc-agenda-table th {
+    @apply text-gray-700 border-b border-gray-200;
+  }
+
+  .light .task-calendar .rbc-agenda-table td {
+    @apply text-gray-800 border-b border-gray-100;
+  }
+
+  .light .task-calendar .rbc-agenda-time-cell {
+    @apply text-gray-500;
+  }
+
+  .light .task-calendar .rbc-agenda-event-cell {
+    @apply text-gray-900;
+  }
+
+  .light .task-calendar .rbc-agenda-empty {
+    @apply text-gray-400;
+  }
+
+  .light .task-calendar .rbc-slot-selection {
+    @apply bg-purple-100 border border-purple-300;
+  }
+
+  .light .task-calendar .rbc-overlay {
+    @apply bg-white border border-gray-200;
+  }
+
+  .light .task-calendar .rbc-overlay-header {
+    @apply border-b border-gray-200 text-gray-900;
+  }
+}
+
+/* T065: Mobile responsive calendar styles */
+@layer components {
+  /* Mobile calendar adjustments */
+  @media (max-width: 640px) {
+    .task-calendar {
+      @apply min-h-[400px];
+    }
+
+    .task-calendar .rbc-header {
+      @apply text-xs py-1;
+    }
+
+    .task-calendar .rbc-date-cell {
+      @apply text-xs pr-1;
+    }
+
+    .task-calendar .rbc-event-content {
+      @apply text-[10px];
+    }
+
+    .task-calendar .rbc-show-more {
+      @apply text-[10px];
+    }
+
+    .task-calendar .rbc-month-row {
+      @apply min-h-[60px];
+    }
+
+    /* Hide time gutter on small screens in week/day view */
+    .task-calendar .rbc-time-gutter {
+      @apply text-[10px] w-10;
+    }
+
+    .task-calendar .rbc-time-slot {
+      @apply text-[10px];
+    }
+
+    /* Agenda view mobile */
+    .task-calendar .rbc-agenda-table th,
+    .task-calendar .rbc-agenda-table td {
+      @apply py-1.5 px-2 text-xs;
+    }
+  }
+
+  /* Tablet adjustments */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .task-calendar .rbc-header {
+      @apply text-xs;
+    }
+
+    .task-calendar .rbc-event-content {
+      @apply text-[11px];
+    }
+  }
+}
+
+:root {
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Modern UI Redesign - Glassmorphism and Grid Styles */
+@layer utilities {
+  /* Skeleton Loading with Shimmer Effect */
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .light .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(241, 245, 249, 1) 0%,
+      rgba(226, 232, 240, 1) 50%,
+      rgba(241, 245, 249, 1) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.2) 20%,
+      rgba(255, 255, 255, 0.5) 60%,
+      rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  .light .skeleton::after {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0,
+      rgba(255, 255, 255, 0.8) 20%,
+      rgba(255, 255, 255, 1) 60%,
+      rgba(255, 255, 255, 0)
+    );
+  }
+
+  /* Glassmorphism Base */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .dark .glass-card {
+    background: rgba(20, 20, 40, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+  }
+
+  /* Glassmorphism with Purple Glow */
+  .glass-card-purple {
+    background: rgba(168, 85, 247, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.1);
+  }
+
+  .dark .glass-card-purple {
+    background: rgba(20, 20, 40, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.15);
+  }
+
+  .light .glass-card-purple {
+    background: rgba(168, 85, 247, 0.05);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(168, 85, 247, 0.15);
+    box-shadow: 0 4px 16px rgba(168, 85, 247, 0.08);
+  }
+
+  /* Hover Glow Effect */
+  .glow-hover:hover {
+    box-shadow: 0 20px 40px rgba(168, 85, 247, 0.25);
+    transform: scale(1.02);
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .light .glow-hover:hover {
+    box-shadow: 0 12px 24px rgba(168, 85, 247, 0.15);
+  }
+
+  /* Grid Background Pattern - CSS Alternative */
+  .grid-background {
+    background-image: linear-gradient(
+        rgba(168, 85, 247, 0.1) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        rgba(168, 85, 247, 0.1) 1px,
+        transparent 1px
+      );
+    background-size: 40px 40px;
+    background-position: -1px -1px;
+  }
+
+  .dark .grid-background {
+    background-color: #0A0A1F;
+  }
+
+  .light .grid-background {
+    background-color: #FAFBFC;
+    background-image: linear-gradient(
+        rgba(168, 85, 247, 0.05) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        rgba(168, 85, 247, 0.05) 1px,
+        transparent 1px
+      );
+  }
+
+  /* Custom Animations */
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 8px 32px rgba(168, 85, 247, 0.4);
+    }
+    50% {
+      opacity: 0.9;
+      box-shadow: 0 12px 40px rgba(168, 85, 247, 0.6);
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
+  }
+
+  /* Smooth scroll behavior for chat modal */
+  .modal-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}

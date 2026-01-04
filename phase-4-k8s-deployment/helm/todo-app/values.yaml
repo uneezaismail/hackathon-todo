@@ -1,0 +1,118 @@
+# Default values for todo-app Helm chart
+# This file provides production-ready defaults
+# Override with values-dev.yaml for local development
+
+# Application naming
+nameOverride: ""
+fullnameOverride: ""
+
+# Replica counts for horizontal scaling
+replicaCount:
+  frontend: 2
+  backend: 2
+
+# Container images
+image:
+  frontend:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  backend:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+# Service configuration
+service:
+  frontend:
+    type: NodePort
+    port: 3000
+    nodePort: 30300
+  backend:
+    type: NodePort
+    port: 8000
+    nodePort: 30301
+
+# Resource limits and requests
+resources:
+  frontend:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  backend:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# Health probe configuration
+healthProbes:
+  frontend:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  backend:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+# ConfigMap - Non-sensitive configuration
+config:
+  # Better Auth configuration
+  BETTER_AUTH_URL: "http://todo-frontend:3000"
+
+  # Service URLs (internal cluster communication)
+  FRONTEND_URL: "http://todo-frontend:3000"
+  BACKEND_URL: "http://todo-backend:8000"
+
+  # Public URLs (browser-accessible)
+  NEXT_PUBLIC_API_URL: "http://localhost:8000"
+  NEXT_PUBLIC_CHATKIT_URL: "http://localhost:8000/api/chatkit"
+
+  # LLM Provider configuration
+  LLM_PROVIDER: "openai"
+  OPENAI_DEFAULT_MODEL: "gpt-4o-mini"
+  GEMINI_DEFAULT_MODEL: "gemini-2.5-flash"
+  GROQ_DEFAULT_MODEL: "llama-3.3-70b-versatile"
+  OPENROUTER_DEFAULT_MODEL: "openai/gpt-4o-mini"
+
+  # Logging
+  LOG_LEVEL: "info"
+
+# Secrets - Sensitive credentials (set via --set or separate values file)
+# IMPORTANT: Never commit real secrets to version control
+# Use --set flags during deployment or environment-specific values files
+secrets:
+  # Database connection string
+  DATABASE_URL: ""
+
+  # JWT signing secret (minimum 32 characters)
+  BETTER_AUTH_SECRET: ""
+
+  # LLM API key
+  OPENAI_API_KEY: ""
+
+  # Cloudflare R2 credentials (optional)
+  CLOUDFLARE_R2_ACCOUNT_ID: ""
+  CLOUDFLARE_R2_ACCESS_KEY_ID: ""
+  CLOUDFLARE_R2_SECRET_ACCESS_KEY: ""
+  CLOUDFLARE_R2_BUCKET_NAME: ""
