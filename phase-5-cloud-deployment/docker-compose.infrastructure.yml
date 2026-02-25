@@ -1,0 +1,109 @@
+# Infrastructure-Only Docker Compose
+#
+# This file starts ONLY the infrastructure services (Kafka, Redis)
+# Backend, Frontend, and Microservices run directly for easier debugging
+#
+# Usage:
+#   docker-compose -f docker-compose.infrastructure.yml up -d
+#   docker-compose -f docker-compose.infrastructure.yml down
+
+version: '3.9'
+
+services:
+  # ==================== Infrastructure ====================
+
+  # Redis State Store (for event idempotency and caching)
+  redis:
+    image: redis:7-alpine
+    container_name: todo-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Kafka (Redpanda) - Event streaming
+  kafka:
+    image: docker.redpanda.com/vectorized/redpanda:v23.3.1
+    container_name: todo-kafka
+    ports:
+      - "9092:9092"        # Kafka broker
+      - "8082:8082"        # HTTP proxy (REST API)
+      - "9644:9644"        # Admin API
+    command:
+      - redpanda
+      - start
+      - --smp=1
+      - --memory=1G
+      - --overprovisioned
+      - --node-id=0
+      - --kafka-addr=internal://0.0.0.0:9093,external://0.0.0.0:9092
+      - --advertise-kafka-addr=internal://kafka:9093,external://localhost:9092
+      - --pandaproxy-addr=internal://0.0.0.0:8083,external://0.0.0.0:8082
+      - --advertise-pandaproxy-addr=internal://kafka:8083,external://localhost:8082
+      - --schema-registry-addr=internal://0.0.0.0:8081,external://0.0.0.0:8081
+      - --rpc-addr=kafka:33145
+      - --advertise-rpc-addr=kafka:33145
+    volumes:
+      - kafka-data:/var/lib/redpanda/data
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster health | grep -E 'Healthy:.+true' || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
+  # ==================== Optional Services ====================
+
+  # Kafka UI (optional - for debugging)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: todo-kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    depends_on:
+      kafka:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  # Redis Commander (optional - for debugging)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: todo-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: default:redis:6379
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - app-network
+
+# ==================== Networks ====================
+
+networks:
+  app-network:
+    driver: bridge
+
+# ==================== Volumes ====================
+
+volumes:
+  redis-data:
+    driver: local
+  kafka-data:
+    driver: local

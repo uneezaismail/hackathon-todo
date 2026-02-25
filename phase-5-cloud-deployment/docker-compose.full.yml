@@ -1,0 +1,439 @@
+# T093: Docker Compose Alternative for Local Development (Non-Kubernetes)
+#
+# Complete Phase V event-driven architecture without Kubernetes.
+# Useful for developers who prefer Docker Compose over Minikube.
+#
+# Services included:
+# - PostgreSQL database (Neon serverless alternative)
+# - Redis state store
+# - Kafka (Redpanda) event streaming
+# - Frontend (Next.js)
+# - Backend (FastAPI)
+# - Recurring Task Service
+# - Alert Service
+# - Notification Service
+# - Audit Service
+# - WebSocket Service
+#
+# Usage:
+#   docker-compose -f docker-compose.full.yml up --build    # Build and start all services
+#   docker-compose -f docker-compose.full.yml up -d         # Start in background
+#   docker-compose -f docker-compose.full.yml down          # Stop all services
+#   docker-compose -f docker-compose.full.yml logs -f backend  # View logs
+#
+# Note: Dapr is NOT used in this compose setup. Services communicate
+# directly via HTTP and Kafka. This is useful for quick local dev.
+
+services:
+  # ==================== Infrastructure ====================
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: todo-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER:-todo}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-todo-dev}
+      POSTGRES_DB: ${DB_NAME:-todo_db}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-todo}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Redis State Store (for event idempotency and caching)
+  redis:
+    image: redis:7-alpine
+    container_name: todo-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Kafka (Redpanda) - Event streaming
+  kafka:
+    image: docker.redpanda.com/redpandadata/redpanda:v24.2.4
+    container_name: todo-kafka
+    ports:
+      - "9092:9092"        # Kafka broker
+      - "8082:8082"        # HTTP proxy (REST API)
+      - "9644:9644"        # Admin API
+    environment:
+      REDPANDA_ADVERTISE_KAFKA_API_ADDRESSES: kafka:9092
+      REDPANDA_API_ADDRESSES: kafka:9644
+      REDPANDA_RPC_ADDRESSES: kafka:33145
+    volumes:
+      - kafka-data:/var/lib/redpanda/data
+    command:
+      - redpanda
+      - start
+      - --smp=1
+      - --memory=1G
+      - --overprovisioned
+      - --node-id=0
+      - --kafka-addr=0.0.0.0:9092
+      - --advertise-kafka-addr=kafka:9092
+      - --pandaproxy-addr=0.0.0.0:8082
+      - --advertise-pandaproxy-addr=kafka:8082
+    healthcheck:
+      test: ["CMD-SHELL", "rpk cluster info"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # ==================== Application Services ====================
+
+  # Backend Service (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: todo-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    environment:
+      # Database
+      DATABASE_URL: postgresql://${DB_USER:-todo}:${DB_PASSWORD:-todo-dev}@postgres:5432/${DB_NAME:-todo_db}?sslmode=disable
+      # Redis
+      REDIS_URL: redis://redis:6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      # Services
+      ENVIRONMENT: local
+      LOG_LEVEL: DEBUG
+      # Skip Dapr since we're using direct communication
+      SKIP_DAPR: "true"
+      # Better Auth
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-dev-secret-key-change-me}
+      # Frontend URL
+      FRONTEND_URL: http://localhost:3000
+      # CORS
+      CORS_ORIGINS: http://localhost:3000,http://frontend:3000
+      # Server
+      HOST: 0.0.0.0
+      PORT: 8000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    volumes:
+      - ./backend:/app/backend  # For development hot-reload
+
+  # Frontend Service (Next.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: todo-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      # API endpoints
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_CHATKIT_URL: http://localhost:8000/api/chatkit
+      # Better Auth
+      AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-dev-secret-key-change-me}
+      AUTH_BETTER_ID: ${AUTH_BETTER_ID:-local-better-auth-id}
+      AUTH_BETTER_SECRET: ${AUTH_BETTER_SECRET:-local-better-auth-secret}
+      # Server
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      # Next.js
+      NODE_ENV: development
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    volumes:
+      - ./frontend:/app/frontend  # For development hot-reload
+
+  # ==================== Phase V Microservices ====================
+
+  # Recurring Task Service
+  recurring-service:
+    build:
+      context: ./services/recurring-service
+      dockerfile: Dockerfile
+    container_name: todo-recurring-service
+    ports:
+      - "8001:8001"
+    environment:
+      # Service
+      SERVICE_NAME: recurring-service
+      LOG_LEVEL: DEBUG
+      ENVIRONMENT: local
+      PORT: 8001
+      HOST: 0.0.0.0
+      # Database
+      DATABASE_URL: postgresql://${DB_USER:-todo}:${DB_PASSWORD:-todo-dev}@postgres:5432/${DB_NAME:-todo_db}?sslmode=disable
+      # Redis
+      REDIS_URL: redis://redis:6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CONSUMER_GROUP: recurring-service-group
+      # Backend service
+      BACKEND_URL: http://backend:8000
+      # Skip Dapr
+      SKIP_DAPR: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Alert Service
+  alert-service:
+    build:
+      context: ./services/alert-service
+      dockerfile: Dockerfile
+    container_name: todo-alert-service
+    ports:
+      - "8002:8002"
+    environment:
+      # Service
+      SERVICE_NAME: alert-service
+      LOG_LEVEL: DEBUG
+      ENVIRONMENT: local
+      PORT: 8002
+      HOST: 0.0.0.0
+      # Database
+      DATABASE_URL: postgresql://${DB_USER:-todo}:${DB_PASSWORD:-todo-dev}@postgres:5432/${DB_NAME:-todo_db}?sslmode=disable
+      # Redis
+      REDIS_URL: redis://redis:6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CONSUMER_GROUP: alert-service-group
+      # Backend service
+      BACKEND_URL: http://backend:8000
+      # Skip Dapr
+      SKIP_DAPR: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: todo-notification-service
+    ports:
+      - "8003:8003"
+    environment:
+      # Service
+      SERVICE_NAME: notification-service
+      LOG_LEVEL: DEBUG
+      ENVIRONMENT: local
+      PORT: 8003
+      HOST: 0.0.0.0
+      # Database
+      DATABASE_URL: postgresql://${DB_USER:-todo}:${DB_PASSWORD:-todo-dev}@postgres:5432/${DB_NAME:-todo_db}?sslmode=disable
+      # Redis
+      REDIS_URL: redis://redis:6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CONSUMER_GROUP: notification-service-group
+      # Email config (optional)
+      SMTP_HOST: ${SMTP_HOST:-localhost}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      NOTIFICATION_FROM_EMAIL: ${NOTIFICATION_FROM_EMAIL:-noreply@todo.local}
+      # Skip Dapr
+      SKIP_DAPR: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # Audit Service
+  audit-service:
+    build:
+      context: ./services/audit-service
+      dockerfile: Dockerfile
+    container_name: todo-audit-service
+    ports:
+      - "8004:8004"
+    environment:
+      # Service
+      SERVICE_NAME: audit-service
+      LOG_LEVEL: DEBUG
+      ENVIRONMENT: local
+      PORT: 8004
+      HOST: 0.0.0.0
+      # Database
+      DATABASE_URL: postgresql://${DB_USER:-todo}:${DB_PASSWORD:-todo-dev}@postgres:5432/${DB_NAME:-todo_db}?sslmode=disable
+      # Redis
+      REDIS_URL: redis://redis:6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CONSUMER_GROUP: audit-service-group
+      # Skip Dapr
+      SKIP_DAPR: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # WebSocket Service
+  websocket-service:
+    build:
+      context: ./services/websocket-service
+      dockerfile: Dockerfile
+    container_name: todo-websocket-service
+    ports:
+      - "8005:8005"
+    environment:
+      # Service
+      SERVICE_NAME: websocket-service
+      LOG_LEVEL: DEBUG
+      ENVIRONMENT: local
+      PORT: 8005
+      HOST: 0.0.0.0
+      # Database
+      DATABASE_URL: postgresql://${DB_USER:-todo}:${DB_PASSWORD:-todo-dev}@postgres:5432/${DB_NAME:-todo_db}?sslmode=disable
+      # Redis
+      REDIS_URL: redis://redis:6379
+      # Kafka
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_CONSUMER_GROUP: websocket-service-group
+      # Skip Dapr
+      SKIP_DAPR: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8005/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  # ==================== Optional Services ====================
+
+  # Kafka UI (optional - for debugging)
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: todo-kafka-ui
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: ""
+    depends_on:
+      - kafka
+    networks:
+      - app-network
+
+  # Redis Commander (optional - for debugging)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: todo-redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      REDIS_HOSTS: default:redis:6379
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+# ==================== Networks ====================
+
+networks:
+  app-network:
+    driver: bridge
+
+# ==================== Volumes ====================
+
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  kafka-data:
+    driver: local

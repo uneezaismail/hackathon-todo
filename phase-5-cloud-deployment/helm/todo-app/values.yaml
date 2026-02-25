@@ -1,0 +1,351 @@
+# Default values for todo-app Helm chart
+# This file provides production-ready defaults
+# Override with values-dev.yaml for local development
+
+# Application naming
+nameOverride: ""
+fullnameOverride: ""
+
+# Replica counts for horizontal scaling
+replicaCount:
+  frontend: 2
+  backend: 2
+  # Phase V Microservices
+  recurringService: 1
+  alertService: 1
+  notificationService: 1
+  auditService: 1
+  websocketService: 1
+
+# Container images
+image:
+  frontend:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  backend:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  # Phase V Microservices
+  recurringService:
+    repository: recurring-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  alertService:
+    repository: alert-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  notificationService:
+    repository: notification-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  auditService:
+    repository: audit-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  websocketService:
+    repository: websocket-service
+    tag: latest
+    pullPolicy: IfNotPresent
+
+# Service configuration
+service:
+  frontend:
+    type: NodePort
+    port: 3000
+    nodePort: 30300
+  backend:
+    type: NodePort
+    port: 8000
+    nodePort: 30301
+  # Phase V Microservices (ClusterIP for internal communication)
+  recurringService:
+    type: ClusterIP
+    port: 8001
+  alertService:
+    type: ClusterIP
+    port: 8002
+  notificationService:
+    type: ClusterIP
+    port: 8003
+  websocketService:
+    type: ClusterIP
+    port: 8004
+  auditService:
+    type: ClusterIP
+    port: 8005
+
+# Resource limits and requests
+resources:
+  frontend:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  backend:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # Phase V Microservices
+  recurringService:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  alertService:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  notificationService:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  auditService:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  websocketService:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+# Health probe configuration
+healthProbes:
+  frontend:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  backend:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  # Phase V Microservices
+  recurringService:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  alertService:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  notificationService:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  auditService:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+  websocketService:
+    liveness:
+      initialDelaySeconds: 30
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readiness:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+# ConfigMap - Non-sensitive configuration
+config:
+  # Better Auth configuration
+  BETTER_AUTH_URL: "http://todo-frontend:3000"
+
+  # Service URLs (internal cluster communication)
+  FRONTEND_URL: "http://todo-frontend:3000"
+  BACKEND_URL: "http://todo-backend:8000"
+
+  # Public URLs (browser-accessible)
+  NEXT_PUBLIC_API_URL: "http://localhost:8000"
+  NEXT_PUBLIC_CHATKIT_URL: "http://localhost:8000/api/chatkit"
+
+  # LLM Provider configuration
+  LLM_PROVIDER: "openai"
+  OPENAI_DEFAULT_MODEL: "gpt-4o-mini"
+  GEMINI_DEFAULT_MODEL: "gemini-2.5-flash"
+  GROQ_DEFAULT_MODEL: "llama-3.3-70b-versatile"
+  OPENROUTER_DEFAULT_MODEL: "openai/gpt-4o-mini"
+
+  # Logging
+  LOG_LEVEL: "info"
+
+  # Phase V: Dapr Configuration
+  DAPR_HTTP_PORT: "3500"
+  DAPR_GRPC_PORT: "50001"
+  PUBSUB_NAME: "kafka-pubsub"
+  STATE_STORE_NAME: "statestore"
+  SECRETS_STORE_NAME: "kubernetes-secrets"
+
+  # Phase V: Kafka Configuration
+  kafkaBrokers: "kafka:9092"
+
+  # Phase V: Redis Configuration
+  redisHost: "redis-master"
+  redisPort: "6379"
+
+  # Phase V: SMTP Configuration (for notification service)
+  SMTP_HOST: "smtp.gmail.com"
+  SMTP_PORT: "587"
+
+# Secrets - Sensitive credentials (set via --set or separate values file)
+# IMPORTANT: Never commit real secrets to version control
+# Use --set flags during deployment or environment-specific values files
+secrets:
+  # Database connection string
+  DATABASE_URL: ""
+
+  # JWT signing secret (minimum 32 characters)
+  BETTER_AUTH_SECRET: ""
+
+  # LLM API keys (choose one based on LLM_PROVIDER)
+  OPENAI_API_KEY: ""
+  GEMINI_API_KEY: ""
+  GROQ_API_KEY: ""
+  OPENROUTER_API_KEY: ""
+
+  # Phase V: SMTP Credentials (for notification service)
+  SMTP_USER: ""
+  SMTP_PASSWORD: ""
+  FROM_EMAIL: ""
+
+  # Cloudflare R2 credentials (optional)
+  CLOUDFLARE_R2_ACCOUNT_ID: ""
+  CLOUDFLARE_R2_ACCESS_KEY_ID: ""
+  CLOUDFLARE_R2_SECRET_ACCESS_KEY: ""
+  CLOUDFLARE_R2_BUCKET_NAME: ""
+
+# Phase V: Dapr Configuration
+dapr:
+  enabled: true
+  mtls:
+    enabled: true
+  tracing:
+    samplingRate: "1"
+    zipkinEndpoint: "http://zipkin:9411/api/v2/spans"
+  logging:
+    level: "info"
+    apiLoggingLevel: "info"
+  accessControl:
+    enabled: false
+    defaultAction: "allow"
+
+# Ingress configuration (optional, disabled by default)
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: todo-app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+          port: 3000
+        - path: /api
+          pathType: Prefix
+          service: backend
+          port: 8000
+  tls:
+    - secretName: todo-app-tls
+      hosts:
+        - todo-app.example.com
+
+# Horizontal Pod Autoscaler (HPA) configuration
+autoscaling:
+  enabled: false
+  backend:
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  frontend:
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+    targetMemoryUtilizationPercentage: 80
+  # Phase V Microservices
+  recurringService:
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  alertService:
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  notificationService:
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  auditService:
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+  websocketService:
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80

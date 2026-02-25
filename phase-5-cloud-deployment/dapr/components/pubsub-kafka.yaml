@@ -1,0 +1,85 @@
+# Dapr Pub/Sub Component - Apache Kafka
+# Phase V Event-Driven Architecture
+#
+# This component enables event-driven communication between services
+# via Kafka topics. Dapr abstracts Kafka client complexity.
+#
+# Topics:
+#   - task-events: Task CRUD events (completed, created, deleted)
+#   - alert-events: Alert lifecycle events (scheduled, fired, cancelled)
+#   - reminders: Scheduled reminder triggers from Dapr Jobs
+#
+# Usage in Python:
+#   POST http://localhost:3500/v1.0/publish/kafka-pubsub/task-events
+#   Body: {"event_type": "task.completed", "user_id": "...", ...}
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    # Kafka broker addresses (comma-separated for multiple brokers)
+    - name: brokers
+      value: "kafka:9092"
+
+    # Consumer group ID for this service
+    - name: consumerGroup
+      value: "todo-service-group"
+
+    # Authentication (SASL/PLAIN for cloud Kafka like Confluent)
+    # Uncomment for production with Confluent Cloud
+    # - name: authType
+    #   value: "password"
+    # - name: saslUsername
+    #   secretKeyRef:
+    #     name: kafka-credentials
+    #     key: username
+    # - name: saslPassword
+    #   secretKeyRef:
+    #     name: kafka-credentials
+    #     key: password
+
+    # Retry configuration
+    - name: maxRetries
+      value: "3"
+    - name: maxRetryBackoff
+      value: "30s"
+    - name: initialOffset
+      value: "oldest"
+
+    # Consumer settings
+    - name: consumeRetryInterval
+      value: "100ms"
+    - name: consumeRetryEnabled
+      value: "true"
+
+    # Producer settings (for exactly-once semantics)
+    - name: disableTls
+      value: "true"  # Set to "false" in production
+
+    # Dead Letter Queue configuration (T062)
+    # Failed messages from task-events topic go to task-events-dlq
+    # Failed messages from alert-events topic go to alert-events-dlq
+    # Failed messages from reminders topic go to reminders-dlq
+    #
+    # After max retries exceeded, messages are sent to DLQ for investigation
+    - name: deadLetterTopic
+      value: "dlq-task-events"
+
+    # Alternative: Use per-topic DLQ configuration in separate component configs
+
+# Subscription routing for services
+# Each service declares subscriptions via POST /dapr/subscribe endpoint
+#
+# Example subscription response from backend service:
+# [
+#   {
+#     "pubsubname": "kafka-pubsub",
+#     "topic": "task-events",
+#     "route": "/api/events/task-events"
+#   }
+# ]

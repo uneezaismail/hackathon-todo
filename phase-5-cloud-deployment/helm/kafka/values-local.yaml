@@ -1,0 +1,280 @@
+# T088: Local Kafka Deployment Values using Redpanda
+#
+# This Helm values file configures Kafka for local development using Redpanda,
+# a Kafka-compatible event streaming platform optimized for local development.
+#
+# Redpanda advantages for local dev:
+# - Single-node deployment
+# - Minimal resource requirements
+# - In-memory mode available
+# - Direct Kafka wire protocol compatibility
+# - Built-in admin API
+#
+# Usage: helm install kafka redpanda/redpanda -f values-local.yaml --namespace kafka --create-namespace
+
+# Redpanda Helm Chart Configuration
+nameOverride: ""
+fullnameOverride: ""
+
+# Enable Redpanda StatefulSet
+enabled: true
+
+# Cluster Configuration
+clusterDomain: cluster.local
+
+# Redpanda Container Configuration
+image:
+  repository: docker.redpanda.com/redpanda
+  tag: "v23.3.1"  # Latest stable
+  pullPolicy: IfNotPresent
+
+# Resources for local development (minimal)
+resources:
+  cpu:
+    cores: 1
+  memory:
+    container:
+      max: 2Gi
+
+# Storage Configuration (local development)
+storage:
+  persistentVolume:
+    enabled: true
+    size: 5Gi
+    storageClass: standard
+    labels: {}
+    annotations: {}
+
+# Replicas (1 for local development)
+replicas: 1
+
+# Network Configuration
+external:
+  enabled: true
+  type: NodePort
+  domain: localhost
+  addresses:
+    - localhost:31092
+
+# Listeners Configuration
+listeners:
+  kafka:
+    enabled: true
+    port: 9092
+    tls:
+      enabled: false
+  admin:
+    enabled: true
+    port: 9644
+    tls:
+      enabled: false
+  http:
+    enabled: true
+    port: 8082
+
+# Security
+auth:
+  enabled: false  # SASL disabled for local dev
+
+# Logging
+logging:
+  logLevel: info  # Use 'debug' for troubleshooting
+
+# Metrics
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+
+# JVM Configuration
+jvm:
+  heapMinBytes: 256M
+  heapMaxBytes: 512M
+
+# SchemaRegistry (optional, useful for local dev)
+schemaRegistry:
+  enabled: false  # Disabled by default
+
+# Console UI (optional, useful for testing)
+console:
+  enabled: false  # Disabled by default
+
+# Rack awareness (disabled for single node)
+rackAwareness:
+  enabled: false
+
+---
+# Alternative: Minimal Strimzi Kafka Chart Configuration
+# If using Strimzi Kafka Helm chart instead of Redpanda
+# Uncomment this section for Strimzi deployment
+
+# apiVersion: kafka.strimzi.io/v1beta2
+# kind: Kafka
+# metadata:
+#   name: local-kafka
+# spec:
+#   kafka:
+#     version: 3.5.0
+#     replicas: 1
+#     resources:
+#       requests:
+#         cpu: 500m
+#         memory: 1Gi
+#       limits:
+#         cpu: 1000m
+#         memory: 2Gi
+#     storage:
+#       type: ephemeral
+#     listeners:
+#       - name: plain
+#         port: 9092
+#         type: internal
+#         tls: false
+#       - name: external
+#         port: 9093
+#         type: nodeport
+#         tls: false
+#     config:
+#       offsets.topic.replication.factor: 1
+#       transaction.state.log.replication.factor: 1
+#       transaction.state.log.min.isr: 1
+#       log.retention.hours: 168  # 7 days for local development
+#       log.retention.bytes: -1   # Unlimited
+#       num.network.threads: 8
+#       num.io.threads: 8
+#       socket.send.buffer.bytes: 102400
+#       socket.receive.buffer.bytes: 102400
+#       socket.request.max.bytes: 104857600
+#   zookeeper:
+#     replicas: 1
+#     resources:
+#       requests:
+#         cpu: 250m
+#         memory: 512Mi
+#       limits:
+#         cpu: 500m
+#         memory: 1Gi
+#     storage:
+#       type: ephemeral
+#   entityOperator:
+#     topicOperator: {}
+#     userOperator: {}
+
+---
+# Kafka Topic Configuration (applied after Kafka cluster is running)
+# These topics are required by the Phase V application
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-topics-config
+  namespace: kafka
+data:
+  create-topics.sh: |
+    #!/bin/bash
+    # Script to create required Kafka topics
+
+    KAFKA_BROKERS=${KAFKA_BROKERS:-localhost:9092}
+
+    # Required topics for Phase V
+    declare -a TOPICS=(
+      "task-events:12:1"              # 12 partitions, 1 replica
+      "reminders:12:1"                # Reminder scheduling events
+      "task-updates:12:1"             # Real-time task updates
+      "dlq-task-events:12:1"          # Dead letter queue
+      "dlq-reminders:12:1"            # DLQ for reminders
+      "dlq-task-updates:12:1"         # DLQ for updates
+    )
+
+    echo "Creating Kafka topics..."
+
+    for topic_spec in "${TOPICS[@]}"; do
+      IFS=':' read -r topic partitions replicas <<< "$topic_spec"
+
+      echo "Creating topic: $topic (partitions=$partitions, replicas=$replicas)"
+
+      # Use Redpanda console or rpk if available
+      if command -v rpk &> /dev/null; then
+        rpk topic create "$topic" \
+          --brokers="$KAFKA_BROKERS" \
+          --partitions="$partitions" \
+          --replication-factor="$replicas" \
+          --config retention.ms=604800000  # 7 days
+      else
+        # Fallback: try kafka-topics script
+        kafka-topics --create \
+          --bootstrap-server "$KAFKA_BROKERS" \
+          --topic "$topic" \
+          --partitions "$partitions" \
+          --replication-factor "$replicas" \
+          --config retention.ms=604800000 \
+          --if-not-exists || true
+      fi
+    done
+
+    echo "Topics created successfully!"
+
+    # List created topics
+    if command -v rpk &> /dev/null; then
+      rpk topic list --brokers="$KAFKA_BROKERS"
+    else
+      kafka-topics --list --bootstrap-server "$KAFKA_BROKERS"
+    fi
+
+---
+# Service to expose Kafka locally
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-external
+  namespace: kafka
+spec:
+  type: NodePort
+  ports:
+    - name: kafka
+      port: 9092
+      targetPort: 9092
+      nodePort: 31092  # Fixed NodePort for local access
+  selector:
+    app.kubernetes.io/name: redpanda
+
+---
+# Ingress configuration for local development (optional)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kafka-admin
+  namespace: kafka
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+    - host: kafka-admin.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: kafka-admin
+                port:
+                  number: 9644
+
+---
+# Kafka monitoring (Prometheus scrape config)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-prometheus-config
+  namespace: kafka
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    scrape_configs:
+      - job_name: 'kafka'
+        static_configs:
+          - targets: ['localhost:9644']
+        metrics_path: '/metrics'

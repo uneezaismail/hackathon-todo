@@ -1,0 +1,398 @@
+# T090: Local Helm Values for Minikube Development
+#
+# Optimized for local development with:
+# - Single-node Minikube cluster
+# - Reduced resource requests/limits
+# - NodePort service exposure
+# - No TLS/ingress (direct access)
+# - Debug logging enabled
+# - Disabled mTLS for faster iteration
+#
+# Usage: helm install todo-app ./helm/todo-app -f values-local.yaml
+
+global:
+  environment: local
+  imagePullPolicy: IfNotPresent
+  # Docker registry (local - no prefix needed for minikube)
+  imageRegistry: ""
+
+# Namespace configuration
+namespace: default
+
+# Backend Service Configuration
+backend:
+  name: backend
+  replicas: 1  # Single replica for local dev
+  port: 8000
+
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # NodePort for direct local access
+  service:
+    type: NodePort
+    port: 8000
+    nodePort: 30301
+
+  # Minimal resources for local development
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Dapr Sidecar Configuration
+  dapr:
+    enabled: true
+    app_id: backend
+    app_port: 8000
+    config: dapr-config-local
+    log_level: debug  # Debug logging for local dev
+    enable_mtls: false  # Disabled for local dev
+
+  # Health checks with longer initial delays for local dev
+  livenessProbe:
+    httpGet:
+      path: /health/live
+      port: 8000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 5
+    timeoutSeconds: 5
+
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    failureThreshold: 5
+    timeoutSeconds: 3
+
+# Frontend Service Configuration
+frontend:
+  name: frontend
+  replicas: 1
+  port: 3000
+
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # NodePort for direct local access
+  service:
+    type: NodePort
+    port: 3000
+    nodePort: 30300
+
+  # Minimal resources for local development
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+  # Health checks
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3000
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 5
+    timeoutSeconds: 5
+
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 3000
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    failureThreshold: 5
+    timeoutSeconds: 3
+
+# Recurring Task Service
+recurringService:
+  name: recurring-service
+  replicas: 1
+  port: 8001
+
+  image:
+    repository: recurring-service
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8001
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  dapr:
+    enabled: true
+    app_id: recurring-service
+    app_port: 8001
+    config: dapr-config-local
+    log_level: debug
+    enable_mtls: false
+
+  livenessProbe:
+    httpGet:
+      path: /health/live
+      port: 8001
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    failureThreshold: 5
+
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 8001
+    initialDelaySeconds: 30
+    periodSeconds: 5
+    failureThreshold: 5
+
+# Alert Service
+alertService:
+  name: alert-service
+  replicas: 1
+  port: 8002
+
+  image:
+    repository: alert-service
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8002
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  dapr:
+    enabled: true
+    app_id: alert-service
+    app_port: 8002
+    config: dapr-config-local
+    log_level: debug
+    enable_mtls: false
+
+# Notification Service
+notificationService:
+  name: notification-service
+  replicas: 1
+  port: 8003
+
+  image:
+    repository: notification-service
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8003
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  dapr:
+    enabled: true
+    app_id: notification-service
+    app_port: 8003
+    config: dapr-config-local
+    log_level: debug
+    enable_mtls: false
+
+# Audit Service
+auditService:
+  name: audit-service
+  replicas: 1
+  port: 8004
+
+  image:
+    repository: audit-service
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8004
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  dapr:
+    enabled: true
+    app_id: audit-service
+    app_port: 8004
+    config: dapr-config-local
+    log_level: debug
+    enable_mtls: false
+
+# WebSocket Service
+websocketService:
+  name: websocket-service
+  replicas: 1
+  port: 8005
+
+  image:
+    repository: websocket-service
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8005
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  dapr:
+    enabled: true
+    app_id: websocket-service
+    app_port: 8005
+    config: dapr-config-local
+    log_level: debug
+    enable_mtls: false
+
+# Configuration
+config:
+  # Environment variables for all services
+  env:
+    - name: ENVIRONMENT
+      value: "local"
+    - name: LOG_LEVEL
+      value: "DEBUG"
+    - name: DAPR_HTTP_PORT
+      value: "3500"
+    - name: KAFKA_BROKERS
+      value: "kafka:9092"
+    - name: REDIS_HOST
+      value: "redis"
+    - name: REDIS_PORT
+      value: "6379"
+
+# Storage
+storage:
+  # Use default storage class
+  storageClass: ""
+  size: 1Gi
+
+# Dapr Configuration
+dapr:
+  enabled: true
+  namespace: default
+  mtls:
+    enabled: false  # Disabled for local dev
+  logging:
+    level: debug  # Debug logging
+  metrics:
+    enabled: true
+    port: 9090
+
+# Network policies
+networkPolicy:
+  enabled: false  # Disabled for local dev
+
+# Ingress (disabled for local NodePort access)
+ingress:
+  enabled: false
+
+# No TLS for local development
+tls:
+  enabled: false
+
+# Pod Security
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+
+# Resource limits for entire namespace
+namespaceQuotas:
+  enabled: false
+
+# Autoscaling (disabled for local dev)
+autoscaling:
+  enabled: false
+
+# Node affinity (none for local dev)
+affinity: {}
+
+# Tolerations (none for local dev)
+tolerations: []
+
+# Topology spread (disabled for local)
+topologySpreadConstraints: []
+
+# Image pull secrets (not needed locally)
+imagePullSecrets: []
+
+# Service Account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# RBAC
+rbac:
+  create: true
+
+# Monitoring (disabled by default)
+monitoring:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+
+# Logging (disabled by default)
+logging:
+  enabled: false
+  driver: json-file
+
+# Local development-specific settings
+local:
+  # Enable hotreload for backend
+  hotReload: true
+  # Use local docker images
+  useLocalImages: true
+  # Log verbosity
+  verboseLogging: true
+  # Keep pods for debugging
+  keepFailedPods: false

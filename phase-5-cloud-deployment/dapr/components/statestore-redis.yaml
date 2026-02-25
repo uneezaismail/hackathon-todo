@@ -1,0 +1,72 @@
+# Dapr State Store Component - Redis
+# Phase V Event-Driven Architecture
+#
+# This component enables distributed state management for:
+#   - Idempotency keys (prevent duplicate event processing)
+#   - Conversation state (chat history cache)
+#   - Distributed locks (if needed)
+#
+# Usage in Python:
+#   # Save state
+#   POST http://localhost:3500/v1.0/state/statestore
+#   Body: [{"key": "event-processed-{event_id}", "value": {"processed": true}}]
+#
+#   # Get state
+#   GET http://localhost:3500/v1.0/state/statestore/{key}
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: default
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+    # Redis connection settings
+    - name: redisHost
+      value: "redis:6379"
+
+    # Password (use Kubernetes secret in production)
+    - name: redisPassword
+      value: ""
+    # Uncomment for production:
+    # - name: redisPassword
+    #   secretKeyRef:
+    #     name: redis-credentials
+    #     key: password
+
+    # TLS settings (enable in production)
+    - name: enableTLS
+      value: "false"
+
+    # Key prefix for namespace isolation
+    - name: keyPrefix
+      value: "todo"
+
+    # TTL for idempotency keys (24 hours)
+    # Events older than this can be reprocessed
+    - name: actorStateStore
+      value: "false"
+
+    # Consistency settings
+    # "strong" = linearizable reads/writes
+    # "eventual" = faster but may read stale data
+    - name: queryIndexes
+      value: ""
+
+    # Connection pool settings
+    - name: maxRetries
+      value: "5"
+    - name: maxRetryBackoff
+      value: "30s"
+    - name: failover
+      value: "false"
+
+    # Database number (0-15)
+    - name: redisDB
+      value: "0"
+
+# State TTL can be set per key via metadata:
+# POST /v1.0/state/statestore
+# Body: [{"key": "key1", "value": "...", "metadata": {"ttlInSeconds": "86400"}}]

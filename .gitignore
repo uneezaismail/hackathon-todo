@@ -21,6 +21,7 @@ wheels/
 MANIFEST
 .mcp.json
 
+
 # Virtual environments
 .venv/
 venv/
@@ -67,3 +68,10 @@ Thumbs.db
 *.db
 *.db-shm
 *.db-wal
+
+reference-phase-5
+summaries
+
+# Backup env files with real secrets
+*.env.cloud-backup
+.env.cloud-backup

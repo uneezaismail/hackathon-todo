@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-app.fullname" . }}-notification-service
+  labels:
+    {{- include "todo-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: notification-service
+spec:
+  replicas: {{ .Values.replicaCount.notificationService | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "todo-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: notification-service
+  template:
+    metadata:
+      labels:
+        {{- include "todo-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: notification-service
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "notification-service"
+        dapr.io/app-port: "8003"
+        dapr.io/config: "dapr-config"
+        dapr.io/log-level: "info"
+        dapr.io/log-as-json: "true"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: notification-service
+        image: "{{ .Values.image.notificationService.repository }}:{{ .Values.image.notificationService.tag }}"
+        imagePullPolicy: {{ .Values.image.notificationService.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8003
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          initialDelaySeconds: {{ .Values.healthProbes.notificationService.liveness.initialDelaySeconds | default 30 }}
+          periodSeconds: {{ .Values.healthProbes.notificationService.liveness.periodSeconds | default 15 }}
+          timeoutSeconds: {{ .Values.healthProbes.notificationService.liveness.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.healthProbes.notificationService.liveness.failureThreshold | default 3 }}
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: {{ .Values.healthProbes.notificationService.readiness.initialDelaySeconds | default 10 }}
+          periodSeconds: {{ .Values.healthProbes.notificationService.readiness.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.healthProbes.notificationService.readiness.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.healthProbes.notificationService.readiness.failureThreshold | default 3 }}
+        resources:
+          limits:
+            cpu: {{ .Values.resources.notificationService.limits.cpu | default "500m" }}
+            memory: {{ .Values.resources.notificationService.limits.memory | default "512Mi" }}
+          requests:
+            cpu: {{ .Values.resources.notificationService.requests.cpu | default "100m" }}
+            memory: {{ .Values.resources.notificationService.requests.memory | default "256Mi" }}
+        envFrom:
+        - configMapRef:
+            name: {{ include "todo-app.fullname" . }}-config
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: DATABASE_URL
+        - name: BETTER_AUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: BETTER_AUTH_SECRET
+        - name: SMTP_HOST
+          value: {{ .Values.config.SMTP_HOST | default "smtp.gmail.com" | quote }}
+        - name: SMTP_PORT
+          value: {{ .Values.config.SMTP_PORT | default "587" | quote }}
+        - name: SMTP_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: SMTP_USER
+              optional: true
+        - name: SMTP_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: SMTP_PASSWORD
+              optional: true
+        - name: FROM_EMAIL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: FROM_EMAIL
+              optional: true
+        - name: DAPR_HTTP_PORT
+          value: "3500"
+        - name: PUBSUB_NAME
+          value: "kafka-pubsub"
+        - name: STATE_STORE_NAME
+          value: "statestore"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false

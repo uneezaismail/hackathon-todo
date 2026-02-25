@@ -1,0 +1,25 @@
+# Dapr Subscription Configuration for Recurring Task Service (Phase V - T036)
+# Subscribes to task-events topic and filters for task.completed events
+
+apiVersion: dapr.io/v1alpha1
+kind: Subscription
+metadata:
+  name: recurring-task-subscription
+  namespace: default
+spec:
+  pubsubname: kafka-pubsub
+  topic: task-events
+  route: /api/events/task-events
+  scopes:
+    - recurring-task-service
+  metadata:
+    # Raw payload disabled - Dapr wraps in CloudEvents format
+    rawPayload: "false"
+    # Consumer group for Kafka
+    consumerGroup: recurring-task-service-consumer
+    # Maximum retries before DLQ
+    maxRetries: "3"
+    # Retry backoff duration
+    backoffDuration: "5s"
+    # DLQ topic for failed events
+    deadLetterTopic: "dlq-task-events"

@@ -1,0 +1,226 @@
+# Zipkin Deployment (T083)
+# Distributed tracing for microservices
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: zipkin
+  labels:
+    name: zipkin
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: zipkin
+  namespace: zipkin
+  labels:
+    app: zipkin
+spec:
+  selector:
+    app: zipkin
+  ports:
+    - name: http
+      port: 9411
+      targetPort: 9411
+      protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zipkin-config
+  namespace: zipkin
+data:
+  STORAGE_TYPE: "elasticsearch"
+  ES_HOSTS: "elasticsearch:9200"
+  QUERY_LOG_LEVEL: "debug"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zipkin
+  namespace: zipkin
+  labels:
+    app: zipkin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zipkin
+  template:
+    metadata:
+      labels:
+        app: zipkin
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9411"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: zipkin
+          image: openzipkin/zipkin:latest
+          ports:
+            - containerPort: 9411
+              name: http
+              protocol: TCP
+          env:
+            - name: STORAGE_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: zipkin-config
+                  key: STORAGE_TYPE
+            - name: ES_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  name: zipkin-config
+                  key: ES_HOSTS
+            - name: QUERY_LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: zipkin-config
+                  key: QUERY_LOG_LEVEL
+            - name: JAVA_OPTS
+              value: "-Xms256m -Xmx512m"
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9411
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+
+---
+# Ingress for Zipkin UI
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zipkin-ingress
+  namespace: zipkin
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+    - hosts:
+        - zipkin.example.com
+      secretName: zipkin-tls
+  rules:
+    - host: zipkin.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: zipkin
+                port:
+                  number: 9411
+
+---
+# Network Policy for Zipkin
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: zipkin-network-policy
+  namespace: zipkin
+spec:
+  podSelector:
+    matchLabels:
+      app: zipkin
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: todo
+      ports:
+        - protocol: TCP
+          port: 9411
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 9411
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: elasticsearch
+      ports:
+        - protocol: TCP
+          port: 9200
+    - to:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
+
+---
+# HPA for Zipkin
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: zipkin-hpa
+  namespace: zipkin
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: zipkin
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+# ServiceMonitor for Prometheus scraping (if Prometheus Operator is installed)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: zipkin
+  namespace: zipkin
+  labels:
+    app: zipkin
+spec:
+  selector:
+    matchLabels:
+      app: zipkin
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
