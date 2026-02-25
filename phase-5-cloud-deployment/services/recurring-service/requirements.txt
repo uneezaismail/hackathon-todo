@@ -1,0 +1,17 @@
+# Recurring Task Service Requirements (Phase V - T034)
+
+# Core Framework
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# HTTP Client
+httpx>=0.25.0
+
+# RRULE Pattern Support
+python-dateutil>=2.8.2
+
+# Optional: Async Support
+aiofiles>=23.2.0
+
+# Optional: Structured Logging
+python-json-logger>=2.0.7

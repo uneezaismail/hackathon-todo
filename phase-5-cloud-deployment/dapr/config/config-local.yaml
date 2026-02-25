@@ -1,0 +1,346 @@
+"""
+T091: Dapr Local Configuration
+File: dapr/config/config-local.yaml
+
+Dapr runtime configuration for local development environment.
+Optimized for Minikube with:
+- Debug logging enabled
+- mTLS disabled for faster iteration
+- Metrics collection enabled
+- Tracing to local Zipkin (optional)
+- API token authentication disabled
+- Increased timeouts for local network
+"""
+
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: dapr-config-local
+spec:
+  # API Authorization (disabled for local dev)
+  api:
+    allowed:
+      - name: "*"
+        version: "*"
+
+  # Application Insights (disabled for local)
+  appInsights:
+    enabled: false
+
+  # Distributed Tracing (optional - enable if Zipkin is running)
+  tracing:
+    samplingRate: "1"  # 100% sampling for local dev
+    zipkin:
+      endpointAddress: "http://zipkin:9411/api/v2/spans"
+
+  # Metrics (enabled for local observability)
+  metrics:
+    enabled: true
+    port: 9090
+
+  # mTLS (disabled for local dev - speeds up iteration)
+  mtls:
+    enabled: false
+
+  # Logging (debug level for local dev)
+  logging:
+    level: debug
+    apiLoggingEnabled: true
+
+  # Request size limits
+  sidecar:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+    # Increased timeouts for local network
+    readOnlyRootFilesystem: false
+    runAsNonRoot: false
+    env:
+      - name: DAPR_LOG_LEVEL
+        value: "debug"
+      - name: DAPR_API_LISTEN_ADDRESSES
+        value: "[::]:3500"
+      - name: DAPR_INTERNAL_GRPC_PORT
+        value: "50001"
+      - name: DAPR_PROFILE_PORT
+        value: "7777"
+      - name: DAPR_GRACEFUL_SHUTDOWN_SECONDS
+        value: "10"
+      # Increase timeouts
+      - name: DAPR_HTTP_TIMEOUT_SECONDS
+        value: "30"
+      - name: DAPR_READ_TIMEOUT_SECONDS
+        value: "30"
+      - name: DAPR_WRITE_TIMEOUT_SECONDS
+        value: "30"
+
+  # Features (all enabled for local testing)
+  features:
+    - name: StateStoreCache
+      enabled: true
+    - name: ServiceInvocationStreaming
+      enabled: true
+    - name: AsyncAPISpec
+      enabled: true
+
+---
+# Dapr Component: Pub/Sub (Kafka) for local
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: "kafka:9092"
+    - name: consumerGroup
+      value: "todo-service"
+    - name: clientID
+      value: "todo-dapr-client"
+    - name: maxRetries
+      value: "3"
+    - name: maxRetryBackoff
+      value: "30s"
+    # SASL disabled for local
+    - name: saslUsername
+      value: ""
+    - name: saslPassword
+      value: ""
+    - name: saslType
+      value: "none"
+    # TLS disabled for local
+    - name: tlsEnabled
+      value: "false"
+    # Partitioner for user isolation (hash by user_id)
+    - name: partitioner
+      value: "default"
+    # Consumer group behavior
+    - name: allowCreateTopics
+      value: "true"
+    - name: authRequired
+      value: "false"
+    # Timeout settings
+    - name: timeout
+      value: "10s"
+
+  # Logging level
+  logLevel: debug
+
+---
+# Dapr Component: State Store (Redis) for idempotency
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: default
+spec:
+  type: state.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      value: "redis:6379"
+    - name: redisPassword
+      value: ""
+    - name: actorStateStore
+      value: "true"
+    # Connection pooling
+    - name: maxRetries
+      value: "3"
+    - name: maxRetryBackoff
+      value: "2s"
+    # TTL for idempotency keys (24 hours)
+    - name: ttl
+      value: "86400"
+    # TLS disabled for local
+    - name: enableTLS
+      value: "false"
+    # Timeout settings
+    - name: readTimeout
+      value: "10s"
+    - name: writeTimeout
+      value: "10s"
+
+  logLevel: debug
+
+---
+# Dapr Component: Secrets (Kubernetes secrets)
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kubernetes-secrets
+  namespace: default
+spec:
+  type: secretstores.kubernetes
+  version: v1
+  # No additional metadata needed
+
+  logLevel: debug
+
+---
+# Dapr Component: Jobs API (local implementation)
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: reminder-jobs
+  namespace: default
+spec:
+  type: jobs.local
+  version: v1
+  metadata:
+    - name: queueDepth
+      value: "100"
+    - name: maxConcurrentHandlers
+      value: "10"
+    - name: pollIntervalMs
+      value: "100"
+
+  logLevel: debug
+
+---
+# Dapr Subscription for task events (Pub/Sub)
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: task-events-subscription
+  namespace: default
+spec:
+  pubsubname: kafka-pubsub
+  topic: task-events
+  routes:
+    default: /api/events/task-events
+  bulkSubscribe:
+    enabled: true
+    maxMessagesCount: 100
+    maxAwaitDurationMs: 1000
+  deadLetterTopic: dlq-task-events
+  metadata:
+    - name: maxConcurrentHandlers
+      value: "5"
+
+---
+# Dapr Subscription for reminders
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: reminders-subscription
+  namespace: default
+spec:
+  pubsubname: kafka-pubsub
+  topic: reminders
+  routes:
+    default: /api/events/reminders
+  bulkSubscribe:
+    enabled: true
+    maxMessagesCount: 50
+    maxAwaitDurationMs: 500
+  deadLetterTopic: dlq-reminders
+
+---
+# Dapr Subscription for task updates
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: task-updates-subscription
+  namespace: default
+spec:
+  pubsubname: kafka-pubsub
+  topic: task-updates
+  routes:
+    default: /api/events/task-updates
+  bulkSubscribe:
+    enabled: true
+    maxMessagesCount: 100
+    maxAwaitDurationMs: 500
+  deadLetterTopic: dlq-task-updates
+
+---
+# Dapr Configuration for Debug Mode
+apiVersion: dapr.io/v1alpha1
+kind: ResiliencyPolicy
+metadata:
+  name: local-resiliency
+  namespace: default
+spec:
+  policies:
+    timeouts:
+      general: 5s
+      daprd: 15s
+    retry:
+      general:
+        maxRetries: 3
+        backoff:
+          initialInterval: 100ms
+          maxInterval: 1s
+          multiplier: "2.0"
+      actor:
+        maxRetries: 5
+        backoff:
+          initialInterval: 50ms
+          maxInterval: 500ms
+          multiplier: "2.0"
+    circuitBreaker:
+      generalCB:
+        consecutiveErrors: 5
+        interval: 10s
+        maxRequests: 3
+  targets:
+    services:
+      "*":
+        timeout: general
+        retry: general
+        circuitBreaker: generalCB
+    actors:
+      "*/*":
+        timeout: general
+        retry: actor
+        circuitBreaker: generalCB
+
+---
+# ConfigMap for local development environment variables
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dapr-env-config-local
+  namespace: default
+data:
+  # Dapr runtime environment variables
+  DAPR_LOG_LEVEL: "debug"
+  DAPR_API_LISTEN_ADDRESSES: "[::]:3500"
+  DAPR_INTERNAL_GRPC_PORT: "50001"
+  DAPR_PROFILE_PORT: "7777"
+  DAPR_METRICS_PORT: "9090"
+  DAPR_ENABLE_PROFILING: "true"
+  DAPR_LOG_AS_JSON: "true"
+  # Tracing
+  DAPR_TRACING_SAMPLINGRATE: "1"
+  # Timeouts
+  DAPR_HTTP_TIMEOUT_SECONDS: "30"
+  DAPR_READ_TIMEOUT_SECONDS: "30"
+  DAPR_WRITE_TIMEOUT_SECONDS: "30"
+  # Features
+  DAPR_ENABLE_STATE_STORE_CACHE: "true"
+  DAPR_ENABLE_SERVICE_INVOCATION_STREAMING: "true"
+  # Credentials (empty for local - no auth)
+  DAPR_API_TOKEN: ""
+  DAPR_APP_TOKEN: ""
+
+---
+# Secret for local development (empty for no auth)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: dapr-secrets-local
+  namespace: default
+type: Opaque
+stringData:
+  # No secrets needed for local development
+  # In production, these would contain real credentials
+  jwt-secret: "local-development-secret-key"
+  api-key: "local-api-key"
+

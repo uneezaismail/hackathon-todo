@@ -1,0 +1,209 @@
+# Prometheus Alert Rules (T080)
+# Alerting conditions for monitoring services
+
+groups:
+  - name: todo_app_alerts
+    interval: 30s
+    rules:
+      # High Error Rate Alerts
+      - alert: HighErrorRate
+        expr: |
+          rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High error rate detected on {{ $labels.job }}"
+          description: "Error rate is {{ $value | humanizePercentage }} on {{ $labels.job }}"
+
+      # High Latency Alerts
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1.0
+        for: 10m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High latency detected on {{ $labels.job }}"
+          description: "P95 latency is {{ $value | humanizeDuration }}"
+
+      # Pod Restart Alert
+      - alert: PodRestartingTooOften
+        expr: |
+          rate(kube_pod_container_status_restarts_total[15m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is restarting frequently"
+          description: "Pod restart rate is {{ $value | humanize }} restarts/minute"
+
+      # Memory Usage Alert
+      - alert: HighMemoryUsage
+        expr: |
+          container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "High memory usage on {{ $labels.pod_name }}"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      # CPU Usage Alert
+      - alert: HighCPUUsage
+        expr: |
+          rate(container_cpu_usage_seconds_total[5m]) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "High CPU usage on {{ $labels.pod_name }}"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
+
+      # Database Connection Pool Alert
+      - alert: DatabaseConnectionPoolNearCapacity
+        expr: |
+          pg_stat_activity_count / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Database connection pool near capacity"
+          description: "Connection usage is {{ $value | humanizePercentage }}"
+
+      # Kafka Consumer Lag Alert
+      - alert: KafkaConsumerLagHigh
+        expr: |
+          kafka_consumergroup_lag > 10000
+        for: 10m
+        labels:
+          severity: warning
+          component: kafka
+        annotations:
+          summary: "Kafka consumer {{ $labels.consumergroup }} has high lag"
+          description: "Consumer lag is {{ $value | humanize }} messages behind"
+
+      # Dapr Service Unavailable
+      - alert: DaprServiceDown
+        expr: |
+          up{job=~".*-service"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: dapr
+        annotations:
+          summary: "Dapr sidecar for {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} in pod {{ $labels.pod }} is not responding to Dapr health checks"
+
+      # Alert Service Not Scheduling Reminders
+      - alert: AlertServiceNotScheduling
+        expr: |
+          increase(alert_jobs_scheduled_total[5m]) == 0
+        for: 15m
+        labels:
+          severity: critical
+          component: alert-service
+        annotations:
+          summary: "Alert service is not scheduling new alerts"
+          description: "No new alerts scheduled in the last 15 minutes"
+
+      # Notification Service Delivery Failure
+      - alert: NotificationDeliveryFailureRate
+        expr: |
+          rate(notification_delivery_failures_total[5m]) / rate(notification_delivery_attempts_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          component: notification-service
+        annotations:
+          summary: "Notification delivery failure rate is high"
+          description: "Failure rate is {{ $value | humanizePercentage }}"
+
+      # Recurring Task Generation Delay
+      - alert: RecurringTaskGenerationDelay
+        expr: |
+          (time() - max by (parent_task_id) (timestamp(task_recurring_next_occurrence_timestamp))) > 86400
+        for: 1h
+        labels:
+          severity: warning
+          component: recurring-service
+        annotations:
+          summary: "Recurring task {{ $labels.parent_task_id }} generation is delayed"
+          description: "Next instance not generated for over 24 hours"
+
+      # Event Processing Latency
+      - alert: EventProcessingLatencyHigh
+        expr: |
+          histogram_quantile(0.95, rate(event_processing_duration_seconds_bucket[5m])) > 5.0
+        for: 10m
+        labels:
+          severity: warning
+          component: event-processing
+        annotations:
+          summary: "Event processing latency is high on {{ $labels.service }}"
+          description: "P95 processing latency is {{ $value | humanizeDuration }}"
+
+      # Dapr State Store Connectivity
+      - alert: DaprStateStoreConnectivity
+        expr: |
+          rate(dapr_state_store_errors_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          component: dapr
+        annotations:
+          summary: "Dapr state store connectivity issues"
+          description: "Error rate is {{ $value | humanize }} errors/second"
+
+      # Node Pressure Alert
+      - alert: NodeMemoryPressure
+        expr: |
+          kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+        for: 5m
+        labels:
+          severity: critical
+          component: kubernetes
+        annotations:
+          summary: "Node {{ $labels.node }} has memory pressure"
+          description: "Node memory is constrained"
+
+      - alert: NodeDiskPressure
+        expr: |
+          kube_node_status_condition{condition="DiskPressure",status="true"} == 1
+        for: 5m
+        labels:
+          severity: critical
+          component: kubernetes
+        annotations:
+          summary: "Node {{ $labels.node }} has disk pressure"
+          description: "Node disk is full"
+
+      # PVC Almost Full
+      - alert: PersistentVolumeAlmostFull
+        expr: |
+          (kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: kubernetes
+        annotations:
+          summary: "PVC {{ $labels.persistentvolumeclaim }} is almost full"
+          description: "Usage is {{ $value | humanizePercentage }}"
+
+      # Service Downtime
+      - alert: ServiceDown
+        expr: |
+          up{job=~"backend|frontend|recurring-service|alert-service|notification-service|audit-service|websocket-service"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: services
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service in pod {{ $labels.pod_name }} is not responding"

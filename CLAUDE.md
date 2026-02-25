@@ -52,6 +52,68 @@ Create PHR after each command using `sp.phr`. Location: `history/prompts/`
 Python 3.13+: PEP 8, type hints, async/await
 TypeScript: Strict mode, interfaces over types
 
+## MCP Servers for Accurate Implementation
+
+**CRITICAL: Always use context7 MCP server for up-to-date documentation**
+
+Before implementing features with external libraries/frameworks, MUST use context7 to get current, accurate documentation:
+
+1. **Resolve Library ID**: Use `mcp__context7__resolve-library-id` to find the correct library
+2. **Query Documentation**: Use `mcp__context7__query-docs` with the library ID to get implementation guidance
+
+**When to Use:**
+- FastAPI endpoints and patterns
+- Next.js 16 App Router features
+- SQLModel ORM operations
+- Better Auth integration
+- OpenAI Agents SDK usage
+- Dapr building blocks (Pub/Sub, State Store, Service Invocation)
+- Kafka producer/consumer patterns
+- Kubernetes/Helm configurations
+- Any external library or framework
+
+**Example Workflow:**
+```
+1. User asks to implement Dapr Pub/Sub
+2. Resolve library: mcp__context7__resolve-library-id("dapr")
+3. Query docs: mcp__context7__query-docs("/dapr/docs", "How to implement pub/sub in Python")
+4. Implement using the up-to-date patterns from context7
+```
+
+**Better Auth MCP Server:**
+
+For Better Auth authentication implementation, use the Better Auth MCP server:
+
+- `mcp__better-auth__search`: Search Better Auth knowledge base for specific authentication patterns
+- `mcp__better-auth__chat`: Ask questions about Better Auth implementation
+- `mcp__better-auth__list_files`: Browse available Better Auth documentation
+- `mcp__better-auth__get_file`: Retrieve specific Better Auth documentation files
+
+**When implementing authentication features:**
+1. Search Better Auth docs first: `mcp__better-auth__search("JWT validation with shared secret")`
+2. Get implementation guidance for Next.js frontend and FastAPI backend
+3. Follow Better Auth patterns (NOT NextAuth - they are different frameworks)
+
+This ensures implementations follow current best practices and avoid deprecated patterns.
+
 ## Recent Changes
 
-- Phase III: AI chatbot, recurring tasks, calendar, analytics dashboard
+- Phase V: Constitution updated to v2.0.0 with event-driven architecture, Dapr, Kafka requirements
+
+## Phase 5 Skills
+**MUST use these skills for Phase 5 implementation:**
+
+| Skill | Purpose |
+|-------|---------|
+| `dapr-integration` | Dapr 1.12+ integration (Pub/Sub, State, Jobs API, Service Invocation, Secrets) |
+| `kafka-event-driven` | Kafka 3.x event-driven architecture, topic management, consumer groups |
+| `microservices-patterns` | Event-driven microservices, loose coupling, fault tolerance |
+| `kubernetes-helm-deployment` | Helm chart updates for Dapr sidecar injection |
+| `terraform-infrastructure` | Infrastructure-as-Code templates for OKE/GKE/AKS provisioning |
+| `rrule-recurring-tasks` | RRULE (RFC 5545) pattern parsing and next occurrence calculation |
+
+## Phase 5 SubAgent
+
+- **Phase 5 Agent** : phase5-cloud-deployment-engineer for cloud deployment, Dapr, Kafka, Kubernetes, Helm, Terraform tasks
+
+**Usage:** Before any Phase 5 implementation task, use the appropriate skill and subagent above for guidance on patterns and best practices.

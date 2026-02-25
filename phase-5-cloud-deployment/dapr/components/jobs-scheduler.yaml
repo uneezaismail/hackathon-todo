@@ -1,0 +1,118 @@
+# Dapr Jobs API Configuration
+# Phase V Alert Scheduling
+#
+# The Dapr Jobs API (v1.12+) enables exact-time job scheduling
+# for task reminders and alerts. Unlike cron, Jobs API schedules
+# one-time jobs at specific timestamps.
+#
+# Usage in Python:
+#   # Schedule a job
+#   POST http://localhost:3500/v1.0-alpha1/jobs/reminder-{task_id}
+#   Body: {
+#     "dueTime": "2026-01-20T16:00:00Z",
+#     "data": {"task_id": 123, "user_id": "...", "type": "reminder"}
+#   }
+#
+#   # Cancel a job
+#   DELETE http://localhost:3500/v1.0-alpha1/jobs/reminder-{task_id}
+#
+# When the job fires, Dapr calls:
+#   POST http://localhost:{app-port}/api/jobs/trigger
+#   Body: {"jobName": "reminder-123", "data": {...}}
+
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: dapr-config
+  namespace: default
+spec:
+  # Enable Jobs API (alpha feature in Dapr 1.12+)
+  features:
+    - name: "scheduler"
+      enabled: true
+
+  # Tracing configuration for distributed tracing
+  tracing:
+    samplingRate: "1.0"  # 100% sampling for development
+    zipkin:
+      endpointAddress: "http://zipkin:9411/api/v2/spans"
+
+  # Metrics configuration for Prometheus
+  metrics:
+    enabled: true
+    rules:
+      - name: "dapr_http_server_request_count"
+        labels:
+          - name: "method"
+          - name: "path"
+          - name: "status"
+
+  # mTLS configuration for service-to-service communication
+  mtls:
+    enabled: true
+    workloadCertTTL: "24h"
+    allowedClockSkew: "15m"
+
+  # Access control for service invocation
+  accessControl:
+    defaultAction: allow
+    trustDomain: "public"
+    policies:
+      # Backend can invoke all services
+      - appId: backend
+        defaultAction: allow
+        trustDomain: "public"
+        namespace: "default"
+      # Recurring service can invoke backend
+      - appId: recurring-service
+        defaultAction: allow
+        trustDomain: "public"
+        namespace: "default"
+        operations:
+          - name: /api/*
+            httpVerb: ["POST", "GET"]
+            action: allow
+
+---
+# Dapr Resiliency Configuration
+# Retry and circuit breaker policies for reliable messaging
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: dapr-resiliency
+  namespace: default
+spec:
+  policies:
+    # Retry policy for transient failures
+    retries:
+      pubsubRetry:
+        policy: constant
+        duration: 5s
+        maxRetries: 3
+      serviceRetry:
+        policy: exponential
+        maxInterval: 30s
+        maxRetries: 5
+
+    # Circuit breaker for cascading failure prevention
+    circuitBreakers:
+      pubsubCircuitBreaker:
+        maxRequests: 1
+        interval: 60s
+        timeout: 30s
+        trip: consecutiveFailures >= 5
+
+  targets:
+    # Apply retry to Kafka Pub/Sub
+    components:
+      kafka-pubsub:
+        outbound:
+          retry: pubsubRetry
+          circuitBreaker: pubsubCircuitBreaker
+
+    # Apply retry to service invocation
+    apps:
+      backend:
+        retry: serviceRetry
+      recurring-service:
+        retry: serviceRetry

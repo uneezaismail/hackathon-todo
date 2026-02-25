@@ -1,0 +1,162 @@
+# Alertmanager Configuration (T082)
+# Alert routing and notification management
+
+global:
+  resolve_timeout: 5m
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+route:
+  receiver: 'default'
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+
+  # Critical alerts: immediate routing
+  - match:
+      severity: critical
+    receiver: 'critical'
+    group_wait: 10s
+    repeat_interval: 1h
+    routes:
+      - match:
+          component: dapr
+        receiver: 'dapr-critical'
+        group_wait: 5s
+        repeat_interval: 30m
+      - match:
+          component: database
+        receiver: 'database-critical'
+        group_wait: 5s
+        repeat_interval: 30m
+      - match:
+          component: alert-service
+        receiver: 'alert-service-critical'
+        group_wait: 5s
+        repeat_interval: 15m
+
+  # Warning alerts: batched routing
+  - match:
+      severity: warning
+    receiver: 'warning'
+    group_wait: 2m
+    repeat_interval: 4h
+    routes:
+      - match:
+          component: event-processing
+        receiver: 'event-processing-warning'
+        repeat_interval: 2h
+      - match:
+          component: kubernetes
+        receiver: 'kubernetes-warning'
+        repeat_interval: 6h
+
+receivers:
+  # Default receiver
+  - name: 'default'
+    slack_configs:
+      - channel: '#alerts-default'
+        title: 'Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+
+  # Critical alerts receiver
+  - name: 'critical'
+    slack_configs:
+      - channel: '#alerts-critical'
+        title: 'CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '@here - {{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'danger'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        description: '{{ .GroupLabels.alertname }}: {{ .GroupLabels.job }}'
+        details:
+          firing: '{{ template "pagerduty.default.instances" .Alerts.Firing }}'
+    email_configs:
+      - to: 'ops-team@example.com'
+        from: 'alertmanager@example.com'
+        smarthost: 'smtp.gmail.com:587'
+        auth_username: '${SMTP_USERNAME}'
+        auth_password: '${SMTP_PASSWORD}'
+        headers:
+          Subject: 'CRITICAL Alert: {{ .GroupLabels.alertname }}'
+
+  # Dapr critical receiver
+  - name: 'dapr-critical'
+    slack_configs:
+      - channel: '#alerts-dapr'
+        title: 'DAPR CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}Service: {{ .Labels.job }}\n{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'danger'
+
+  # Database critical receiver
+  - name: 'database-critical'
+    slack_configs:
+      - channel: '#alerts-database'
+        title: 'DATABASE CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'danger'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_DB_SERVICE_KEY}'
+
+  # Alert service critical receiver
+  - name: 'alert-service-critical'
+    slack_configs:
+      - channel: '#alerts-alert-service'
+        title: 'ALERT SERVICE CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'danger'
+
+  # Warning receiver
+  - name: 'warning'
+    slack_configs:
+      - channel: '#alerts-warning'
+        title: 'Warning: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: false
+        color: 'warning'
+
+  # Event processing warning receiver
+  - name: 'event-processing-warning'
+    slack_configs:
+      - channel: '#alerts-event-processing'
+        title: 'Event Processing Warning: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: false
+        color: 'warning'
+
+  # Kubernetes warning receiver
+  - name: 'kubernetes-warning'
+    slack_configs:
+      - channel: '#alerts-kubernetes'
+        title: 'Kubernetes Warning: {{ .GroupLabels.alertname }}'
+        text: 'Node: {{ .GroupLabels.node }}\n{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: false
+        color: 'warning'
+
+inhibit_rules:
+  # Inhibit warning alerts if critical alert exists for same service
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']
+
+  # Inhibit info alerts if warning or critical exists
+  - source_match:
+      severity: 'warning'
+    target_match:
+      severity: 'info'
+    equal: ['alertname', 'dev', 'instance']
+
+  # Resolved alerts inhibit future firings briefly
+  - source_match_re:
+      severity: '^(?:warning|critical)$'
+    target_match_re:
+      severity: '^info$'
+    equal: ['alertname', 'dev', 'instance']

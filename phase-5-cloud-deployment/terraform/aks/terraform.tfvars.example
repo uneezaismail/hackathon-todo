@@ -1,0 +1,53 @@
+# Azure Subscription Configuration
+subscription_id = "YOUR_AZURE_SUBSCRIPTION_ID"
+
+# Environment Configuration
+environment  = "dev"
+project_name = "todo-app"
+location     = "East US"
+
+# Resource Group
+resource_group_name = "todo-rg-dev"
+
+# AKS Cluster Configuration
+cluster_name       = "todo-aks-dev"
+dns_prefix         = "todoaksdev"
+kubernetes_version = "1.28"
+
+# Node Configuration
+node_count      = 2
+vm_size         = "Standard_B2s"  # 2 vCPUs, 4GB RAM
+os_disk_size_gb = 30
+
+# Network Configuration
+service_cidr   = "10.0.0.0/16"
+dns_service_ip = "10.0.0.10"
+
+# Container Registry
+registry_name = "todoappreg"
+registry_sku  = "Standard"
+
+# Kubernetes Configuration
+namespace = "default"
+
+# Dapr Configuration
+dapr_version   = "1.12.0"
+dapr_log_level = "info"
+
+# Application Replicas
+app_replicas_backend  = 2
+app_replicas_frontend = 2
+
+# Storage
+postgres_enabled = true
+kafka_enabled    = true
+
+# Monitoring
+enable_monitoring = true
+
+# Additional Tags
+additional_tags = {
+  owner       = "devops"
+  cost_center = "engineering"
+  managed_by  = "terraform"
+}

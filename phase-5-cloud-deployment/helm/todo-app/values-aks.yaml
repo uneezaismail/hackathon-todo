@@ -1,0 +1,254 @@
+# Helm Values for Azure AKS Deployment (T072)
+
+global:
+  environment: production
+  imagePullPolicy: IfNotPresent
+
+# Backend Service Configuration
+backend:
+  name: backend
+  replicas: 2
+  port: 8000
+
+  image:
+    repository: todoappreg.azurecr.io/todo-backend
+    tag: latest
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  # Dapr Sidecar Configuration (T073)
+  dapr:
+    enabled: true
+    app_id: backend
+    app_port: 8000
+    config: dapr-config
+    log_level: info
+
+  # Health Checks
+  livenessProbe:
+    httpGet:
+      path: /health/live
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /health/ready
+      port: 8000
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    failureThreshold: 3
+
+# Frontend Service Configuration
+frontend:
+  name: frontend
+  replicas: 2
+  port: 3000
+
+  image:
+    repository: todoappreg.azurecr.io/todo-frontend
+    tag: latest
+
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 3000
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+
+# Recurring Task Service
+recurringService:
+  name: recurring-service
+  replicas: 1
+  port: 8001
+
+  image:
+    repository: todoappreg.azurecr.io/recurring-service
+    tag: latest
+
+  dapr:
+    enabled: true
+    app_id: recurring-service
+    app_port: 8001
+
+# Audit Service
+auditService:
+  name: audit-service
+  replicas: 1
+  port: 8003
+
+  image:
+    repository: todoappreg.azurecr.io/audit-service
+    tag: latest
+
+  dapr:
+    enabled: true
+    app_id: audit-service
+    app_port: 8003
+
+# WebSocket Service
+websocketService:
+  name: websocket-service
+  replicas: 1
+  port: 8004
+
+  image:
+    repository: todoappreg.azurecr.io/websocket-service
+    tag: latest
+
+  service:
+    type: ClusterIP
+    port: 8004
+
+  dapr:
+    enabled: true
+    app_id: websocket-service
+    app_port: 8004
+
+# Horizontal Pod Autoscaler Configuration (T074)
+autoscaling:
+  enabled: true
+
+  backend:
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  frontend:
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 60
+
+# Ingress Configuration with TLS (T075)
+ingress:
+  enabled: true
+  className: nginx
+
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+  hosts:
+    - host: todo.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          backend: frontend
+
+  tls:
+    - secretName: todo-tls
+      hosts:
+        - todo.example.com
+
+# PostgreSQL Configuration
+postgres:
+  enabled: false  # Use external managed database
+  external:
+    host: postgres.database.azure.com
+    port: 5432
+    database: todo
+    username: postgres
+    # Password should come from Kubernetes secret
+
+# Kafka Configuration
+kafka:
+  enabled: false  # Use external managed service
+  brokers: kafka:9092
+
+# Dapr Component Configuration (T073)
+dapr:
+  components:
+    pubsub:
+      name: kafka-pubsub
+      type: pubsub.kafka
+      version: v1
+      metadata:
+        - name: brokers
+          value: kafka:9092
+        - name: consumerGroup
+          value: todo-service-group
+        - name: maxRetries
+          value: "3"
+        - name: deadLetterTopic
+          value: dlq-task-events
+
+    statestore:
+      name: statestore
+      type: state.postgresql
+      version: v1
+      metadata:
+        - name: connectionString
+          value: "host=postgres.database.azure.com port=5432 user=postgres@server password=password dbname=todo sslmode=require"
+
+    secrets:
+      name: kubernetes-secrets
+      type: secretstores.kubernetes
+      version: v1
+
+# Monitoring Configuration (T079-T081)
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    retention: 30d
+  grafana:
+    enabled: true
+    admin_password: admin
+  alertmanager:
+    enabled: true
+
+# ConfigMap Data
+config:
+  log_level: info
+  environment: production
+  database_pool_size: "20"
+  max_connections: "100"
+
+# Secrets (reference existing K8s secrets)
+secrets:
+  database_url: database-credentials
+  api_key: api-credentials
+  jwt_secret: jwt-credentials
+
+# Service Account Configuration
+serviceAccount:
+  create: true
+  name: todo-app-sa
+  annotations:
+    azure.workload.identity/client-id: "YOUR_CLIENT_ID"
+
+# Pod Security Policy
+podSecurityPolicy:
+  enforce: true
+
+# Network Policies
+networkPolicy:
+  enabled: true
+
+# Resource Quotas
+resourceQuota:
+  enabled: true
+  limits:
+    requests.cpu: "10"
+    requests.memory: "20Gi"
+    limits.cpu: "20"
+    limits.memory: "40Gi"

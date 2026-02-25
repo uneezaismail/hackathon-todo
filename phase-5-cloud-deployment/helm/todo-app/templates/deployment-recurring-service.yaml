@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "todo-app.fullname" . }}-recurring-service
+  labels:
+    {{- include "todo-app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: recurring-service
+spec:
+  replicas: {{ .Values.replicaCount.recurringService | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "todo-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: recurring-service
+  template:
+    metadata:
+      labels:
+        {{- include "todo-app.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: recurring-service
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "recurring-service"
+        dapr.io/app-port: "8001"
+        dapr.io/config: "dapr-config"
+        dapr.io/log-level: "info"
+        dapr.io/log-as-json: "true"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: recurring-service
+        image: "{{ .Values.image.recurringService.repository }}:{{ .Values.image.recurringService.tag }}"
+        imagePullPolicy: {{ .Values.image.recurringService.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: 8001
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          initialDelaySeconds: {{ .Values.healthProbes.recurringService.liveness.initialDelaySeconds | default 30 }}
+          periodSeconds: {{ .Values.healthProbes.recurringService.liveness.periodSeconds | default 15 }}
+          timeoutSeconds: {{ .Values.healthProbes.recurringService.liveness.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.healthProbes.recurringService.liveness.failureThreshold | default 3 }}
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: {{ .Values.healthProbes.recurringService.readiness.initialDelaySeconds | default 10 }}
+          periodSeconds: {{ .Values.healthProbes.recurringService.readiness.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.healthProbes.recurringService.readiness.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.healthProbes.recurringService.readiness.failureThreshold | default 3 }}
+        resources:
+          limits:
+            cpu: {{ .Values.resources.recurringService.limits.cpu | default "500m" }}
+            memory: {{ .Values.resources.recurringService.limits.memory | default "512Mi" }}
+          requests:
+            cpu: {{ .Values.resources.recurringService.requests.cpu | default "100m" }}
+            memory: {{ .Values.resources.recurringService.requests.memory | default "256Mi" }}
+        envFrom:
+        - configMapRef:
+            name: {{ include "todo-app.fullname" . }}-config
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: DATABASE_URL
+        - name: BETTER_AUTH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "todo-app.fullname" . }}-secrets
+              key: BETTER_AUTH_SECRET
+        - name: DAPR_HTTP_PORT
+          value: "3500"
+        - name: PUBSUB_NAME
+          value: "kafka-pubsub"
+        - name: STATE_STORE_NAME
+          value: "statestore"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: false
